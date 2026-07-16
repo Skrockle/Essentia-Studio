@@ -1,0 +1,4 @@
+services:
+  essentia-studio:
+    image: ghcr.io/skrockle/essentia-studio:latest-cuda
+    gpus: all

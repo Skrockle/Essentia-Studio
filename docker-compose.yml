@@ -1,31 +1,9 @@
 services:
-  essentia-tagger:
-    build: .
+  essentia-studio:
+    image: ghcr.io/skrockle/essentia-studio:latest-cpu
+    ports:
+      - "${ESSENTIA_BIND:-0.0.0.0}:8000:8000"
     volumes:
-      - ${MUSIC_DIR:-./music}:/music
-    # Override CMD via environment or command
-    # Examples:
-    #   docker compose run essentia-tagger /music --auto --dry-run
-    #   docker compose run essentia-tagger /music/song.flac --auto --single-file
-    profiles: ["cpu"]
-
-  essentia-tagger-gpu:
-    build:
-      context: .
-      dockerfile: Dockerfile.gpu
-    volumes:
-      - ${MUSIC_DIR:-./music}:/music
-    networks:
-      - essentia_net
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
-    profiles: ["gpu"]
-
-networks:
-  essentia_net:
-    driver: bridge
+      - "${MUSIC_DIR}:/music"
+      - "${DATA_DIR}:/data"
+    restart: unless-stopped
