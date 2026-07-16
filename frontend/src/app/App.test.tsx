@@ -21,6 +21,15 @@ beforeEach(() => {
           }),
         )
       }
+      if (url.includes('/api/results')) {
+        return Response.json({
+          items: [],
+          total: 0,
+          page: 1,
+          page_size: 50,
+          selected_count: 0,
+        })
+      }
       return new Response(
         JSON.stringify({
           worker_count: 1,

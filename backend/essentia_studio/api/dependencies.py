@@ -1,6 +1,7 @@
 from fastapi import Request
 
 from essentia_studio.repositories.jobs import JobRepository
+from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.services.capabilities import CapabilityService
@@ -21,6 +22,10 @@ def get_job_repository(request: Request) -> JobRepository:
 
 def get_track_repository(request: Request) -> TrackRepository:
     return request.app.state.track_repository
+
+
+def get_result_repository(request: Request) -> ResultRepository:
+    return request.app.state.result_repository
 
 
 def get_job_coordinator(request: Request) -> JobCoordinator:
