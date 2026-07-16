@@ -1,0 +1,6 @@
+fastapi==0.136.3
+mutagen==1.47.0
+numpy==1.26.4
+pydantic==2.12.5
+sqlalchemy==2.0.46
+uvicorn[standard]==0.40.0

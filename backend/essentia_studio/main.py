@@ -7,9 +7,14 @@ from threading import Event
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from essentia_studio import __version__
 from essentia_studio.analysis.fake_backend import FakeAnalysisBackend
 from essentia_studio.analysis.process_backend import ProcessAnalysisBackend
 from essentia_studio.analysis.protocol import AnalysisBackend
+from essentia_studio.analysis.tensorflow_devices import (
+    detect_tensorflow_devices,
+    select_compute,
+)
 from essentia_studio.api.router import router as api_router
 from essentia_studio.api.routes.health import router as health_router
 from essentia_studio.config import RuntimeConfig
@@ -60,12 +65,21 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         if runtime_config.analysis_backend == "fake":
             analysis_backend = FakeAnalysisBackend()
         else:
-            compute = "cuda" if runtime_config.image_variant == "cuda" else "cpu"
+            device_report = detect_tensorflow_devices()
+            compute = select_compute(
+                application_settings.compute_preference,
+                image_variant=runtime_config.image_variant,
+                gpu_devices=device_report.gpu_devices,
+            )
+            available_compute = ["cpu"]
+            if runtime_config.image_variant == "cuda" and device_report.gpu_devices:
+                available_compute.append("cuda")
             analysis_backend = ProcessAnalysisBackend(
                 runtime_config.model_dir,
                 compute,
                 application_settings.worker_count,
                 runtime_config.image_variant,
+                available_compute,
             )
         analysis_service = AnalysisJobService(
             analysis_backend,
@@ -117,7 +131,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             analysis_backend.close()
         engine.dispose()
 
-    app = FastAPI(title="Essentia Studio", version="0.0.0", lifespan=lifespan)
+    app = FastAPI(title="Essentia Studio", version=__version__, lifespan=lifespan)
     app.add_exception_handler(AppError, app_error_handler)
     app.include_router(health_router)
     app.include_router(api_router)

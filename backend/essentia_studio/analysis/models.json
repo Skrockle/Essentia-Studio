@@ -3,7 +3,7 @@
     "name": "discogs-effnet-bs64-1.pb",
     "role": "embedding",
     "url": "https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bs64-1.pb",
-    "sha256": "f601268528ab0b848bb4826dfff1600a76d95162406beefeec5b8cd4e0e59f5a",
+    "sha256": "3ed9af50d5367c0b9c795b294b00e7599e4943244f4cbd376869f3bfc87721b1",
     "output": "PartitionedCall:1"
   },
   {

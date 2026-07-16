@@ -31,7 +31,7 @@ def _write_tone(path: Path) -> None:
     sample_rate = 16000
     samples = [
         int(12000 * math.sin(2 * math.pi * 440 * index / sample_rate))
-        for index in range(sample_rate)
+        for index in range(sample_rate * 10)
     ]
     with wave.open(str(path), "wb") as audio_file:
         audio_file.setnchannels(1)

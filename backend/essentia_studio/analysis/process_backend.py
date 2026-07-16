@@ -13,18 +13,20 @@ class ProcessAnalysisBackend:
         compute: str,
         worker_count: int,
         image_variant: str,
+        available_compute: list[str] | None = None,
     ) -> None:
         self._inventory = EssentiaBackend(model_dir, image_variant)
         self._model_dir = model_dir
         self._compute = compute
         self._worker_count = worker_count
+        self._available_compute = available_compute or ["cpu"]
         self._executor: ProcessPoolExecutor | None = None
 
     def model_inventory(self) -> list[dict[str, str]]:
         return self._inventory.model_inventory()
 
     def available_compute(self) -> list[str]:
-        return self._inventory.available_compute()
+        return self._available_compute.copy()
 
     def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
         return self._get_executor().submit(analyze_in_worker, str(path), options).result()
