@@ -4,6 +4,7 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,6 +14,7 @@ class RuntimeConfig:
     database_path: Path
     playlist_dir: Path
     frontend_dir: Path
+    image_variant: Literal["cpu", "cuda"]
     host: str
     port: int
 
@@ -32,6 +34,13 @@ class RuntimeConfig:
                 values.get("ESSENTIA_PLAYLIST_DIR", str(music_root / "SmartPlaylists"))
             ),
             frontend_dir=Path(values.get("ESSENTIA_FRONTEND_DIR", "frontend/dist")),
+            image_variant=_image_variant(values.get("ESSENTIA_IMAGE_VARIANT", "cpu")),
             host=values.get("ESSENTIA_HOST", "0.0.0.0"),
             port=int(values.get("ESSENTIA_PORT", "8000")),
         )
+
+
+def _image_variant(value: str) -> Literal["cpu", "cuda"]:
+    if value not in {"cpu", "cuda"}:
+        raise ValueError("ESSENTIA_IMAGE_VARIANT must be 'cpu' or 'cuda'")
+    return value

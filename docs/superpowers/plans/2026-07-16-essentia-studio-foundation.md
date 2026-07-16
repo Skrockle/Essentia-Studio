@@ -812,7 +812,7 @@ Add `CapabilityService(config, image_variant)` and have `inspect()` call `inspec
 
 - [ ] **Step 4: Implement app lifespan and routes**
 
-`create_app` must create the engine, apply migrations inside an `@asynccontextmanager` lifespan, store config/engine/services on `app.state`, register `AppError`, include the `/api` router, and call `app.frontend("/", directory=config.frontend_dir, fallback="index.html")` only when `frontend/index.html` exists. The health route returns `{"status": "ok", "version": __version__}`.
+`create_app` must create the engine, apply migrations inside an `@asynccontextmanager` lifespan, store config/engine/services on `app.state`, register `AppError`, and include the `/api` router. When `frontend/index.html` exists, mount Starlette `StaticFiles(directory=config.frontend_dir, html=True)` on `/` after all API routes. The health route returns `{"status": "ok", "version": __version__}`.
 
 `tests/conftest.py` creates a temporary music directory and data directory, builds `RuntimeConfig` from those absolute paths, enters `TestClient(create_app(config))` as a context manager, yields it, and closes the client after each test so lifespan state never leaks.
 

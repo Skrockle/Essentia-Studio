@@ -1,6 +1,7 @@
+from sqlalchemy import text
+
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
-from sqlalchemy import text
 
 
 def test_migrations_are_idempotent(tmp_path) -> None:
