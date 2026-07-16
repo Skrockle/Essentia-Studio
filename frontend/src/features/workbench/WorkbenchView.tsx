@@ -1,15 +1,116 @@
-import { useMemo, useState } from 'react'
-import { AudioWaveform, Search, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { AudioWaveform, FolderSearch, PenLine, Search, Sparkles } from 'lucide-react'
 
+import { apiRequest } from '../../api/client'
+import type { JobRecord, WriteOperation } from '../jobs/types'
+import { useJobEvents } from '../jobs/useJobEvents'
 import { ResultTable } from './ResultTable'
 import { SelectionToolbar } from './SelectionToolbar'
 import { useResults } from './useResults'
+import { WritePreviewDialog } from './WritePreviewDialog'
+import type { ResultRow } from './types'
+
+interface WorkbenchActionsProps {
+  active: boolean
+  selectedCount: number
+  onScan: () => void
+  onAnalyze: () => void
+  onPreview: () => void
+}
+
+function WorkbenchActions({ active, selectedCount, onScan, onAnalyze, onPreview }: WorkbenchActionsProps) {
+  return (
+    <div className="workbench-actions">
+      <button disabled={active} onClick={onScan} type="button">
+        <FolderSearch aria-hidden="true" size={16} /> Bibliothek scannen
+      </button>
+      <button disabled={active} onClick={onAnalyze} type="button">
+        <Sparkles aria-hidden="true" size={16} /> Auswahl analysieren
+      </button>
+      <button className="primary-button" disabled={!selectedCount || active} onClick={onPreview} type="button">
+        <PenLine aria-hidden="true" size={16} /> {selectedCount} Titel schreiben
+      </button>
+    </div>
+  )
+}
+
+interface ResultsProps {
+  error: string | null
+  rows: ResultRow[]
+  allSelected: boolean
+  onSelectAll: (selected: boolean) => void
+  onSelectRow: (row: ResultRow, selected: boolean) => void
+  onSaveDraft: (row: ResultRow, genres: string[], moods: string[]) => void
+}
+
+function WorkbenchResults({ error, rows, ...tableProps }: ResultsProps) {
+  if (error) return <p className="notice notice--error">{error}</p>
+  if (rows.length > 0) return <ResultTable rows={rows} {...tableProps} />
+  return (
+    <section className="panel workbench-empty">
+      <div className="empty-icon"><AudioWaveform aria-hidden="true" size={30} /></div>
+      <div>
+        <p className="eyebrow">Noch keine Vorschläge</p>
+        <h2>Scanne und analysiere deine Mediathek</h2>
+        <p>Die Ergebnisse erscheinen hier zur Prüfung, ohne deine Dateien zu verändern.</p>
+      </div>
+    </section>
+  )
+}
+
+function jobMessage(job: JobRecord): string {
+  return job.type === 'scan' ? 'Scan läuft …' : 'Analyse läuft …'
+}
 
 export function WorkbenchView() {
   const [search, setSearch] = useState('')
   const query = useMemo(() => ({ search }), [search])
-  const { page, error, selectAll, selectRow, saveDraft, bulkUpdate } = useResults(query)
+  const {
+    page,
+    error,
+    selection,
+    refresh,
+    selectAll,
+    selectRow,
+    saveDraft,
+    bulkUpdate,
+  } = useResults(query)
+  const [activeJob, setActiveJob] = useState<JobRecord | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const event = useJobEvents(activeJob?.id ?? null)
   const allSelected = page.total > 0 && page.selected_count === page.total
+
+  useEffect(() => {
+    if (event?.kind !== 'terminal' || !activeJob) return
+    const jobType = activeJob.type
+    queueMicrotask(() => {
+      setStatusMessage(jobType === 'scan' ? 'Scan abgeschlossen' : 'Analyse abgeschlossen')
+      setActiveJob(null)
+      refresh()
+    })
+  }, [activeJob, event, refresh])
+
+  async function startScan() {
+    setStatusMessage(null)
+    setActiveJob(await apiRequest<JobRecord>('/api/library/scan', { method: 'POST' }))
+  }
+
+  async function startAnalysis() {
+    setStatusMessage(null)
+    setActiveJob(
+      await apiRequest<JobRecord>('/api/analysis/jobs', {
+        method: 'POST',
+        body: JSON.stringify({ query: { present: true } }),
+      }),
+    )
+  }
+
+  function finishWrite(operations: WriteOperation[]) {
+    const verified = operations.filter((operation) => operation.status === 'verified').length
+    setShowPreview(false)
+    setStatusMessage(`${verified} verifiziert`)
+  }
 
   return (
     <div className="view-stack">
@@ -45,29 +146,34 @@ export function WorkbenchView() {
           <Sparkles aria-hidden="true" size={17} />
           <strong>{page.total}</strong> analysierte Titel
         </div>
+        <WorkbenchActions
+          active={Boolean(activeJob)}
+          onAnalyze={startAnalysis}
+          onPreview={() => setShowPreview(true)}
+          onScan={startScan}
+          selectedCount={page.selected_count}
+        />
       </section>
 
       <SelectionToolbar selectedCount={page.selected_count} onBulkUpdate={bulkUpdate} />
 
-      {error && <p className="notice notice--error">{error}</p>}
-      {!error && page.items.length === 0 ? (
-        <section className="panel workbench-empty">
-          <div className="empty-icon">
-            <AudioWaveform aria-hidden="true" size={30} />
-          </div>
-          <div>
-            <p className="eyebrow">Noch keine Vorschläge</p>
-            <h2>Scanne und analysiere deine Mediathek</h2>
-            <p>Die Ergebnisse erscheinen hier zur Prüfung, ohne deine Dateien zu verändern.</p>
-          </div>
-        </section>
-      ) : (
-        <ResultTable
-          allSelected={allSelected}
-          onSaveDraft={saveDraft}
-          onSelectAll={selectAll}
-          onSelectRow={selectRow}
-          rows={page.items}
+      {activeJob && (
+        <p className="notice">{jobMessage(activeJob)}</p>
+      )}
+      {statusMessage && <p className="notice notice--success">{statusMessage}</p>}
+      <WorkbenchResults
+        allSelected={allSelected}
+        error={error}
+        onSaveDraft={saveDraft}
+        onSelectAll={selectAll}
+        onSelectRow={selectRow}
+        rows={page.items}
+      />
+      {showPreview && (
+        <WritePreviewDialog
+          onClose={() => setShowPreview(false)}
+          onWritten={finishWrite}
+          selection={selection}
         />
       )}
     </div>

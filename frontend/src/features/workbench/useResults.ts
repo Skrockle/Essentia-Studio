@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { apiRequest } from '../../api/client'
 import type { ResultPage, ResultQuery, ResultRow, SelectionSpec } from './types'
@@ -42,8 +42,16 @@ export function useResults(query: ResultQuery) {
   async function selectAll(selected: boolean) {
     const nextSelection: SelectionSpec = selected
       ? { mode: 'query', query, excluded_ids: [] }
-      : { mode: 'ids', ids: page.items.map((row) => row.id) }
+      : { mode: 'ids', ids: [] }
     setSelection(nextSelection)
+    setPage((current) => ({
+      ...current,
+      selected_count: selected ? current.total : 0,
+      items: current.items.map((row) => ({
+        ...row,
+        draft: { ...row.draft, selected },
+      })),
+    }))
     await apiRequest('/api/results/selection', {
       method: 'POST',
       body: JSON.stringify({ selection: nextSelection, selected }),
@@ -52,6 +60,13 @@ export function useResults(query: ResultQuery) {
   }
 
   async function selectRow(row: ResultRow, selected: boolean) {
+    setPage((current) => ({
+      ...current,
+      selected_count: Math.max(0, current.selected_count + (selected ? 1 : -1)),
+      items: current.items.map((item) =>
+        item.id === row.id ? { ...item, draft: { ...item.draft, selected } } : item,
+      ),
+    }))
     await apiRequest('/api/results/selection', {
       method: 'POST',
       body: JSON.stringify({ selection: { mode: 'ids', ids: [row.id] }, selected }),
@@ -60,6 +75,13 @@ export function useResults(query: ResultQuery) {
       setSelection({
         ...selection,
         excluded_ids: [...selection.excluded_ids, row.id],
+      })
+    } else if (selection.mode === 'ids') {
+      setSelection({
+        mode: 'ids',
+        ids: selected
+          ? [...new Set([...selection.ids, row.id])]
+          : selection.ids.filter((id) => id !== row.id),
       })
     }
     refresh()
@@ -85,5 +107,24 @@ export function useResults(query: ResultQuery) {
     refresh()
   }
 
-  return { page, error, refresh, selectAll, selectRow, saveDraft, bulkUpdate }
+  const effectiveSelection = useMemo<SelectionSpec>(() => {
+    if (selection.mode !== 'ids' || selection.ids.length > 0 || page.selected_count === 0) {
+      return selection
+    }
+    return {
+      mode: 'ids',
+      ids: page.items.filter((row) => row.draft.selected).map((row) => row.id),
+    }
+  }, [page.items, page.selected_count, selection])
+
+  return {
+    page,
+    error,
+    selection: effectiveSelection,
+    refresh,
+    selectAll,
+    selectRow,
+    saveDraft,
+    bulkUpdate,
+  }
 }

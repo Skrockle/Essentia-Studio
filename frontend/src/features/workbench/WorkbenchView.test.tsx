@@ -6,10 +6,12 @@ import { WorkbenchView } from './WorkbenchView'
 
 let selectedCount = 0
 let ambientAdded = false
+let writeCalls = 0
 
 beforeEach(() => {
   selectedCount = 0
   ambientAdded = false
+  writeCalls = 0
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) => {
@@ -17,6 +19,40 @@ beforeEach(() => {
       if (url.includes('/api/results/selection')) {
         selectedCount = 63
         return Response.json({ affected: 63 })
+      }
+      if (url.includes('/api/writes/preview')) {
+        return Response.json({
+          total: 63,
+          writable: 63,
+          conflicts: 0,
+          items: [
+            {
+              result_id: 'one',
+              relative_path: 'Artist/one.flac',
+              before_genres: ['Rock'],
+              after_genres: ['Electronic; House'],
+              before_moods: [],
+              after_moods: ['Happy'],
+              conflict: false,
+            },
+          ],
+        })
+      }
+      if (url.endsWith('/api/writes')) {
+        writeCalls += 1
+        return Response.json({
+          operations: [
+            {
+              id: 'write-1',
+              result_id: 'one',
+              relative_path: 'Artist/one.flac',
+              status: 'verified',
+              error_code: null,
+              error_message: null,
+              undo_available: true,
+            },
+          ],
+        })
       }
       if (url.includes('/api/results/bulk-draft')) {
         ambientAdded = true
@@ -34,6 +70,21 @@ beforeEach(() => {
       return Response.json({ status: 'completed' })
     }),
   )
+})
+
+test('write preview never writes before explicit confirmation', async () => {
+  render(<WorkbenchView />)
+
+  await userEvent.click(
+    await screen.findByRole('checkbox', { name: 'Alle gefilterten Titel auswählen' }),
+  )
+  await userEvent.click(await screen.findByRole('button', { name: '63 Titel schreiben' }))
+
+  expect(await screen.findByRole('dialog', { name: 'Tag-Änderungen schreiben' })).toBeVisible()
+  expect(writeCalls).toBe(0)
+  await userEvent.click(screen.getByRole('button', { name: 'Schreiben bestätigen' }))
+  expect(await screen.findByText('1 verifiziert')).toBeVisible()
+  expect(writeCalls).toBe(1)
 })
 
 function resultRow(name: string) {

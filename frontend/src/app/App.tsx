@@ -4,6 +4,7 @@ import type { ViewId } from '../api/types'
 import { AppNav } from '../components/AppNav'
 import { AboutView } from '../features/settings/AboutView'
 import { SettingsView } from '../features/settings/SettingsView'
+import { JobsView } from '../features/jobs/JobsView'
 import { WorkbenchView } from '../features/workbench/WorkbenchView'
 
 const viewNames: Record<ViewId, string> = {
@@ -46,7 +47,7 @@ export function App() {
       <main className="app-main" id="main-content">
         {activeView === 'workbench' && <WorkbenchView />}
         {activeView === 'playlists' && <PlannedView view="playlists" />}
-        {activeView === 'jobs' && <PlannedView view="jobs" />}
+        {activeView === 'jobs' && <JobsView />}
         {activeView === 'settings' && <SettingsView />}
         {activeView === 'about' && <AboutView />}
       </main>
