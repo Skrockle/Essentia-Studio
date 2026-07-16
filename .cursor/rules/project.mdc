@@ -1,0 +1,10 @@
+---
+description: Essentia Studio canonical project guidance
+alwaysApply: true
+---
+
+Read and follow the root `AGENTS.md`.
+
+Read `docs/superpowers/plans/2026-07-16-essentia-studio-roadmap.md`, the active detailed plan, and the approved design before editing.
+
+Keep changes within the active task. Do not duplicate project rules in this adapter.
