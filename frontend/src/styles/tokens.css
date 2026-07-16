@@ -1,0 +1,34 @@
+:root {
+  --paper: #f2f4f7;
+  --surface: #ffffff;
+  --surface-subtle: #e9edf2;
+  --ink: #12243a;
+  --ink-muted: #667386;
+  --line: #d9e0e8;
+  --genre: #2f6fed;
+  --mood: #7b4ce2;
+  --signal: #ed7b2f;
+  --success: #197a55;
+  --danger: #b33a3a;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --shadow-panel: 0 18px 50px rgb(18 36 58 / 8%);
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Manrope, "Avenir Next", system-ui, sans-serif;
+  font-synthesis: none;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--genre), white 35%);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
