@@ -29,7 +29,7 @@ The initial deployment targets a trusted local network. It has no login screen o
 - Selective tag writes, write verification, conflict detection, and tag-level undo.
 - Full Navidrome Smart Playlist Generator behavior: all fields, operators, sorts, presets, nested rule groups, all “This is …” methods, and create/edit/delete management.
 - CPU and NVIDIA CUDA OCI images.
-- Local Apple Container instructions and Linux Docker Compose examples.
+- Local Apple Container instructions, Windows 11/Docker Desktop development instructions, and Linux Docker Compose examples.
 - CI, automated release PRs, GitHub Releases, and private GHCR images.
 
 ### Explicitly excluded from the first release
@@ -235,6 +235,21 @@ Apple Container 1.0.0 is the local macOS runtime. Because the Linux Essentia whe
 
 Apple Container does not provide NVIDIA CUDA. It validates the complete CPU product and can build the CUDA image, while actual CUDA inference validation requires an NVIDIA Linux host with NVIDIA Container Toolkit.
 
+### 10.4 Windows development and runtime
+
+Windows 11 is a supported development and deployment host. The recommended setup is Docker Desktop with its WSL2 backend and a repository clone inside the WSL2 Linux filesystem for predictable permissions, filesystem event delivery, and bind-mount performance. The project also supports running frontend and backend development commands from PowerShell when their native prerequisites are installed.
+
+The repository avoids platform-specific assumptions:
+
+- Python code uses `pathlib` and never parses paths by splitting on `/` or `\\`.
+- API identifiers remain mount-relative POSIX paths; host paths are resolved only by deployment configuration.
+- Core development, test, migration, and asset-build commands are exposed through cross-platform Python/npm entry points rather than Bash-only wrappers.
+- Documentation provides PowerShell, WSL2, Apple Container, and POSIX shell examples where command syntax differs.
+- `.gitattributes` defines stable LF endings for source, shell, Docker, JSON, YAML, and `.nsp` files while allowing Windows launch helpers to use CRLF when required.
+- File watching uses polling as a documented fallback for Windows bind mounts.
+
+The CPU image runs unchanged as a `linux/amd64` container in Docker Desktop. CUDA development on Windows requires the Docker Desktop WSL2 backend, current WSL2 components, a compatible NVIDIA GPU, and current NVIDIA Windows drivers with WSL2 GPU support. Compose exposes the GPU only in the CUDA profile; the default profile remains CPU-only.
+
 ## 11. CI and release automation
 
 ### 11.1 Pull-request and main-branch checks
@@ -242,6 +257,7 @@ Apple Container does not provide NVIDIA CUDA. It validates the complete CPU prod
 - Python formatting/static checks and unit/API tests.
 - Frontend lint, typecheck, component tests, and production build.
 - Browser end-to-end tests against a lightweight test configuration.
+- A Windows runner validates checkout line endings, Python path behavior, frontend tests, and non-container development commands.
 - CPU image build and health smoke test.
 - CUDA image build and non-GPU startup/capability test.
 - Playlist catalog parity tests against the imported upstream definitions.
@@ -274,8 +290,9 @@ Filesystem operations use canonical path checks and reject traversal, absolute c
 5. **Frontend tests** – selection semantics, select-all over filtered rows, genre/mood chip editing, write preview, nested rule editing, capability display, and reconnect behavior.
 6. **End-to-end tests** – scan → analyze → edit → select → write → undo, plus create → edit → delete playlist.
 7. **Container tests** – health, static frontend, writable `/data`, mounted `/music`, non-root process, CPU inference, and CUDA capability reporting.
+8. **Cross-platform tests** – Windows path and filename cases, PowerShell-documented commands, WSL2/Docker Desktop configuration parsing, and Linux/macOS command parity.
 
-CUDA release acceptance requires one recorded real inference run on an NVIDIA host. Until that test is available, CI may prove that the CUDA image builds and starts but must not claim GPU inference is verified.
+CUDA release acceptance requires one recorded real inference run on an NVIDIA Linux host or a Windows 11 Docker Desktop/WSL2 host with GPU support. Until that test is available, CI may prove that the CUDA image builds and starts but must not claim GPU inference is verified.
 
 ## 14. Acceptance criteria
 
@@ -290,7 +307,9 @@ The first release is complete only when all of the following are evidenced:
 - Every upstream playlist preset, rule field/operator, sort, and “This is …” mode is available through the web API and interface.
 - `.nsp` files can be created, edited, and deleted safely in the mounted playlist directory.
 - The CPU image runs through Apple Container on the user's Mac via amd64/Rosetta.
-- The CUDA image performs real inference on an NVIDIA Linux host.
+- A clean Windows 11 development setup can run tests and the CPU product through Docker Desktop/WSL2 using the documented commands.
+- Windows path, line-ending, and mount behavior passes on a GitHub-hosted Windows runner.
+- The CUDA image performs real inference on an NVIDIA Linux or Windows 11 Docker Desktop/WSL2 host.
 - Tests cover the critical workflows and pass in CI.
 - Merging the Release Please PR produces a GitHub Release and all documented private GHCR tags.
-- README and About view document startup, mounts, Apple Container, Docker/Compose, CUDA, upgrades, upstream provenance, and licensing constraints.
+- README and About view document startup, mounts, Apple Container, Windows development, Docker/Compose, CUDA, upgrades, upstream provenance, and licensing constraints.
