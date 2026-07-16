@@ -13,10 +13,16 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   })
-  const body = await response.json()
+  const responseText = await response.text()
+  const body = responseText ? JSON.parse(responseText) : undefined
 
   if (!response.ok) {
-    throw new ApiError(body.error.code, body.error.message, body.error.details)
+    const error = body?.error
+    throw new ApiError(
+      error?.code ?? `http_${response.status}`,
+      error?.message ?? `HTTP ${response.status}`,
+      error?.details,
+    )
   }
 
   return body as T

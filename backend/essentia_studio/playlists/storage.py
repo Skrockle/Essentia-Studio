@@ -31,9 +31,12 @@ class PlaylistStorage:
     ) -> None:
         self._root = root
         self._repository = repository
-        self._root.mkdir(parents=True, exist_ok=True)
+        if self._root.parent.is_dir():
+            self._root.mkdir(exist_ok=True)
 
     def list(self) -> list[PlaylistFile]:
+        if not self._root.is_dir():
+            return []
         files: list[PlaylistFile] = []
         for path in sorted(self._root.glob("*.nsp"), key=lambda item: item.name.casefold()):
             if path.is_symlink() or not path.is_file():
@@ -86,6 +89,7 @@ class PlaylistStorage:
     ) -> PlaylistFile:
         path = self._path(name)
         payload = self._payload(definition)
+        self._ensure_root()
         if path.exists():
             self._failure(name, "create", "playlist_exists")
             raise AppError("playlist_exists", "Die Playlist existiert bereits.", 409)
@@ -140,6 +144,15 @@ class PlaylistStorage:
         if path.parent.resolve() != self._root.resolve():
             raise AppError("invalid_playlist_name", "Der Playlist-Dateiname ist ungültig.", 422)
         return path
+
+    def _ensure_root(self) -> None:
+        if not self._root.parent.is_dir():
+            raise AppError(
+                "playlist_mount_missing",
+                "Das Playlist-Verzeichnis ist nicht verfügbar.",
+                409,
+            )
+        self._root.mkdir(exist_ok=True)
 
     @staticmethod
     def _atomic_write(path: Path, payload: dict) -> None:

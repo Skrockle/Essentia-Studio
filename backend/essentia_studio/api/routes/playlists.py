@@ -51,6 +51,19 @@ def create_from_preset(
 
 
 @router.post(
+    "/this-is/preview",
+)
+def preview_this_is(payload: ThisIsRequest) -> dict:
+    return build_this_is(
+        payload.artist,
+        payload.method,
+        payload.limit,
+        payload.name,
+        payload.comment,
+    ).model_dump(exclude_none=True)
+
+
+@router.post(
     "/this-is",
     response_model=PlaylistFileResponse,
     status_code=status.HTTP_201_CREATED,
