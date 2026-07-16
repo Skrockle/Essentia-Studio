@@ -8,10 +8,15 @@ from essentia_studio.main import create_app
 
 
 @pytest.fixture
-def client(tmp_path) -> Iterator[TestClient]:
+def music_root(tmp_path):
     music_root = tmp_path / "music"
-    data_dir = tmp_path / "data"
     music_root.mkdir()
+    return music_root
+
+
+@pytest.fixture
+def client(tmp_path, music_root) -> Iterator[TestClient]:
+    data_dir = tmp_path / "data"
     data_dir.mkdir()
     config = RuntimeConfig.from_env(
         {

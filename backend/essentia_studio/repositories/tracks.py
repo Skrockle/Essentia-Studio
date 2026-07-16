@@ -74,14 +74,48 @@ class TrackRepository:
                 {"relative_path": relative_path},
             ).one()
 
-        return LibraryTrack(
-            id=row.id,
-            relative_path=row.relative_path,
-            extension=row.extension,
-            fingerprint=TrackFingerprint(size=row.size, mtime_ns=row.mtime_ns),
-            last_seen=datetime.fromisoformat(row.last_seen),
-            present=bool(row.present),
-        )
+        return self._track_from_row(row)
+
+    def query(
+        self,
+        search: str | None = None,
+        present: bool | None = True,
+        extension: str | None = None,
+        page: int = 1,
+        page_size: int = 50,
+    ) -> tuple[list[LibraryTrack], int]:
+        conditions: list[str] = []
+        parameters: dict[str, object] = {
+            "limit": page_size,
+            "offset": (page - 1) * page_size,
+        }
+        if search:
+            conditions.append("LOWER(relative_path) LIKE :search")
+            parameters["search"] = f"%{search.casefold()}%"
+        if present is not None:
+            conditions.append("present = :present")
+            parameters["present"] = int(present)
+        if extension:
+            conditions.append("extension = :extension")
+            parameters["extension"] = extension.casefold()
+
+        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        with self._engine.connect() as connection:
+            total = connection.execute(
+                text(f"SELECT COUNT(*) FROM library_tracks {where_clause}"),
+                parameters,
+            ).scalar_one()
+            rows = connection.execute(
+                text(
+                    f"""
+                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present
+                    FROM library_tracks {where_clause}
+                    ORDER BY relative_path, id LIMIT :limit OFFSET :offset
+                    """
+                ),
+                parameters,
+            ).all()
+        return [self._track_from_row(row) for row in rows], total
 
     @staticmethod
     def _parameters(track: ScannedTrack, seen_value: str) -> dict[str, object]:
@@ -92,3 +126,14 @@ class TrackRepository:
             "mtime_ns": track.fingerprint.mtime_ns,
             "last_seen": seen_value,
         }
+
+    @staticmethod
+    def _track_from_row(row) -> LibraryTrack:
+        return LibraryTrack(
+            id=row.id,
+            relative_path=row.relative_path,
+            extension=row.extension,
+            fingerprint=TrackFingerprint(size=row.size, mtime_ns=row.mtime_ns),
+            last_seen=datetime.fromisoformat(row.last_seen),
+            present=bool(row.present),
+        )
