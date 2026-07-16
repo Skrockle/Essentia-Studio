@@ -1,4 +1,5 @@
 from essentia_studio.playlists.catalog import PlaylistCatalog
+from essentia_studio.playlists.validation import validate_playlist
 
 
 def test_catalog_contains_complete_upstream_inventory() -> None:
@@ -36,3 +37,11 @@ def test_catalog_contains_complete_upstream_inventory() -> None:
         "album_closers",
         "singles",
     }
+
+
+def test_every_upstream_preset_is_accepted_without_rewriting_rules() -> None:
+    catalog = PlaylistCatalog.load()
+
+    for preset in catalog.presets:
+        validated = validate_playlist(preset.definition, catalog)
+        assert validated.model_dump(exclude_none=True) == preset.definition
