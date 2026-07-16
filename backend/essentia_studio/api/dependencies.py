@@ -1,5 +1,6 @@
 from fastapi import Request
 
+from essentia_studio.playlists.storage import PlaylistStorage
 from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.settings import SettingsRepository
@@ -40,3 +41,7 @@ def get_write_repository(request: Request) -> WriteRepository:
 
 def get_tag_operation_service(request: Request) -> TagOperationService:
     return request.app.state.tag_operation_service
+
+
+def get_playlist_storage(request: Request) -> PlaylistStorage:
+    return request.app.state.playlist_storage

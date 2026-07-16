@@ -18,7 +18,9 @@ from essentia_studio.db.migrate import apply_migrations
 from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.domain.jobs import JobType
 from essentia_studio.errors import AppError, app_error_handler
+from essentia_studio.playlists.storage import PlaylistStorage
 from essentia_studio.repositories.jobs import JobRepository
+from essentia_studio.repositories.playlists import PlaylistRepository
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
@@ -43,6 +45,8 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         track_repository = TrackRepository(engine)
         job_repository = JobRepository(engine)
         result_repository = ResultRepository(engine)
+        playlist_repository = PlaylistRepository(engine)
+        playlist_storage = PlaylistStorage(runtime_config.playlist_dir, playlist_repository)
         write_repository = WriteRepository(engine)
         tag_registry = TagAdapterRegistry()
         tag_operation_service = TagOperationService(
@@ -98,6 +102,8 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.track_repository = track_repository
         app.state.job_repository = job_repository
         app.state.result_repository = result_repository
+        app.state.playlist_repository = playlist_repository
+        app.state.playlist_storage = playlist_storage
         app.state.write_repository = write_repository
         app.state.tag_registry = tag_registry
         app.state.tag_operation_service = tag_operation_service
