@@ -1,0 +1,40 @@
+name: NVIDIA GPU smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to test
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  gpu-smoke:
+    runs-on: [self-hosted, linux, x64, nvidia]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Build CUDA image
+        run: docker build -f Dockerfile.cuda -t essentia-studio:gpu-smoke .
+      - name: Generate fixture and prove NVIDIA inference
+        run: |
+          nvidia-smi
+          mkdir -p gpu-smoke/music gpu-smoke/data gpu-smoke/report
+          chmod 0777 gpu-smoke/data gpu-smoke/report
+          python3 scripts/ci/generate_fixture.py gpu-smoke/music/tone.wav
+          docker run --rm --gpus all --entrypoint python3.10 \
+            -v "$PWD/gpu-smoke/music:/music:ro" \
+            -v "$PWD/gpu-smoke/data:/data" \
+            essentia-studio:gpu-smoke \
+            /app/scripts/gpu_smoke.py /music/tone.wav \
+            > gpu-smoke/report/gpu-smoke.json
+          python3 -m json.tool gpu-smoke/report/gpu-smoke.json
+      - name: Upload GPU report
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: gpu-smoke-report
+          path: gpu-smoke/report/gpu-smoke.json
