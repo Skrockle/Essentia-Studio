@@ -74,6 +74,7 @@ frontend/src/**/*.test.tsx    frontend tests
 ```python
 # tests/docs/test_agent_guidance.py
 from pathlib import Path
+import unittest
 
 
 ENTRY_FILES = [
@@ -85,23 +86,33 @@ ENTRY_FILES = [
 ]
 
 
-def test_every_ai_entry_points_to_canonical_contract_and_roadmap() -> None:
-    assert Path("AGENTS.md").exists()
-    for name in ENTRY_FILES:
-        text = Path(name).read_text(encoding="utf-8")
-        assert "AGENTS.md" in text, name
-        assert "docs/superpowers/plans/2026-07-16-essentia-studio-roadmap.md" in text, name
+class AgentGuidanceTest(unittest.TestCase):
+    def test_every_ai_entry_points_to_canonical_contract_and_roadmap(self) -> None:
+        self.assertTrue(Path("AGENTS.md").exists())
+        for name in ENTRY_FILES:
+            text = Path(name).read_text(encoding="utf-8")
+            self.assertIn("AGENTS.md", text, name)
+            self.assertIn(
+                "docs/superpowers/plans/2026-07-16-essentia-studio-roadmap.md",
+                text,
+                name,
+            )
 
-
-def test_canonical_contract_contains_safety_and_verification_sections() -> None:
-    text = Path("AGENTS.md").read_text(encoding="utf-8")
-    for heading in ["## Architecture", "## Safety invariants", "## Readability", "## Verification", "## Platform support"]:
-        assert heading in text
+    def test_canonical_contract_contains_safety_and_verification_sections(self) -> None:
+        text = Path("AGENTS.md").read_text(encoding="utf-8")
+        for heading in [
+            "## Architecture",
+            "## Safety invariants",
+            "## Readability",
+            "## Verification",
+            "## Platform support",
+        ]:
+            self.assertIn(heading, text)
 ```
 
 - [ ] **Step 2: Run the test and verify missing files fail**
 
-Run: `python -m pytest tests/docs/test_agent_guidance.py -q`
+Run: `python -m unittest discover -s tests/docs -p test_agent_guidance.py -v`
 
 Expected: FAIL because repository-local `AGENTS.md` and adapters do not exist.
 
@@ -145,7 +156,7 @@ Each adapter is at most 12 nonblank lines. Its tool-specific front matter may id
 Run:
 
 ```bash
-python -m pytest tests/docs/test_agent_guidance.py -q
+python -m unittest discover -s tests/docs -p test_agent_guidance.py -v
 rg -n "Safety invariants|Cyclomatic complexity" CLAUDE.md GEMINI.md .github/copilot-instructions.md .cursor/rules/project.mdc .windsurfrules
 ```
 
