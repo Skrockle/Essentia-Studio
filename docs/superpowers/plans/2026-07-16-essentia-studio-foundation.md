@@ -6,7 +6,7 @@
 
 **Architecture:** A Python package under `backend/essentia_studio` owns configuration, database lifecycle, API routes, and production frontend serving. A Vite application under `frontend` talks to `/api`, while development commands remain runnable from POSIX shells, PowerShell, WSL2, and Apple Container hosts.
 
-**Tech Stack:** Python 3.10, FastAPI 0.128.0, Pydantic 2, SQLAlchemy 2, pytest, React 19.2.7, TypeScript, Vite 8.1.5, Vitest, Testing Library, plain CSS design tokens.
+**Tech Stack:** Python 3.10, FastAPI 0.136.3, Pydantic 2, SQLAlchemy 2, pytest, React 19.2.7, TypeScript, Vite 8.1.5, Vitest, Testing Library, plain CSS design tokens.
 
 ## Global Constraints
 
@@ -227,7 +227,7 @@ name = "essentia-studio"
 version = "0.0.0"
 requires-python = ">=3.10,<3.11"
 dependencies = [
-  "fastapi==0.128.0",
+  "fastapi==0.136.3",
   "pydantic>=2.12,<3",
   "sqlalchemy>=2.0.46,<2.1",
   "uvicorn[standard]>=0.40,<0.41",

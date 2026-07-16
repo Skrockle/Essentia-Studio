@@ -247,7 +247,7 @@ Migration `0002_library_jobs.sql` also creates `jobs`, `job_items`, and `events`
 
 `JobRepository.append_event` retains at most 10,000 events per job by deleting the oldest rows beyond that limit in the same transaction. Job summary/progress counters remain authoritative even after old event details are pruned.
 
-The SSE route uses FastAPI 0.128's native response:
+The SSE route uses FastAPI 0.136.3's native response (introduced in FastAPI 0.135):
 
 ```python
 @router.get("/{job_id}/events", response_class=EventSourceResponse)
