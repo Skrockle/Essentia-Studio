@@ -31,6 +31,7 @@ The initial deployment targets a trusted local network. It has no login screen o
 - CPU and NVIDIA CUDA OCI images.
 - Local Apple Container instructions, Windows 11/Docker Desktop development instructions, and Linux Docker Compose examples.
 - CI, automated release PRs, GitHub Releases, and private GHCR images.
+- Shared contributor guidance and thin AI-agent entry files for Codex, Claude, GitHub Copilot, Cursor, Windsurf, and Gemini.
 
 ### Explicitly excluded from the first release
 
@@ -96,6 +97,14 @@ The application is a modular monolith. A single container serves the frontend an
 ### 4.2 Module boundaries
 
 The analysis adapter never writes files. The tag service never invokes machine learning. The playlist service operates only on playlist definitions and `.nsp` files. API routes depend on application services rather than Mutagen, Essentia, or raw SQL directly. This prevents the original large scripts from becoming a new monolithic backend file.
+
+### 4.3 Human-readable code and collaboration contract
+
+Human readability takes priority over minimizing line count or using clever abstractions. Modules have one clear responsibility; public interfaces use descriptive domain names; filesystem, database, model, and HTTP boundaries remain explicit. Functions should normally fit on one screen and cyclomatic complexity is limited to 10 unless a reviewed exception documents why splitting would make behavior less clear. Generated catalogs and vendored upstream source are excluded from hand-written file-size guidance but remain covered by provenance and parity tests.
+
+`AGENTS.md` is the canonical repository collaboration contract. It contains the architecture map, safety invariants, platform requirements, exact verification commands, code-style expectations, and instructions for updating plans. `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, `.cursor/rules/project.mdc`, and `.windsurfrules` are intentionally short adapters that direct their respective tools to the canonical contract and relevant design/plan files. `CONTRIBUTING.md` presents the same workflow for human contributors. Rules are not duplicated across these files, preventing silent divergence.
+
+Every implementation task ends with a readability review in addition to tests: remove unnecessary indirection, replace vague names, split mixed responsibilities, and retain comments only where they explain a non-obvious constraint or decision. Automated checks enforce Python and TypeScript complexity limits, formatting, typing, and unused-code rules.
 
 ## 5. Persistent data model
 
@@ -258,6 +267,7 @@ The CPU image runs unchanged as a `linux/amd64` container in Docker Desktop. CUD
 - Frontend lint, typecheck, component tests, and production build.
 - Browser end-to-end tests against a lightweight test configuration.
 - A Windows runner validates checkout line endings, Python path behavior, frontend tests, and non-container development commands.
+- Collaboration-contract tests verify that every supported AI-agent entry file points to the canonical `AGENTS.md` and current design/roadmap.
 - CPU image build and health smoke test.
 - CUDA image build and non-GPU startup/capability test.
 - Playlist catalog parity tests against the imported upstream definitions.
@@ -291,6 +301,7 @@ Filesystem operations use canonical path checks and reject traversal, absolute c
 6. **End-to-end tests** – scan → analyze → edit → select → write → undo, plus create → edit → delete playlist.
 7. **Container tests** – health, static frontend, writable `/data`, mounted `/music`, non-root process, CPU inference, and CUDA capability reporting.
 8. **Cross-platform tests** – Windows path and filename cases, PowerShell-documented commands, WSL2/Docker Desktop configuration parsing, and Linux/macOS command parity.
+9. **Maintainability tests** – Python and TypeScript complexity limits, static typing, unused-code detection, and checks that AI-agent instructions have one canonical source.
 
 CUDA release acceptance requires one recorded real inference run on an NVIDIA Linux host or a Windows 11 Docker Desktop/WSL2 host with GPU support. Until that test is available, CI may prove that the CUDA image builds and starts but must not claim GPU inference is verified.
 
@@ -309,6 +320,7 @@ The first release is complete only when all of the following are evidenced:
 - The CPU image runs through Apple Container on the user's Mac via amd64/Rosetta.
 - A clean Windows 11 development setup can run tests and the CPU product through Docker Desktop/WSL2 using the documented commands.
 - Windows path, line-ending, and mount behavior passes on a GitHub-hosted Windows runner.
+- Human and AI contributors can locate the same architecture, safety invariants, task workflow, and verification commands through their documented entry files.
 - The CUDA image performs real inference on an NVIDIA Linux or Windows 11 Docker Desktop/WSL2 host.
 - Tests cover the critical workflows and pass in CI.
 - Merging the Release Please PR produces a GitHub Release and all documented private GHCR tags.
