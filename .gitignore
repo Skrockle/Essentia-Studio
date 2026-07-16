@@ -32,3 +32,6 @@ Thumbs.db
 # Test files
 test/
 tmp/
+
+# Local Git worktrees
+.worktrees/
