@@ -1,6 +1,34 @@
-# [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?logo=buy-me-a-coffee)](https://buymeacoffee.com/succinctrecords)
+# Essentia Studio
 
-# 🎸 Essentia Music Tagger
+Essentia Studio is the in-progress web successor to the Essentia Music Tagger: a local FastAPI/React application for reviewing genre and mood analysis, selectively writing approved tags, and managing Navidrome smart playlists.
+
+The first release targets a trusted local network without authentication. Music enters through a read/write container mount at `/music`; application state lives under `/data`. The default image runs analysis on CPU, while a separate NVIDIA CUDA image is planned for compatible Linux and Windows/WSL2 hosts.
+
+## Current development status
+
+The cross-platform application foundation is available on the `feature/essentia-studio` branch. Analysis, safe tag writing, undo, complete smart-playlist integration, and delivery images are implemented in the subsequent roadmap stages.
+
+- [Approved product design](docs/superpowers/specs/2026-07-16-essentia-studio-design.md)
+- [Implementation roadmap](docs/superpowers/plans/2026-07-16-essentia-studio-roadmap.md)
+- [Development on macOS, Windows, WSL2, and Linux](docs/development.md)
+- [Contributor and AI-agent contract](AGENTS.md)
+
+To run the current source checks:
+
+```bash
+python3.10 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+npm --prefix frontend install
+python scripts/verify.py
+python scripts/dev.py all
+```
+
+Open `http://localhost:5173` for development. See [docs/development.md](docs/development.md) for PowerShell commands and local path configuration.
+
+## Legacy CLI: Essentia Music Tagger
+
+The original command-line application remains present while its tested analysis and tagging behavior is extracted into the web architecture.
 
 **Intelligent audio analysis and automatic genre/mood tagging for your music library**
 
@@ -599,4 +627,3 @@ Use mood tags to create dynamic playlists (energetic workout mixes, relaxing eve
 **Made with ❤️ for music lovers and data nerds**
 
 *If this project helps you, consider ⭐ starring the repo!*
-
