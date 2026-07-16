@@ -35,7 +35,7 @@ COPY docker/entrypoint.py /app/entrypoint.py
 COPY scripts/cpu_smoke.py /app/scripts/cpu_smoke.py
 RUN mkdir -p /music /data \
     && chown -R root:root /app \
-    && chmod -R a-w /app \
+    && chmod -R a+rX,a-w /app \
     && chown app:app /music /data
 USER app
 EXPOSE 8000
