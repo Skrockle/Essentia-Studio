@@ -6,6 +6,8 @@ COPY frontend/ ./
 RUN npm run build
 
 FROM python:3.10-slim-bookworm AS runtime
+ARG ESSENTIA_MODEL_ARCHIVE_URL=https://oc-file.gozdzik.online/api/public/dl/_OlwyHdn/
+ARG ESSENTIA_MODEL_ARCHIVE_SHA256=25878d4d36533b2ef6ac888f4479baa2477eac48bae0bdbea79a1bad79c41916
 ARG VERSION=0.0.0
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -28,7 +30,9 @@ COPY requirements/analysis.lock /app/requirements.lock
 RUN uv pip install --system --require-hashes -r /app/requirements.lock
 COPY backend/essentia_studio/analysis/models.json /app/models.json
 COPY scripts/download_models.py /app/download_models.py
-RUN python /app/download_models.py --manifest /app/models.json --output /app/models
+RUN python /app/download_models.py --manifest /app/models.json --output /app/models \
+    --archive-url "$ESSENTIA_MODEL_ARCHIVE_URL" \
+    --archive-sha256 "$ESSENTIA_MODEL_ARCHIVE_SHA256"
 COPY backend/essentia_studio /app/essentia_studio
 COPY --from=frontend /src/frontend/dist /app/frontend
 COPY docker/entrypoint.py /app/entrypoint.py
