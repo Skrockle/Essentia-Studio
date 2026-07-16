@@ -14,6 +14,8 @@ class RuntimeConfig:
     database_path: Path
     playlist_dir: Path
     frontend_dir: Path
+    model_dir: Path
+    analysis_backend: Literal["essentia", "fake"]
     image_variant: Literal["cpu", "cuda"]
     host: str
     port: int
@@ -34,6 +36,10 @@ class RuntimeConfig:
                 values.get("ESSENTIA_PLAYLIST_DIR", str(music_root / "SmartPlaylists"))
             ),
             frontend_dir=Path(values.get("ESSENTIA_FRONTEND_DIR", "frontend/dist")),
+            model_dir=Path(values.get("ESSENTIA_MODEL_DIR", "/app/models")),
+            analysis_backend=_analysis_backend(
+                values.get("ESSENTIA_ANALYSIS_BACKEND", "essentia")
+            ),
             image_variant=_image_variant(values.get("ESSENTIA_IMAGE_VARIANT", "cpu")),
             host=values.get("ESSENTIA_HOST", "0.0.0.0"),
             port=int(values.get("ESSENTIA_PORT", "8000")),
@@ -43,4 +49,10 @@ class RuntimeConfig:
 def _image_variant(value: str) -> Literal["cpu", "cuda"]:
     if value not in {"cpu", "cuda"}:
         raise ValueError("ESSENTIA_IMAGE_VARIANT must be 'cpu' or 'cuda'")
+    return value
+
+
+def _analysis_backend(value: str) -> Literal["essentia", "fake"]:
+    if value not in {"essentia", "fake"}:
+        raise ValueError("ESSENTIA_ANALYSIS_BACKEND must be 'essentia' or 'fake'")
     return value

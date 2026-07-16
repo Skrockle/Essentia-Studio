@@ -117,6 +117,25 @@ class TrackRepository:
             ).all()
         return [self._track_from_row(row) for row in rows], total
 
+    def get_by_ids(self, track_ids: list[int]) -> list[LibraryTrack]:
+        if not track_ids:
+            return []
+        placeholders = ", ".join(f":id_{index}" for index in range(len(track_ids)))
+        parameters = {f"id_{index}": track_id for index, track_id in enumerate(track_ids)}
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                text(
+                    f"""
+                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present
+                    FROM library_tracks
+                    WHERE id IN ({placeholders}) AND present = 1
+                    ORDER BY relative_path, id
+                    """
+                ),
+                parameters,
+            ).all()
+        return [self._track_from_row(row) for row in rows]
+
     @staticmethod
     def _parameters(track: ScannedTrack, seen_value: str) -> dict[str, object]:
         return {

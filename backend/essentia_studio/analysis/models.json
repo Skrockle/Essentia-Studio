@@ -1,0 +1,37 @@
+[
+  {
+    "name": "discogs-effnet-bs64-1.pb",
+    "role": "embedding",
+    "url": "https://essentia.upf.edu/models/music-style-classification/discogs-effnet/discogs-effnet-bs64-1.pb",
+    "sha256": "f601268528ab0b848bb4826dfff1600a76d95162406beefeec5b8cd4e0e59f5a",
+    "output": "PartitionedCall:1"
+  },
+  {
+    "name": "genre_discogs400-discogs-effnet-1.pb",
+    "role": "genre",
+    "url": "https://essentia.upf.edu/models/classification-heads/genre_discogs400/genre_discogs400-discogs-effnet-1.pb",
+    "sha256": "3885ba078a35249af94b8e5e4247689afac40deca4401a4bc888daf5a579c01c",
+    "input": "serving_default_model_Placeholder",
+    "output": "PartitionedCall"
+  },
+  {
+    "name": "genre_discogs400-discogs-effnet-1.json",
+    "role": "genre_labels",
+    "url": "https://essentia.upf.edu/models/classification-heads/genre_discogs400/genre_discogs400-discogs-effnet-1.json",
+    "sha256": "2d367319d9b782ffa10f69abf0e805b3ac4e10899025e5bdbaceda3919b243e0"
+  },
+  {
+    "name": "mtg_jamendo_moodtheme-discogs-effnet-1.pb",
+    "role": "mood",
+    "url": "https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb",
+    "sha256": "03f2b047020aee4ab39f8880da7bdae2a36d06a1508d656c6d424ad4d6de07a9",
+    "input": "model/Placeholder",
+    "output": "model/Sigmoid"
+  },
+  {
+    "name": "mtg_jamendo_moodtheme-discogs-effnet-1.json",
+    "role": "mood_labels",
+    "url": "https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json",
+    "sha256": "d62cd90263e4d613fa7fcce7a831e339450394794af63685f96e065c1a896ab0"
+  }
+]

@@ -13,7 +13,7 @@ def test_cancelled_job_keeps_completed_items(tmp_path) -> None:
     repository = JobRepository(engine)
     first_started = Event()
 
-    def handler(item: str, cancelled: Event) -> dict[str, str]:
+    def handler(_job_id: str, item: str, cancelled: Event) -> dict[str, str]:
         first_started.set()
         if item == "b.flac":
             cancelled.set()
@@ -35,7 +35,7 @@ def test_resume_copies_only_unfinished_items(tmp_path) -> None:
     apply_migrations(engine)
     repository = JobRepository(engine)
 
-    def handler(item: str, cancelled: Event) -> dict[str, str]:
+    def handler(_job_id: str, item: str, cancelled: Event) -> dict[str, str]:
         if item == "first.flac":
             cancelled.set()
         return {"path": item}
@@ -55,7 +55,7 @@ def test_item_failure_does_not_stop_remaining_items(tmp_path) -> None:
     apply_migrations(engine)
     repository = JobRepository(engine)
 
-    def handler(item: str, _cancelled: Event) -> dict[str, str]:
+    def handler(_job_id: str, item: str, _cancelled: Event) -> dict[str, str]:
         if item == "bad.flac":
             raise ValueError("broken fixture")
         return {"path": item}

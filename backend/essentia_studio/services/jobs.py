@@ -10,7 +10,7 @@ from essentia_studio.domain.jobs import JobRecord, JobStatus, JobType
 from essentia_studio.errors import AppError
 from essentia_studio.repositories.jobs import JobRepository
 
-JobHandler = Callable[[str, Event], dict[str, Any]]
+JobHandler = Callable[[str, str, Event], dict[str, Any]]
 logger = logging.getLogger(__name__)
 
 
@@ -29,6 +29,11 @@ class JobCoordinator:
             return
         self._thread = Thread(target=self._run_forever, name="essentia-job-worker", daemon=True)
         self._thread.start()
+
+    def register_handler(self, job_type: JobType, handler: JobHandler) -> None:
+        if self._thread is not None:
+            raise RuntimeError("Job handlers must be registered before the coordinator starts")
+        self._handlers[job_type] = handler
 
     def stop(self) -> None:
         self._shutdown.set()
@@ -116,7 +121,7 @@ class JobCoordinator:
         cancellation: Event,
     ) -> None:
         try:
-            result = handler(value, cancellation)
+            result = handler(job_id, value, cancellation)
             self._repository.complete_item(job_id, item_id, result)
         except Exception as error:
             self._repository.fail_item(job_id, item_id, str(error))

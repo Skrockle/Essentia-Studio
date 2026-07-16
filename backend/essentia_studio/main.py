@@ -7,16 +7,22 @@ from threading import Event
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from essentia_studio.analysis.fake_backend import FakeAnalysisBackend
+from essentia_studio.analysis.process_backend import ProcessAnalysisBackend
+from essentia_studio.analysis.protocol import AnalysisBackend
 from essentia_studio.api.router import router as api_router
 from essentia_studio.api.routes.health import router as health_router
 from essentia_studio.config import RuntimeConfig
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
+from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.domain.jobs import JobType
 from essentia_studio.errors import AppError, app_error_handler
 from essentia_studio.repositories.jobs import JobRepository
+from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
+from essentia_studio.services.analysis_jobs import AnalysisJobService
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.scanner import scan_music_root
@@ -29,10 +35,30 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         apply_migrations(engine)
+        settings_repository = SettingsRepository(engine)
+        application_settings = settings_repository.get()
         track_repository = TrackRepository(engine)
         job_repository = JobRepository(engine)
+        result_repository = ResultRepository(engine)
+        analysis_backend: AnalysisBackend
+        if runtime_config.analysis_backend == "fake":
+            analysis_backend = FakeAnalysisBackend()
+        else:
+            compute = "cuda" if runtime_config.image_variant == "cuda" else "cpu"
+            analysis_backend = ProcessAnalysisBackend(
+                runtime_config.model_dir,
+                compute,
+                application_settings.worker_count,
+                runtime_config.image_variant,
+            )
+        analysis_service = AnalysisJobService(
+            analysis_backend,
+            result_repository,
+            track_repository,
+            runtime_config.music_root,
+        )
 
-        def scan_handler(_value: str, cancelled: Event) -> dict[str, int]:
+        def scan_handler(_job_id: str, _value: str, cancelled: Event) -> dict[str, int]:
             if cancelled.is_set():
                 return {"scanned": 0, "present": 0, "missing": 0}
             summary = track_repository.replace_scan(
@@ -41,17 +67,33 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             )
             return asdict(summary)
 
-        job_coordinator = JobCoordinator(job_repository, {JobType.SCAN: scan_handler})
+        def analysis_handler(job_id: str, relative_path: str, _cancelled: Event) -> dict[str, str]:
+            job = job_repository.get(job_id)
+            options = AnalysisOptions(**job.configuration["analysis"])
+            stored = analysis_service.process(relative_path, options, job_id)
+            return {"result_id": stored.id, "relative_path": relative_path}
+
+        job_coordinator = JobCoordinator(
+            job_repository,
+            {
+                JobType.SCAN: scan_handler,
+                JobType.ANALYSIS: analysis_handler,
+            },
+        )
         app.state.config = runtime_config
         app.state.engine = engine
-        app.state.settings_repository = SettingsRepository(engine)
+        app.state.settings_repository = settings_repository
         app.state.track_repository = track_repository
         app.state.job_repository = job_repository
+        app.state.result_repository = result_repository
         app.state.job_coordinator = job_coordinator
-        app.state.capability_service = CapabilityService(runtime_config)
+        app.state.analysis_backend = analysis_backend
+        app.state.capability_service = CapabilityService(runtime_config, analysis_backend)
         job_coordinator.start()
         yield
         job_coordinator.stop()
+        if isinstance(analysis_backend, ProcessAnalysisBackend):
+            analysis_backend.close()
         engine.dispose()
 
     app = FastAPI(title="Essentia Studio", version="0.0.0", lifespan=lifespan)

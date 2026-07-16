@@ -243,7 +243,7 @@ Migration `0002_library_jobs.sql` also creates `jobs`, `job_items`, and `events`
 
 - [ ] **Step 4: Implement one persisted mutating queue and SSE replay**
 
-`JobCoordinator` accepts `dict[JobType, Callable[[str, threading.Event], dict]]`. `submit` writes the job and all items before enqueuing its ID. The worker processes items in position order, catches exceptions per item, persists a `progress` event after every item, and computes the terminal state from completed/error/cancel flags. `cancel` persists `cancel_requested=1`; the handler receives a shared `Event`. `resume` creates a new linked job containing only queued/failed items and copies the original configuration snapshot.
+`JobCoordinator` accepts `dict[JobType, Callable[[str, str, threading.Event], dict]]`, passing `(job_id, item_value, cancellation)` so every result can retain its immutable job snapshot and provenance. `submit` writes the job and all items before enqueuing its ID. The worker processes items in position order, catches exceptions per item, persists a `progress` event after every item, and computes the terminal state from completed/error/cancel flags. `cancel` persists `cancel_requested=1`; the handler receives a shared `Event`. `resume` creates a new linked job containing only queued/failed items and copies the original configuration snapshot.
 
 `JobRepository.append_event` retains at most 10,000 events per job by deleting the oldest rows beyond that limit in the same transaction. Job summary/progress counters remain authoritative even after old event details are pruned.
 

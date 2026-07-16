@@ -12,6 +12,8 @@ def test_runtime_config_uses_container_defaults() -> None:
     assert config.data_dir == Path("/data")
     assert config.database_path == Path("/data/essentia-studio.db")
     assert config.playlist_dir == Path("/music/SmartPlaylists")
+    assert config.model_dir == Path("/app/models")
+    assert config.analysis_backend == "essentia"
     assert config.image_variant == "cpu"
     assert config.host == "0.0.0.0"
     assert config.port == 8000
