@@ -6,7 +6,7 @@
 
 **Architecture:** A Python package under `backend/essentia_studio` owns configuration, database lifecycle, API routes, and production frontend serving. A Vite application under `frontend` talks to `/api`, while development commands remain runnable from POSIX shells, PowerShell, WSL2, and Apple Container hosts.
 
-**Tech Stack:** Python 3.10, FastAPI 0.128.0, Pydantic 2, SQLAlchemy 2, pytest, React 19.2.7, TypeScript, Vite 8.0.10, Vitest, Testing Library, plain CSS design tokens.
+**Tech Stack:** Python 3.10, FastAPI 0.128.0, Pydantic 2, SQLAlchemy 2, pytest, React 19.2.7, TypeScript, Vite 8.1.5, Vitest, Testing Library, plain CSS design tokens.
 
 ## Global Constraints
 
@@ -359,7 +359,7 @@ Dockerfile* text eol=lf
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
-    "@types/node": "26.1.1",
+    "@types/node": "24.13.3",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.3",
@@ -370,7 +370,7 @@ Dockerfile* text eol=lf
     "jsdom": "29.1.1",
     "typescript": "6.0.3",
     "typescript-eslint": "8.64.0",
-    "vite": "8.0.10",
+    "vite": "8.1.5",
     "vitest": "4.1.10"
   }
 }

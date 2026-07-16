@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "essentia-studio"
+version = "0.0.0"
+description = "Local Essentia genre, mood, and Navidrome smart playlist studio"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+  "fastapi==0.128.0",
+  "pydantic>=2.12,<3",
+  "sqlalchemy>=2.0.46,<2.1",
+  "uvicorn[standard]>=0.40,<0.41",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<0.29",
+  "pytest>=9.0,<10",
+  "pytest-cov>=7.0,<8",
+  "pyyaml>=6.0,<7",
+  "ruff>=0.15,<0.16",
+  "yamllint>=1.37,<2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend/essentia_studio"]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+testpaths = ["tests"]
+markers = ["model: requires the installed Essentia models"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C90"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10

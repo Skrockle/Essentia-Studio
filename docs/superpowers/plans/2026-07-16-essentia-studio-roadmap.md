@@ -6,7 +6,7 @@
 
 **Architecture:** Build a modular FastAPI/React/SQLite foundation first, then add the analysis and tag-writing workflow, the complete Navidrome smart-playlist module, and finally production containers and GitHub delivery. Every plan leaves the repository in a working, testable state and consumes only interfaces established by earlier plans.
 
-**Tech Stack:** Python 3.10, FastAPI 0.128.0, Pydantic 2, SQLAlchemy 2, React 19.2.7, TypeScript, Vite 8.0.10, Vitest, Playwright, SQLite, Mutagen, Essentia TensorFlow, OCI containers, GitHub Actions, Release Please, GHCR.
+**Tech Stack:** Python 3.10, FastAPI 0.128.0, Pydantic 2, SQLAlchemy 2, React 19.2.7, TypeScript, Vite 8.1.5, Vitest, Playwright, SQLite, Mutagen, Essentia TensorFlow, OCI containers, GitHub Actions, Release Please, GHCR.
 
 ## Global Constraints
 

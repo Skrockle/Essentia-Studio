@@ -13,7 +13,7 @@ ENV/
 # Essentia
 essentia_models/
 *.pb
-*.json
+essentia_models/*.json
 
 # Logs
 *.log
@@ -30,8 +30,25 @@ essentia_tagger_*.log
 Thumbs.db
 
 # Test files
-test/
+/test/
 tmp/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage/
+htmlcov/
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Local tool state
+.memsearch/
+.superdesign/
+.superpowers/
 
 # Local Git worktrees
 .worktrees/
