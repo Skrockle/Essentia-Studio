@@ -22,6 +22,11 @@ export interface Capabilities {
   models: ModelInfo[]
 }
 
+export interface HealthResponse {
+  status: 'ok'
+  version: string
+}
+
 export interface AppSettings {
   worker_count: number
   max_audio_seconds: number

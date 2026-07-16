@@ -172,6 +172,11 @@ code,
 .view-stack {
   display: grid;
   gap: 24px;
+  min-width: 0;
+}
+
+.view-stack > * {
+  min-width: 0;
 }
 
 .narrow-view {
@@ -1246,6 +1251,7 @@ select:hover {
   gap: 7px;
   color: var(--genre);
   font-weight: 700;
+  overflow-wrap: anywhere;
   text-decoration: none;
 }
 

@@ -38,6 +38,7 @@ export function AppNav({ activeView, onNavigate }: AppNavProps) {
       <div className="app-nav__items">
         {navigation.map(({ id, label, icon: Icon }) => (
           <button
+            aria-label={label}
             className="app-nav__button"
             data-active={activeView === id}
             key={id}
