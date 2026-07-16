@@ -36,8 +36,8 @@ mkdir -p "$DATA_DIR"
 docker compose up -d
 ```
 
-Danach `http://localhost:8000` öffnen. Für Zugriff aus dem LAN bindet die
-Standardkonfiguration an `0.0.0.0:8000`. Da es kein Login gibt, den Port niemals
+Danach `http://localhost:8080` öffnen. Für Zugriff aus dem LAN bindet die
+Standardkonfiguration an `0.0.0.0:8080`. Da es kein Login gibt, den Port niemals
 über den Router ins Internet freigeben.
 
 ## NVIDIA CUDA
@@ -92,8 +92,8 @@ solcher Tag fest eingetragen; `/data` und `/music` bleiben erhalten.
 Status prüfen:
 
 ```bash
-curl --fail http://127.0.0.1:8000/health
-curl --fail http://127.0.0.1:8000/api/capabilities
+curl --fail http://127.0.0.1:8080/health
+curl --fail http://127.0.0.1:8080/api/capabilities
 ```
 
 ## Lokale Entwicklung

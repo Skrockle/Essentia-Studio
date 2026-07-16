@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
 
@@ -7,15 +7,70 @@ import { WorkbenchView } from './WorkbenchView'
 let selectedCount = 0
 let ambientAdded = false
 let writeCalls = 0
+let analysisBodies: unknown[] = []
+
+class FakeEventSource {
+  static latest: FakeEventSource | null = null
+  private listeners = new Map<string, EventListener>()
+
+  constructor() {
+    FakeEventSource.latest = this
+  }
+
+  addEventListener(type: string, listener: EventListener) {
+    this.listeners.set(type, listener)
+  }
+
+  emit(type: string, data: object) {
+    this.listeners.get(type)?.(new MessageEvent(type, { data: JSON.stringify(data) }))
+  }
+
+  close() {}
+}
 
 beforeEach(() => {
   selectedCount = 0
   ambientAdded = false
   writeCalls = 0
+  analysisBodies = []
+  FakeEventSource.latest = null
+  vi.stubGlobal('EventSource', FakeEventSource)
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (input: RequestInfo | URL) => {
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
+      if (url.includes('/api/library/tracks')) {
+        return Response.json({
+          items: [
+            libraryTrack(11, 'Library/one.flac'),
+            libraryTrack(12, 'Library/two.mp3'),
+          ],
+          total: 2,
+          page: 1,
+          page_size: 200,
+        })
+      }
+      if (url.includes('/api/analysis/jobs')) {
+        analysisBodies.push(JSON.parse(String(init?.body)))
+        return Response.json({
+          id: 'analysis-1',
+          type: 'analysis',
+          status: 'queued',
+          total_items: 1,
+          completed_items: 0,
+          failed_items: 0,
+        })
+      }
+      if (url.includes('/api/library/scan')) {
+        return Response.json({
+          id: 'scan-1',
+          type: 'scan',
+          status: 'queued',
+          total_items: 1,
+          completed_items: 0,
+          failed_items: 0,
+        })
+      }
       if (url.includes('/api/results/selection')) {
         selectedCount = 63
         return Response.json({ affected: 63 })
@@ -70,6 +125,59 @@ beforeEach(() => {
       return Response.json({ status: 'completed' })
     }),
   )
+})
+
+function libraryTrack(id: number, relativePath: string) {
+  return {
+    id,
+    relative_path: relativePath,
+    extension: relativePath.endsWith('.flac') ? '.flac' : '.mp3',
+    size: 1024,
+    mtime_ns: 1,
+    last_seen: '2026-07-17T00:00:00Z',
+    present: true,
+  }
+}
+
+test('shows scanned tracks and analyzes only explicitly selected track ids', async () => {
+  render(<WorkbenchView />)
+
+  expect(await screen.findByText('Library/one.flac')).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Auswahl analysieren' })).toBeDisabled()
+
+  await userEvent.click(screen.getByRole('checkbox', { name: 'Library/one.flac analysieren' }))
+  await userEvent.click(screen.getByRole('button', { name: '1 Titel analysieren' }))
+
+  await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [11] }]))
+})
+
+test('select all analyzes every scanned track', async () => {
+  render(<WorkbenchView />)
+
+  await userEvent.click(
+    await screen.findByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }),
+  )
+  expect(
+    screen.getByText((_, element) =>
+      element?.tagName === 'SPAN' && element.textContent === '2 von 2 ausgewählt'),
+  ).toBeVisible()
+  await userEvent.click(screen.getByRole('button', { name: '2 Titel analysieren' }))
+
+  await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [11, 12] }]))
+})
+
+test('reports the number of tracks after a completed scan', async () => {
+  render(<WorkbenchView />)
+
+  await userEvent.click(screen.getByRole('button', { name: 'Bibliothek scannen' }))
+  await waitFor(() => expect(FakeEventSource.latest).not.toBeNull())
+  FakeEventSource.latest?.emit('terminal', {
+    sequence: 1,
+    kind: 'terminal',
+    payload: { status: 'completed' },
+  })
+
+  expect(await screen.findByText('Scan abgeschlossen – 2 Titel gefunden')).toBeVisible()
 })
 
 test('write preview never writes before explicit confirmation', async () => {

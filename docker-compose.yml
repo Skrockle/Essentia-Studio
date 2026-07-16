@@ -2,7 +2,7 @@ services:
   essentia-studio:
     image: ghcr.io/skrockle/essentia-studio:latest-cpu
     ports:
-      - "${ESSENTIA_BIND:-0.0.0.0}:8000:8000"
+      - "${ESSENTIA_BIND:-0.0.0.0}:${ESSENTIA_PORT:-8080}:8000"
     volumes:
       - "${MUSIC_DIR}:/music"
       - "${DATA_DIR}:/data"

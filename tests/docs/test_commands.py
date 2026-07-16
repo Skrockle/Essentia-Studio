@@ -9,6 +9,7 @@ def test_default_compose_uses_cpu_image_and_required_mounts() -> None:
     assert service["image"].endswith(":latest-cpu")
     assert "${MUSIC_DIR}:/music" in service["volumes"]
     assert "${DATA_DIR}:/data" in service["volumes"]
+    assert "${ESSENTIA_BIND:-0.0.0.0}:${ESSENTIA_PORT:-8080}:8000" in service["ports"]
     assert "gpus" not in service
 
 

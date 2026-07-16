@@ -391,6 +391,90 @@ code,
   overflow-x: auto;
 }
 
+.library-panel {
+  overflow: hidden;
+}
+
+.library-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.library-panel__header h2 {
+  margin: 3px 0 0;
+  font-size: 17px;
+}
+
+.library-panel__header > span {
+  color: var(--ink-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.library-panel__header > span strong {
+  color: var(--genre);
+}
+
+.library-panel__empty {
+  margin: 0;
+  padding: 22px 20px;
+  color: var(--ink-muted);
+}
+
+.library-table-scroll {
+  max-height: 360px;
+  overflow: auto;
+}
+
+.library-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.library-table th,
+.library-table td {
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.library-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--ink-muted);
+  background: #fafbfc;
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.library-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.library-table input[type="checkbox"] {
+  width: 17px;
+  min-height: 17px;
+  accent-color: var(--genre);
+}
+
+.format-badge {
+  display: inline-flex;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--genre);
+  background: #eef3ff;
+  font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+}
+
 .result-table {
   width: 100%;
   min-width: 900px;

@@ -38,3 +38,20 @@ export interface ResultPage {
   page_size: number
   selected_count: number
 }
+
+export interface LibraryTrack {
+  id: number
+  relative_path: string
+  extension: string
+  size: number
+  mtime_ns: number
+  last_seen: string
+  present: boolean
+}
+
+export interface LibraryTrackPage {
+  items: LibraryTrack[]
+  total: number
+  page: number
+  page_size: number
+}

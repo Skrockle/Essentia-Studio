@@ -4,28 +4,39 @@ import { AudioWaveform, FolderSearch, PenLine, Search, Sparkles } from 'lucide-r
 import { apiRequest } from '../../api/client'
 import type { JobRecord, WriteOperation } from '../jobs/types'
 import { useJobEvents } from '../jobs/useJobEvents'
+import { LibraryTable } from './LibraryTable'
 import { ResultTable } from './ResultTable'
 import { SelectionToolbar } from './SelectionToolbar'
 import { useResults } from './useResults'
 import { WritePreviewDialog } from './WritePreviewDialog'
 import type { ResultRow } from './types'
+import { useLibraryTracks } from './useLibraryTracks'
 
 interface WorkbenchActionsProps {
   active: boolean
+  analysisSelectedCount: number
   selectedCount: number
   onScan: () => void
   onAnalyze: () => void
   onPreview: () => void
 }
 
-function WorkbenchActions({ active, selectedCount, onScan, onAnalyze, onPreview }: WorkbenchActionsProps) {
+function WorkbenchActions({
+  active,
+  analysisSelectedCount,
+  selectedCount,
+  onScan,
+  onAnalyze,
+  onPreview,
+}: WorkbenchActionsProps) {
   return (
     <div className="workbench-actions">
       <button disabled={active} onClick={onScan} type="button">
         <FolderSearch aria-hidden="true" size={16} /> Bibliothek scannen
       </button>
-      <button disabled={active} onClick={onAnalyze} type="button">
-        <Sparkles aria-hidden="true" size={16} /> Auswahl analysieren
+      <button disabled={active || analysisSelectedCount === 0} onClick={onAnalyze} type="button">
+        <Sparkles aria-hidden="true" size={16} />
+        {analysisSelectedCount > 0 ? `${analysisSelectedCount} Titel analysieren` : 'Auswahl analysieren'}
       </button>
       <button className="primary-button" disabled={!selectedCount || active} onClick={onPreview} type="button">
         <PenLine aria-hidden="true" size={16} /> {selectedCount} Titel schreiben
@@ -75,21 +86,44 @@ export function WorkbenchView() {
     saveDraft,
     bulkUpdate,
   } = useResults(query)
+  const {
+    tracks: libraryTracks,
+    error: libraryError,
+    refresh: refreshLibrary,
+  } = useLibraryTracks(search)
+  const [analysisSelection, setAnalysisSelection] = useState<Set<number>>(new Set())
   const [activeJob, setActiveJob] = useState<JobRecord | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
   const event = useJobEvents(activeJob?.id ?? null)
   const allSelected = page.total > 0 && page.selected_count === page.total
+  const visibleTrackIds = useMemo(
+    () => new Set(libraryTracks.map((track) => track.id)),
+    [libraryTracks],
+  )
+  const visibleAnalysisSelection = useMemo(
+    () => new Set([...analysisSelection].filter((id) => visibleTrackIds.has(id))),
+    [analysisSelection, visibleTrackIds],
+  )
 
   useEffect(() => {
     if (event?.kind !== 'terminal' || !activeJob) return
     const jobType = activeJob.type
-    queueMicrotask(() => {
-      setStatusMessage(jobType === 'scan' ? 'Scan abgeschlossen' : 'Analyse abgeschlossen')
+    queueMicrotask(async () => {
+      if (jobType === 'scan') {
+        const scannedTracks = await refreshLibrary()
+        const scannedIds = new Set(scannedTracks.map((track) => track.id))
+        setAnalysisSelection((current) =>
+          new Set([...current].filter((id) => scannedIds.has(id))),
+        )
+        setStatusMessage(`Scan abgeschlossen – ${scannedTracks.length} Titel gefunden`)
+      } else {
+        setStatusMessage('Analyse abgeschlossen')
+      }
       setActiveJob(null)
       refresh()
     })
-  }, [activeJob, event, refresh])
+  }, [activeJob, event, refresh, refreshLibrary])
 
   async function startScan() {
     setStatusMessage(null)
@@ -97,13 +131,30 @@ export function WorkbenchView() {
   }
 
   async function startAnalysis() {
+    if (visibleAnalysisSelection.size === 0) return
     setStatusMessage(null)
     setActiveJob(
       await apiRequest<JobRecord>('/api/analysis/jobs', {
         method: 'POST',
-        body: JSON.stringify({ query: { present: true } }),
+        body: JSON.stringify({
+          track_ids: [...visibleAnalysisSelection].sort((left, right) => left - right),
+        }),
       }),
     )
+    setAnalysisSelection(new Set())
+  }
+
+  function selectAllForAnalysis(selected: boolean) {
+    setAnalysisSelection(selected ? new Set(libraryTracks.map((track) => track.id)) : new Set())
+  }
+
+  function selectTrackForAnalysis(trackId: number, selected: boolean) {
+    setAnalysisSelection((current) => {
+      const next = new Set(current)
+      if (selected) next.add(trackId)
+      else next.delete(trackId)
+      return next
+    })
   }
 
   function finishWrite(operations: WriteOperation[]) {
@@ -136,7 +187,10 @@ export function WorkbenchView() {
           <span className="sr-only">Ergebnisse filtern</span>
           <input
             aria-label="Ergebnisse filtern"
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setAnalysisSelection(new Set())
+            }}
             placeholder="Titel oder Pfad filtern …"
             type="search"
             value={search}
@@ -148,12 +202,21 @@ export function WorkbenchView() {
         </div>
         <WorkbenchActions
           active={Boolean(activeJob)}
+          analysisSelectedCount={visibleAnalysisSelection.size}
           onAnalyze={startAnalysis}
           onPreview={() => setShowPreview(true)}
           onScan={startScan}
           selectedCount={page.selected_count}
         />
       </section>
+
+      {libraryError && <p className="notice notice--error">{libraryError}</p>}
+      <LibraryTable
+        onSelectAll={selectAllForAnalysis}
+        onSelectTrack={selectTrackForAnalysis}
+        selectedIds={visibleAnalysisSelection}
+        tracks={libraryTracks}
+      />
 
       <SelectionToolbar selectedCount={page.selected_count} onBulkUpdate={bulkUpdate} />
 
