@@ -1,0 +1,8332 @@
+{
+  "source_commit": "b706d70148011093acc69b1e1679029d48d1aea4",
+  "fields": [
+    {
+      "key": "title",
+      "label": "Track title",
+      "type": "string",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "album",
+      "label": "Album name",
+      "type": "string",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "artist",
+      "label": "Artist name",
+      "type": "string",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "albumartist",
+      "label": "Album artist",
+      "type": "string",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "genre",
+      "label": "Genre",
+      "type": "string",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "composer",
+      "label": "Composer",
+      "type": "string",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "year",
+      "label": "Year",
+      "type": "number",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "track",
+      "label": "Track number",
+      "type": "number",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "discnumber",
+      "label": "Disc number",
+      "type": "number",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "duration",
+      "label": "Duration (seconds)",
+      "type": "number",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "bpm",
+      "label": "Beats per minute",
+      "type": "number",
+      "category": "Core Track Info"
+    },
+    {
+      "key": "albumartists",
+      "label": "Album artists (multi)",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "artists",
+      "label": "Artists (multi)",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "arranger",
+      "label": "Arranger",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "conductor",
+      "label": "Conductor",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "director",
+      "label": "Director",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "djmixer",
+      "label": "DJ mixer",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "engineer",
+      "label": "Engineer",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "lyricist",
+      "label": "Lyricist",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "mixer",
+      "label": "Mixer",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "performer",
+      "label": "Performer",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "producer",
+      "label": "Producer",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "remixer",
+      "label": "Remixer",
+      "type": "string",
+      "category": "Artists & People"
+    },
+    {
+      "key": "albumcomment",
+      "label": "Album comment",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "albumtype",
+      "label": "Album type",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "albumversion",
+      "label": "Album version",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "catalognumber",
+      "label": "Catalog number",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "compilation",
+      "label": "Is a compilation",
+      "type": "boolean",
+      "category": "Album Details"
+    },
+    {
+      "key": "recordlabel",
+      "label": "Record label",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "releasecountry",
+      "label": "Release country",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "releasestatus",
+      "label": "Release status",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "releasetype",
+      "label": "Release type",
+      "type": "string",
+      "category": "Album Details"
+    },
+    {
+      "key": "filepath",
+      "label": "File path",
+      "type": "string",
+      "category": "File & Quality"
+    },
+    {
+      "key": "filetype",
+      "label": "File type (e.g. flac, mp3)",
+      "type": "string",
+      "category": "File & Quality"
+    },
+    {
+      "key": "bitrate",
+      "label": "Bitrate (kbps)",
+      "type": "number",
+      "category": "File & Quality"
+    },
+    {
+      "key": "bitdepth",
+      "label": "Bit depth",
+      "type": "number",
+      "category": "File & Quality"
+    },
+    {
+      "key": "size",
+      "label": "File size (bytes)",
+      "type": "number",
+      "category": "File & Quality"
+    },
+    {
+      "key": "channels",
+      "label": "Audio channels",
+      "type": "number",
+      "category": "File & Quality"
+    },
+    {
+      "key": "hascoverart",
+      "label": "Has cover art",
+      "type": "boolean",
+      "category": "File & Quality"
+    },
+    {
+      "key": "explicitstatus",
+      "label": "Explicit status",
+      "type": "string",
+      "category": "File & Quality"
+    },
+    {
+      "key": "encodedby",
+      "label": "Encoded by",
+      "type": "string",
+      "category": "File & Quality"
+    },
+    {
+      "key": "encodersettings",
+      "label": "Encoder settings",
+      "type": "string",
+      "category": "File & Quality"
+    },
+    {
+      "key": "playcount",
+      "label": "Play count",
+      "type": "number",
+      "category": "Listening & Favorites"
+    },
+    {
+      "key": "rating",
+      "label": "Rating (0-5)",
+      "type": "number",
+      "category": "Listening & Favorites"
+    },
+    {
+      "key": "loved",
+      "label": "Is favorite / loved",
+      "type": "boolean",
+      "category": "Listening & Favorites"
+    },
+    {
+      "key": "lastplayed",
+      "label": "Date last played",
+      "type": "date",
+      "category": "Listening & Favorites"
+    },
+    {
+      "key": "dateloved",
+      "label": "Date favorited",
+      "type": "date",
+      "category": "Listening & Favorites"
+    },
+    {
+      "key": "dateadded",
+      "label": "Date added to library",
+      "type": "date",
+      "category": "Dates"
+    },
+    {
+      "key": "datemodified",
+      "label": "Date file modified",
+      "type": "date",
+      "category": "Dates"
+    },
+    {
+      "key": "originaldate",
+      "label": "Original release date",
+      "type": "date",
+      "category": "Dates"
+    },
+    {
+      "key": "originalyear",
+      "label": "Original year",
+      "type": "date",
+      "category": "Dates"
+    },
+    {
+      "key": "recordingdate",
+      "label": "Recording date",
+      "type": "date",
+      "category": "Dates"
+    },
+    {
+      "key": "releasedate",
+      "label": "Release date",
+      "type": "date",
+      "category": "Dates"
+    },
+    {
+      "key": "comment",
+      "label": "Comment",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "lyrics",
+      "label": "Lyrics",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "grouping",
+      "label": "Grouping",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "discsubtitle",
+      "label": "Disc subtitle",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "subtitle",
+      "label": "Track subtitle",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "mood",
+      "label": "Mood",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "movement",
+      "label": "Movement",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "movementname",
+      "label": "Movement name",
+      "type": "string",
+      "category": "Text Tags"
+    },
+    {
+      "key": "disctotal",
+      "label": "Total discs",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "tracktotal",
+      "label": "Total tracks",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "movementtotal",
+      "label": "Total movements",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "r128_album_gain",
+      "label": "R128 album gain",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "r128_track_gain",
+      "label": "R128 track gain",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "replaygain_album_gain",
+      "label": "ReplayGain album gain",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "replaygain_album_peak",
+      "label": "ReplayGain album peak",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "replaygain_track_gain",
+      "label": "ReplayGain track gain",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "replaygain_track_peak",
+      "label": "ReplayGain track peak",
+      "type": "number",
+      "category": "Numeric Tags"
+    },
+    {
+      "key": "titlesort",
+      "label": "Sort name",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "albumsort",
+      "label": "Sort album",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "albumartistsort",
+      "label": "Sort album artist",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "albumartistssort",
+      "label": "Sort album artists",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "artistsort",
+      "label": "Sort artist",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "artistssort",
+      "label": "Sort artists",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "composersort",
+      "label": "Sort composer",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "lyricistsort",
+      "label": "Sort lyricist",
+      "type": "string",
+      "category": "Sort Fields"
+    },
+    {
+      "key": "library_id",
+      "label": "Library ID",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "isrc",
+      "label": "ISRC code",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "asin",
+      "label": "Amazon ASIN",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "barcode",
+      "label": "Barcode",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "key",
+      "label": "Musical key",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "language",
+      "label": "Language",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "license",
+      "label": "License",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "media",
+      "label": "Media type",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "script",
+      "label": "Script",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "copyright",
+      "label": "Copyright",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "website",
+      "label": "Website",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "work",
+      "label": "Work",
+      "type": "string",
+      "category": "Identifiers & Technical"
+    },
+    {
+      "key": "mbz_album_id",
+      "label": "Album ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "mbz_album_artist_id",
+      "label": "Album Artist ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "mbz_artist_id",
+      "label": "Artist ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "mbz_recording_id",
+      "label": "Recording ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "mbz_release_group_id",
+      "label": "Release Group ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "mbz_release_track_id",
+      "label": "Release Track ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_arrangerid",
+      "label": "Arranger ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_composerid",
+      "label": "Composer ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_conductorid",
+      "label": "Conductor ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_directorid",
+      "label": "Director ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_discid",
+      "label": "Disc ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_djmixerid",
+      "label": "DJ Mixer ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_engineerid",
+      "label": "Engineer ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_lyricistid",
+      "label": "Lyricist ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_mixerid",
+      "label": "Mixer ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_performerid",
+      "label": "Performer ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_producerid",
+      "label": "Producer ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_remixerid",
+      "label": "Remixer ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_trackid",
+      "label": "Track ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "musicbrainz_workid",
+      "label": "Work ID",
+      "type": "string",
+      "category": "MusicBrainz IDs"
+    },
+    {
+      "key": "id",
+      "label": "Playlist (for in/not-in playlist filters)",
+      "type": "playlist",
+      "category": "Playlist"
+    }
+  ],
+  "operators": {
+    "string": [
+      {
+        "key": "is",
+        "label": "Is exactly"
+      },
+      {
+        "key": "isNot",
+        "label": "Is not"
+      },
+      {
+        "key": "contains",
+        "label": "Contains"
+      },
+      {
+        "key": "notContains",
+        "label": "Does not contain"
+      },
+      {
+        "key": "startsWith",
+        "label": "Starts with"
+      },
+      {
+        "key": "endsWith",
+        "label": "Ends with"
+      }
+    ],
+    "number": [
+      {
+        "key": "is",
+        "label": "Is exactly"
+      },
+      {
+        "key": "isNot",
+        "label": "Is not"
+      },
+      {
+        "key": "contains",
+        "label": "Contains"
+      },
+      {
+        "key": "notContains",
+        "label": "Does not contain"
+      },
+      {
+        "key": "gt",
+        "label": "Is greater than"
+      },
+      {
+        "key": "lt",
+        "label": "Is less than"
+      },
+      {
+        "key": "inTheRange",
+        "label": "Is between (range)"
+      }
+    ],
+    "boolean": [
+      {
+        "key": "is",
+        "label": "Is"
+      },
+      {
+        "key": "isNot",
+        "label": "Is not"
+      }
+    ],
+    "date": [
+      {
+        "key": "is",
+        "label": "Is exactly (date)"
+      },
+      {
+        "key": "isNot",
+        "label": "Is not (date)"
+      },
+      {
+        "key": "before",
+        "label": "Before a date"
+      },
+      {
+        "key": "after",
+        "label": "After a date"
+      },
+      {
+        "key": "inTheLast",
+        "label": "Within the last N days"
+      },
+      {
+        "key": "notInTheLast",
+        "label": "Not within the last N days"
+      },
+      {
+        "key": "inTheRange",
+        "label": "Between two dates"
+      }
+    ],
+    "playlist": [
+      {
+        "key": "inPlaylist",
+        "label": "Is in playlist"
+      },
+      {
+        "key": "notInPlaylist",
+        "label": "Is not in playlist"
+      }
+    ]
+  },
+  "sort_options": [
+    {
+      "key": "random",
+      "label": "Random (shuffle)"
+    },
+    {
+      "key": "title",
+      "label": "Title"
+    },
+    {
+      "key": "album",
+      "label": "Album"
+    },
+    {
+      "key": "artist",
+      "label": "Artist"
+    },
+    {
+      "key": "albumartist",
+      "label": "Album Artist"
+    },
+    {
+      "key": "year",
+      "label": "Year"
+    },
+    {
+      "key": "rating",
+      "label": "Rating"
+    },
+    {
+      "key": "playcount",
+      "label": "Play Count"
+    },
+    {
+      "key": "lastplayed",
+      "label": "Last Played"
+    },
+    {
+      "key": "dateadded",
+      "label": "Date Added"
+    },
+    {
+      "key": "duration",
+      "label": "Duration"
+    },
+    {
+      "key": "bitrate",
+      "label": "Bitrate"
+    },
+    {
+      "key": "genre",
+      "label": "Genre"
+    },
+    {
+      "key": "bpm",
+      "label": "BPM"
+    },
+    {
+      "key": "track",
+      "label": "Track Number"
+    },
+    {
+      "key": "size",
+      "label": "File Size"
+    }
+  ],
+  "presets": [
+    {
+      "label": "Recently Played",
+      "slug": "recently-played",
+      "category": "Essentials",
+      "definition": {
+        "name": "Recently Played",
+        "comment": "Tracks played in the last 30 days",
+        "all": [
+          {
+            "inTheLast": {
+              "lastplayed": 30
+            }
+          }
+        ],
+        "sort": "lastplayed",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Recently Added",
+      "slug": "recently-added",
+      "category": "Essentials",
+      "definition": {
+        "name": "Recently Added",
+        "comment": "Tracks added to the library in the last 30 days",
+        "all": [
+          {
+            "inTheLast": {
+              "dateadded": 30
+            }
+          }
+        ],
+        "sort": "dateadded",
+        "order": "desc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Most Played",
+      "slug": "most-played",
+      "category": "Essentials",
+      "definition": {
+        "name": "Most Played",
+        "comment": "Your top 100 most-played tracks of all time",
+        "all": [
+          {
+            "gt": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Never Played",
+      "slug": "never-played",
+      "category": "Essentials",
+      "definition": {
+        "name": "Never Played",
+        "comment": "Tracks you haven't listened to yet",
+        "all": [
+          {
+            "is": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Loved Tracks",
+      "slug": "loved-tracks",
+      "category": "Essentials",
+      "definition": {
+        "name": "Loved Tracks",
+        "comment": "All your favourited tracks, newest first",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "dateloved",
+        "order": "desc",
+        "limit": 500
+      }
+    },
+    {
+      "label": "Top Rated",
+      "slug": "top-rated",
+      "category": "Essentials",
+      "definition": {
+        "name": "Top Rated",
+        "comment": "Tracks rated 4 stars or higher",
+        "all": [
+          {
+            "gt": {
+              "rating": 3
+            }
+          }
+        ],
+        "sort": "rating",
+        "order": "desc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Fresh Blood",
+      "slug": "fresh-blood",
+      "category": "Discovery",
+      "definition": {
+        "name": "Fresh Blood",
+        "comment": "Added in the last 7 days and never played — your unheard new arrivals",
+        "all": [
+          {
+            "inTheLast": {
+              "dateadded": 7
+            }
+          },
+          {
+            "is": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Vinyl Roulette",
+      "slug": "vinyl-roulette",
+      "category": "Discovery",
+      "definition": {
+        "name": "Vinyl Roulette",
+        "comment": "50 completely random tracks — spin the wheel",
+        "all": [
+          {
+            "gt": {
+              "duration": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 50
+      }
+    },
+    {
+      "label": "One-Hit Wonders",
+      "slug": "one-hit-wonders",
+      "category": "Discovery",
+      "definition": {
+        "name": "One-Hit Wonders",
+        "comment": "Tracks you've played exactly once — give them a second chance",
+        "all": [
+          {
+            "is": {
+              "playcount": 1
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Album Openers",
+      "slug": "album-openers",
+      "category": "Discovery",
+      "definition": {
+        "name": "Album Openers",
+        "comment": "Track 1 from every album — first impressions only",
+        "all": [
+          {
+            "is": {
+              "track": 1
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Forgotten Gems",
+      "slug": "forgotten-gems",
+      "category": "Rediscovery",
+      "definition": {
+        "name": "Forgotten Gems",
+        "comment": "Loved or highly-rated tracks you haven't played in 6+ months",
+        "all": [
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          },
+          {
+            "notInTheLast": {
+              "lastplayed": 180
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Comebacks",
+      "slug": "comebacks",
+      "category": "Rediscovery",
+      "definition": {
+        "name": "Comebacks",
+        "comment": "Played 5+ times but not in the last 6 months — old favourites gathering dust",
+        "all": [
+          {
+            "gt": {
+              "playcount": 4
+            }
+          },
+          {
+            "notInTheLast": {
+              "lastplayed": 180
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Buried Treasure",
+      "slug": "buried-treasure",
+      "category": "Rediscovery",
+      "definition": {
+        "name": "Buried Treasure",
+        "comment": "Added over a year ago and never played — lost in the stacks",
+        "all": [
+          {
+            "notInTheLast": {
+              "dateadded": 365
+            }
+          },
+          {
+            "is": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Long Drives",
+      "slug": "long-drives",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Long Drives",
+        "comment": "Epic tracks over 6 minutes — settle in for the ride",
+        "all": [
+          {
+            "gt": {
+              "duration": 360
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Short & Sweet",
+      "slug": "short-and-sweet",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Short & Sweet",
+        "comment": "Quick hits under 3 minutes",
+        "all": [
+          {
+            "lt": {
+              "duration": 180
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Deep Cuts",
+      "slug": "deep-cuts",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Deep Cuts",
+        "comment": "Tracks 5+ on the album — beyond the singles",
+        "all": [
+          {
+            "gt": {
+              "track": 4
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Slow Burners",
+      "slug": "slow-burners",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Slow Burners",
+        "comment": "Tracks under 100 BPM — chill, downtempo, mellow",
+        "all": [
+          {
+            "lt": {
+              "bpm": 100
+            }
+          },
+          {
+            "gt": {
+              "bpm": 0
+            }
+          }
+        ],
+        "sort": "bpm",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Bangers Only",
+      "slug": "bangers-only",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Bangers Only",
+        "comment": "High-energy tracks over 140 BPM",
+        "all": [
+          {
+            "gt": {
+              "bpm": 140
+            }
+          }
+        ],
+        "sort": "bpm",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "FLAC Attack",
+      "slug": "flac-attack",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "FLAC Attack",
+        "comment": "Lossless FLAC files only — audiophile approved",
+        "all": [
+          {
+            "is": {
+              "filetype": "flac"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Hi-Res Audio",
+      "slug": "hi-res-audio",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "Hi-Res Audio",
+        "comment": "24-bit or higher — studio master quality",
+        "all": [
+          {
+            "gt": {
+              "bitdepth": 16
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lossy Leftovers",
+      "slug": "lossy-leftovers",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "Lossy Leftovers",
+        "comment": "Tracks under 320kbps — candidates for upgrade",
+        "all": [
+          {
+            "lt": {
+              "bitrate": 320
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "60s Classics",
+      "slug": "60s-classics",
+      "category": "Decades",
+      "definition": {
+        "name": "60s Classics",
+        "comment": "Everything from 1960–1969",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1960,
+                1969
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "70s Classics",
+      "slug": "70s-classics",
+      "category": "Decades",
+      "definition": {
+        "name": "70s Classics",
+        "comment": "Everything from 1970–1979",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1970,
+                1979
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "80s Classics",
+      "slug": "80s-classics",
+      "category": "Decades",
+      "definition": {
+        "name": "80s Classics",
+        "comment": "Everything from 1980–1989",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1980,
+                1989
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "90s Classics",
+      "slug": "90s-classics",
+      "category": "Decades",
+      "definition": {
+        "name": "90s Classics",
+        "comment": "Everything from 1990–1999",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1990,
+                1999
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "2000s Classics",
+      "slug": "2000s-classics",
+      "category": "Decades",
+      "definition": {
+        "name": "2000s Classics",
+        "comment": "Everything from 2000–2009",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                2000,
+                2009
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "2010s Classics",
+      "slug": "2010s-classics",
+      "category": "Decades",
+      "definition": {
+        "name": "2010s Classics",
+        "comment": "Everything from 2010–2019",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                2010,
+                2019
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "80s Gold",
+      "slug": "80s-gold",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "80s Gold",
+        "comment": "Loved or highly-rated tracks from the 1980s (nested logic)",
+        "all": [
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          },
+          {
+            "inTheRange": {
+              "year": [
+                1980,
+                1989
+              ]
+            }
+          }
+        ],
+        "sort": "year",
+        "order": "desc",
+        "limit": 50
+      }
+    },
+    {
+      "label": "The Collector",
+      "slug": "the-collector",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Collector",
+        "comment": "Played 10+ times AND (loved OR rated 4+) — your true obsessions",
+        "all": [
+          {
+            "gt": {
+              "playcount": 9
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc"
+      }
+    },
+    {
+      "label": "Guilty Pleasures",
+      "slug": "guilty-pleasures",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "Guilty Pleasures",
+        "comment": "High play count but never loved or rated — your secret shames",
+        "all": [
+          {
+            "gt": {
+              "playcount": 5
+            }
+          },
+          {
+            "isNot": {
+              "loved": true
+            }
+          },
+          {
+            "is": {
+              "rating": 0
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Compilation Cuts",
+      "slug": "compilation-cuts",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "Compilation Cuts",
+        "comment": "Tracks from compilation albums you've loved or played often",
+        "all": [
+          {
+            "is": {
+              "compilation": true
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "playcount": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Peak Album Experience",
+      "slug": "peak-album-experience",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "Peak Album Experience",
+        "comment": "Loved tracks from their original disc 1, ordered by album then track",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "is": {
+              "discnumber": 1
+            }
+          }
+        ],
+        "sort": "+albumartist,+album,+track"
+      }
+    },
+    {
+      "label": "The Graveyard",
+      "slug": "the-graveyard",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Graveyard",
+        "comment": "Tracks added over 2 years ago, played once or never, and not loved — do they deserve to stay?",
+        "all": [
+          {
+            "notInTheLast": {
+              "dateadded": 730
+            }
+          },
+          {
+            "lt": {
+              "playcount": 2
+            }
+          },
+          {
+            "isNot": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "dateadded",
+        "order": "asc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Pre-1960 Vintage",
+      "slug": "pre-1960-vintage",
+      "category": "Decades",
+      "definition": {
+        "name": "Pre-1960 Vintage",
+        "comment": "Music from before 1960 — the golden oldies",
+        "all": [
+          {
+            "lt": {
+              "year": 1960
+            }
+          },
+          {
+            "gt": {
+              "year": 0
+            }
+          }
+        ],
+        "sort": "year",
+        "order": "asc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "2020s Fresh",
+      "slug": "2020s-fresh",
+      "category": "Decades",
+      "definition": {
+        "name": "2020s Fresh",
+        "comment": "Everything from 2020 onwards — the latest era",
+        "all": [
+          {
+            "gt": {
+              "year": 2019
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Turn of the Century",
+      "slug": "turn-of-the-century",
+      "category": "Decades",
+      "definition": {
+        "name": "Turn of the Century",
+        "comment": "Music from 1998-2002 — straddling the millennium",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1998,
+                2002
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "British Invasion",
+      "slug": "british-invasion",
+      "category": "Eras",
+      "definition": {
+        "name": "British Invasion",
+        "comment": "1963-1966 — when Britain conquered the airwaves",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1963,
+                1966
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Summer of Love",
+      "slug": "summer-of-love",
+      "category": "Eras",
+      "definition": {
+        "name": "Summer of Love",
+        "comment": "1967 — peace, love, and psychedelia",
+        "all": [
+          {
+            "is": {
+              "year": 1967
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Punk '77",
+      "slug": "punk-77",
+      "category": "Eras",
+      "definition": {
+        "name": "Punk '77",
+        "comment": "1977 — the year punk broke",
+        "all": [
+          {
+            "is": {
+              "year": 1977
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "MTV Generation",
+      "slug": "mtv-generation",
+      "category": "Eras",
+      "definition": {
+        "name": "MTV Generation",
+        "comment": "1981-1992 — I want my MTV",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1981,
+                1992
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Grunge Era",
+      "slug": "grunge-era",
+      "category": "Eras",
+      "definition": {
+        "name": "Grunge Era",
+        "comment": "1991-1994 — flannel shirts and distortion pedals",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1991,
+                1994
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Y2K Era",
+      "slug": "y2k-era",
+      "category": "Eras",
+      "definition": {
+        "name": "Y2K Era",
+        "comment": "1999-2003 — millennium madness and nu-metal",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1999,
+                2003
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Disco Fever",
+      "slug": "disco-fever",
+      "category": "Eras",
+      "definition": {
+        "name": "Disco Fever",
+        "comment": "1975-1980 — mirror balls and platform shoes",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1975,
+                1980
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "New Wave",
+      "slug": "new-wave",
+      "category": "Eras",
+      "definition": {
+        "name": "New Wave",
+        "comment": "1978-1985 — synths, sharp suits, and angular guitars",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1978,
+                1985
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Golden Age Hip-Hop",
+      "slug": "golden-age-hip-hop",
+      "category": "Eras",
+      "definition": {
+        "name": "Golden Age Hip-Hop",
+        "comment": "1986-1996 — the boom-bap golden era",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1986,
+                1996
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Britpop",
+      "slug": "britpop",
+      "category": "Eras",
+      "definition": {
+        "name": "Britpop",
+        "comment": "1993-1997 — Blur vs Oasis and everything in between",
+        "all": [
+          {
+            "inTheRange": {
+              "year": [
+                1993,
+                1997
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Epic Odysseys",
+      "slug": "epic-odysseys",
+      "category": "Duration",
+      "definition": {
+        "name": "Epic Odysseys",
+        "comment": "Mammoth tracks over 10 minutes — bring snacks",
+        "all": [
+          {
+            "gt": {
+              "duration": 600
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Marathon Tracks",
+      "slug": "marathon-tracks",
+      "category": "Duration",
+      "definition": {
+        "name": "Marathon Tracks",
+        "comment": "Ultra-long tracks over 15 minutes — the ultimate endurance test",
+        "all": [
+          {
+            "gt": {
+              "duration": 900
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "desc",
+        "limit": 50
+      }
+    },
+    {
+      "label": "The Sweet Spot",
+      "slug": "the-sweet-spot",
+      "category": "Duration",
+      "definition": {
+        "name": "The Sweet Spot",
+        "comment": "Goldilocks tracks — between 3 and 5 minutes",
+        "all": [
+          {
+            "inTheRange": {
+              "duration": [
+                180,
+                300
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Micro Tracks",
+      "slug": "micro-tracks",
+      "category": "Duration",
+      "definition": {
+        "name": "Micro Tracks",
+        "comment": "Blink-and-you'll-miss-it — under 60 seconds",
+        "all": [
+          {
+            "lt": {
+              "duration": 60
+            }
+          },
+          {
+            "gt": {
+              "duration": 0
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Four-Twenty",
+      "slug": "the-four-twenty",
+      "category": "Duration",
+      "definition": {
+        "name": "The Four-Twenty",
+        "comment": "Tracks roughly 4 minutes 20 seconds long — nice",
+        "all": [
+          {
+            "inTheRange": {
+              "duration": [
+                258,
+                262
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Commute Friendly",
+      "slug": "commute-friendly",
+      "category": "Duration",
+      "definition": {
+        "name": "Commute Friendly",
+        "comment": "3-7 minute tracks — perfect for the daily commute",
+        "all": [
+          {
+            "inTheRange": {
+              "duration": [
+                180,
+                420
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Comatose",
+      "slug": "comatose",
+      "category": "Tempo & Energy",
+      "definition": {
+        "name": "Comatose",
+        "comment": "Sub-70 BPM — practically horizontal music",
+        "all": [
+          {
+            "lt": {
+              "bpm": 70
+            }
+          },
+          {
+            "gt": {
+              "bpm": 0
+            }
+          }
+        ],
+        "sort": "bpm",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Heartbeat Zone",
+      "slug": "the-heartbeat-zone",
+      "category": "Tempo & Energy",
+      "definition": {
+        "name": "The Heartbeat Zone",
+        "comment": "60-80 BPM — synced to your resting heart rate",
+        "all": [
+          {
+            "inTheRange": {
+              "bpm": [
+                60,
+                80
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Walking Pace",
+      "slug": "walking-pace",
+      "category": "Tempo & Energy",
+      "definition": {
+        "name": "Walking Pace",
+        "comment": "90-110 BPM — perfect for a stroll",
+        "all": [
+          {
+            "inTheRange": {
+              "bpm": [
+                90,
+                110
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Jogging Mix",
+      "slug": "jogging-mix",
+      "category": "Tempo & Energy",
+      "definition": {
+        "name": "Jogging Mix",
+        "comment": "120-140 BPM — keep that pace steady",
+        "all": [
+          {
+            "inTheRange": {
+              "bpm": [
+                120,
+                140
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Sprint Mode",
+      "slug": "sprint-mode",
+      "category": "Tempo & Energy",
+      "definition": {
+        "name": "Sprint Mode",
+        "comment": "160+ BPM — all-out sonic assault",
+        "all": [
+          {
+            "gt": {
+              "bpm": 160
+            }
+          }
+        ],
+        "sort": "bpm",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Workout Fuel",
+      "slug": "workout-fuel",
+      "category": "Tempo & Energy",
+      "definition": {
+        "name": "Workout Fuel",
+        "comment": "120-160 BPM, 3-5 minutes — gym-ready bangers",
+        "all": [
+          {
+            "inTheRange": {
+              "bpm": [
+                120,
+                160
+              ]
+            }
+          },
+          {
+            "inTheRange": {
+              "duration": [
+                180,
+                300
+              ]
+            }
+          }
+        ],
+        "sort": "bpm",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Heavy Rotation",
+      "slug": "heavy-rotation",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "Heavy Rotation",
+        "comment": "Played 20+ times — your most-spun records",
+        "all": [
+          {
+            "gt": {
+              "playcount": 19
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The Obsessions",
+      "slug": "the-obsessions",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "The Obsessions",
+        "comment": "Played 50+ times — you might have a problem",
+        "all": [
+          {
+            "gt": {
+              "playcount": 49
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc"
+      }
+    },
+    {
+      "label": "The Centurion Club",
+      "slug": "the-centurion-club",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "The Centurion Club",
+        "comment": "Played 100+ times — welcome to the triple-digit club",
+        "all": [
+          {
+            "gt": {
+              "playcount": 99
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc"
+      }
+    },
+    {
+      "label": "The Untouchables",
+      "slug": "the-untouchables",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "The Untouchables",
+        "comment": "Perfect 5-star rated tracks — flawless victories",
+        "all": [
+          {
+            "is": {
+              "rating": 5
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The Indifferent",
+      "slug": "the-indifferent",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "The Indifferent",
+        "comment": "Rated exactly 3 stars — aggressively mediocre or secretly brilliant?",
+        "all": [
+          {
+            "is": {
+              "rating": 3
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Underrated Gems",
+      "slug": "underrated-gems",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "Underrated Gems",
+        "comment": "Rated 4+ stars but played fewer than 5 times — criminally underplayed",
+        "all": [
+          {
+            "gt": {
+              "rating": 3
+            }
+          },
+          {
+            "lt": {
+              "playcount": 5
+            }
+          }
+        ],
+        "sort": "rating",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Rising Stars",
+      "slug": "rising-stars",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "Rising Stars",
+        "comment": "Added in the last 90 days and already played 3+ times — instant favourites",
+        "all": [
+          {
+            "inTheLast": {
+              "dateadded": 90
+            }
+          },
+          {
+            "gt": {
+              "playcount": 2
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Falling Stars",
+      "slug": "falling-stars",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "Falling Stars",
+        "comment": "Loved tracks you haven't played in over a year — falling out of favour",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "notInTheLast": {
+              "lastplayed": 365
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Loyalists",
+      "slug": "the-loyalists",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "The Loyalists",
+        "comment": "Played recently AND loved — your ride-or-die tracks",
+        "all": [
+          {
+            "inTheLast": {
+              "lastplayed": 30
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "lastplayed",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Statistical Anomalies",
+      "slug": "statistical-anomalies",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "Statistical Anomalies",
+        "comment": "Played 10+ times but rated 1 or 2 — why do you keep listening?",
+        "all": [
+          {
+            "gt": {
+              "playcount": 9
+            }
+          },
+          {
+            "lt": {
+              "rating": 3
+            }
+          },
+          {
+            "gt": {
+              "rating": 0
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The One Percent",
+      "slug": "the-one-percent",
+      "category": "Stats & Data",
+      "definition": {
+        "name": "The One Percent",
+        "comment": "Loved AND 5-star AND played 20+ times — the absolute elite",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "is": {
+              "rating": 5
+            }
+          },
+          {
+            "gt": {
+              "playcount": 19
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc"
+      }
+    },
+    {
+      "label": "The B-Team",
+      "slug": "the-b-team",
+      "category": "Track Position",
+      "definition": {
+        "name": "The B-Team",
+        "comment": "Track 2 — the eternal runner-up, always the bridesmaid",
+        "all": [
+          {
+            "is": {
+              "track": 2
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Middle Child",
+      "slug": "the-middle-child",
+      "category": "Track Position",
+      "definition": {
+        "name": "The Middle Child",
+        "comment": "Tracks 4-7 — the overlooked middle of the album",
+        "all": [
+          {
+            "inTheRange": {
+              "track": [
+                4,
+                7
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The Lucky Seven",
+      "slug": "the-lucky-seven",
+      "category": "Track Position",
+      "definition": {
+        "name": "The Lucky Seven",
+        "comment": "Track 7 from every album — lucky number listening",
+        "all": [
+          {
+            "is": {
+              "track": 7
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Double Digits",
+      "slug": "double-digits",
+      "category": "Track Position",
+      "definition": {
+        "name": "Double Digits",
+        "comment": "Track 10 and beyond — deep album territory",
+        "all": [
+          {
+            "gt": {
+              "track": 9
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Track 13",
+      "slug": "track-13",
+      "category": "Track Position",
+      "definition": {
+        "name": "Track 13",
+        "comment": "The unlucky thirteenth track — cursed bangers only",
+        "all": [
+          {
+            "is": {
+              "track": 13
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Disc Two Deep Cuts",
+      "slug": "disc-two-deep-cuts",
+      "category": "Track Position",
+      "definition": {
+        "name": "Disc Two Deep Cuts",
+        "comment": "Everything from disc 2 onwards — the stuff casual fans never reach",
+        "all": [
+          {
+            "gt": {
+              "discnumber": 1
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Hidden Tracks",
+      "slug": "hidden-tracks",
+      "category": "Track Position",
+      "definition": {
+        "name": "Hidden Tracks",
+        "comment": "Extremely high track numbers and long duration — the secret Easter eggs",
+        "all": [
+          {
+            "gt": {
+              "track": 15
+            }
+          },
+          {
+            "gt": {
+              "duration": 300
+            }
+          }
+        ],
+        "sort": "track",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Singles Material",
+      "slug": "singles-material",
+      "category": "Track Position",
+      "definition": {
+        "name": "Singles Material",
+        "comment": "Tracks 1-3, under 4 minutes — the obvious single choices",
+        "all": [
+          {
+            "inTheRange": {
+              "track": [
+                1,
+                3
+              ]
+            }
+          },
+          {
+            "lt": {
+              "duration": 240
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Night Owls",
+      "slug": "night-owls",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Night Owls",
+        "comment": "Long, slow, deep — music for 3 AM",
+        "all": [
+          {
+            "gt": {
+              "duration": 300
+            }
+          },
+          {
+            "lt": {
+              "bpm": 90
+            }
+          },
+          {
+            "gt": {
+              "bpm": 0
+            }
+          }
+        ],
+        "sort": "bpm",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Morning Coffee",
+      "slug": "morning-coffee",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Morning Coffee",
+        "comment": "Moderate tempo, not too long — ease into the day",
+        "all": [
+          {
+            "inTheRange": {
+              "bpm": [
+                85,
+                120
+              ]
+            }
+          },
+          {
+            "lt": {
+              "duration": 300
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Study Session",
+      "slug": "study-session",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Study Session",
+        "comment": "Under 100 BPM and over 4 minutes — focus-friendly background music",
+        "all": [
+          {
+            "lt": {
+              "bpm": 100
+            }
+          },
+          {
+            "gt": {
+              "bpm": 0
+            }
+          },
+          {
+            "gt": {
+              "duration": 240
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Road Trip",
+      "slug": "road-trip",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Road Trip",
+        "comment": "4-7 minute favourites — windows down, volume up",
+        "all": [
+          {
+            "inTheRange": {
+              "duration": [
+                240,
+                420
+              ]
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Dinner Party",
+      "slug": "dinner-party",
+      "category": "Moods & Vibes",
+      "definition": {
+        "name": "Dinner Party",
+        "comment": "Mellow tempo, mid-length, well-rated — sophisticated background music",
+        "all": [
+          {
+            "inTheRange": {
+              "bpm": [
+                70,
+                110
+              ]
+            }
+          },
+          {
+            "inTheRange": {
+              "duration": [
+                180,
+                360
+              ]
+            }
+          },
+          {
+            "gt": {
+              "rating": 2
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Summer Anthems",
+      "slug": "summer-anthems",
+      "category": "Seasonal",
+      "definition": {
+        "name": "Summer Anthems",
+        "comment": "Upbeat, high-energy, well-loved — soundtrack to endless summers",
+        "all": [
+          {
+            "gt": {
+              "bpm": 110
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Winter Warmers",
+      "slug": "winter-warmers",
+      "category": "Seasonal",
+      "definition": {
+        "name": "Winter Warmers",
+        "comment": "Slow, long, and cozy — music for blankets and hot chocolate",
+        "all": [
+          {
+            "lt": {
+              "bpm": 100
+            }
+          },
+          {
+            "gt": {
+              "bpm": 0
+            }
+          },
+          {
+            "gt": {
+              "duration": 240
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Rainy Day",
+      "slug": "rainy-day",
+      "category": "Seasonal",
+      "definition": {
+        "name": "Rainy Day",
+        "comment": "Melancholic tempo, mid-length — perfect for watching the rain",
+        "all": [
+          {
+            "inTheRange": {
+              "bpm": [
+                70,
+                100
+              ]
+            }
+          },
+          {
+            "inTheRange": {
+              "duration": [
+                180,
+                360
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Sonic Giants",
+      "slug": "sonic-giants",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "Sonic Giants",
+        "comment": "Files over 50 MB — your storage-devouring monsters",
+        "all": [
+          {
+            "gt": {
+              "size": 52428800
+            }
+          }
+        ],
+        "sort": "size",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Featherweights",
+      "slug": "the-featherweights",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "The Featherweights",
+        "comment": "Files under 2 MB — tiny but mighty",
+        "all": [
+          {
+            "lt": {
+              "size": 2097152
+            }
+          },
+          {
+            "gt": {
+              "size": 0
+            }
+          }
+        ],
+        "sort": "size",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "MP3 Nostalgia",
+      "slug": "mp3-nostalgia",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "MP3 Nostalgia",
+        "comment": "Good old MP3 files — Napster would be proud",
+        "all": [
+          {
+            "is": {
+              "filetype": "mp3"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "AAC Collection",
+      "slug": "aac-collection",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "AAC Collection",
+        "comment": "AAC/M4A files — the iTunes generation",
+        "all": [
+          {
+            "is": {
+              "filetype": "aac"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Mono Classics",
+      "slug": "mono-classics",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "Mono Classics",
+        "comment": "Single-channel audio — pre-stereo charm",
+        "all": [
+          {
+            "is": {
+              "channels": 1
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Surround Sound",
+      "slug": "surround-sound",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "Surround Sound",
+        "comment": "Multi-channel tracks — more than stereo",
+        "all": [
+          {
+            "gt": {
+              "channels": 2
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lo-Fi Charm",
+      "slug": "lo-fi-charm",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "Lo-Fi Charm",
+        "comment": "Low bitrate but high play count — proof that quality isn't everything",
+        "all": [
+          {
+            "lt": {
+              "bitrate": 192
+            }
+          },
+          {
+            "gt": {
+              "playcount": 5
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Audiophile",
+      "slug": "the-audiophile",
+      "category": "Quality & Format",
+      "definition": {
+        "name": "The Audiophile",
+        "comment": "FLAC, 24-bit, and rated 4+ — golden ears only",
+        "all": [
+          {
+            "is": {
+              "filetype": "flac"
+            }
+          },
+          {
+            "gt": {
+              "bitdepth": 16
+            }
+          },
+          {
+            "gt": {
+              "rating": 3
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Missing Artwork",
+      "slug": "missing-artwork",
+      "category": "Library Housekeeping",
+      "definition": {
+        "name": "Missing Artwork",
+        "comment": "Tracks without cover art — naked albums",
+        "all": [
+          {
+            "is": {
+              "hascoverart": false
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Recently Modified",
+      "slug": "recently-modified",
+      "category": "Library Housekeeping",
+      "definition": {
+        "name": "Recently Modified",
+        "comment": "Files modified in the last 30 days — recently re-tagged or updated",
+        "all": [
+          {
+            "inTheLast": {
+              "datemodified": 30
+            }
+          }
+        ],
+        "sort": "datemodified",
+        "order": "desc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Explicit Only",
+      "slug": "explicit-only",
+      "category": "Library Housekeeping",
+      "definition": {
+        "name": "Explicit Only",
+        "comment": "Tracks marked as explicit — parental advisory",
+        "all": [
+          {
+            "is": {
+              "explicitstatus": "explicit"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The Void",
+      "slug": "the-void",
+      "category": "Library Housekeeping",
+      "definition": {
+        "name": "The Void",
+        "comment": "Not rated, not loved, never played — do these tracks even exist?",
+        "all": [
+          {
+            "is": {
+              "rating": 0
+            }
+          },
+          {
+            "isNot": {
+              "loved": true
+            }
+          },
+          {
+            "is": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Digital Archaeology",
+      "slug": "digital-archaeology",
+      "category": "Library Housekeeping",
+      "definition": {
+        "name": "Digital Archaeology",
+        "comment": "Files not modified in over 5 years — digital fossils",
+        "all": [
+          {
+            "notInTheLast": {
+              "datemodified": 1825
+            }
+          }
+        ],
+        "sort": "datemodified",
+        "order": "asc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Pure Albums Only",
+      "slug": "pure-albums-only",
+      "category": "Albums & Collections",
+      "definition": {
+        "name": "Pure Albums Only",
+        "comment": "No compilations — original album tracks only",
+        "all": [
+          {
+            "isNot": {
+              "compilation": true
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Compilation Discovery",
+      "slug": "compilation-discovery",
+      "category": "Albums & Collections",
+      "definition": {
+        "name": "Compilation Discovery",
+        "comment": "Unplayed compilation tracks — hidden in the various artists pile",
+        "all": [
+          {
+            "is": {
+              "compilation": true
+            }
+          },
+          {
+            "is": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Fresh Favorites",
+      "slug": "fresh-favorites",
+      "category": "Discovery",
+      "definition": {
+        "name": "Fresh Favorites",
+        "comment": "Loved in the last 30 days — your latest sonic crushes",
+        "all": [
+          {
+            "inTheLast": {
+              "dateloved": 30
+            }
+          }
+        ],
+        "sort": "dateloved",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Slow Burn",
+      "slug": "the-slow-burn",
+      "category": "Discovery",
+      "definition": {
+        "name": "The Slow Burn",
+        "comment": "Added over 6 months ago, played for the first time recently — late discovery",
+        "all": [
+          {
+            "notInTheLast": {
+              "dateadded": 180
+            }
+          },
+          {
+            "inTheLast": {
+              "lastplayed": 30
+            }
+          },
+          {
+            "lt": {
+              "playcount": 3
+            }
+          }
+        ],
+        "sort": "lastplayed",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Abandoned Ships",
+      "slug": "abandoned-ships",
+      "category": "Rediscovery",
+      "definition": {
+        "name": "Abandoned Ships",
+        "comment": "Loved once but not played in 2+ years — what happened?",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "notInTheLast": {
+              "lastplayed": 730
+            }
+          }
+        ],
+        "sort": "lastplayed",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Late Bloomers",
+      "slug": "late-bloomers",
+      "category": "Rediscovery",
+      "definition": {
+        "name": "Late Bloomers",
+        "comment": "Added over a year ago, first plays in the last 3 months — finally getting attention",
+        "all": [
+          {
+            "notInTheLast": {
+              "dateadded": 365
+            }
+          },
+          {
+            "inTheLast": {
+              "lastplayed": 90
+            }
+          },
+          {
+            "lt": {
+              "playcount": 5
+            }
+          }
+        ],
+        "sort": "lastplayed",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Earworms",
+      "slug": "earworms",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "Earworms",
+        "comment": "Short tracks with high play counts — catchy hooks that won't leave your head",
+        "all": [
+          {
+            "lt": {
+              "duration": 210
+            }
+          },
+          {
+            "gt": {
+              "playcount": 10
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Party Starters",
+      "slug": "party-starters",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "Party Starters",
+        "comment": "Fast, short, and frequently played — instant party igniters",
+        "all": [
+          {
+            "gt": {
+              "bpm": 120
+            }
+          },
+          {
+            "lt": {
+              "duration": 240
+            }
+          },
+          {
+            "gt": {
+              "playcount": 5
+            }
+          }
+        ],
+        "sort": "bpm",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Perfectionist's Pick",
+      "slug": "perfectionists-pick",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "Perfectionist's Pick",
+        "comment": "Lossless, loved, and rated 5 — the pinnacle of your collection",
+        "all": [
+          {
+            "is": {
+              "filetype": "flac"
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "is": {
+              "rating": 5
+            }
+          }
+        ],
+        "sort": "+albumartist,+album,+track"
+      }
+    },
+    {
+      "label": "The Completionist",
+      "slug": "the-completionist",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "The Completionist",
+        "comment": "Loved, rated 5, played 10+ times, with cover art — peak curation",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "is": {
+              "rating": 5
+            }
+          },
+          {
+            "gt": {
+              "playcount": 9
+            }
+          },
+          {
+            "is": {
+              "hascoverart": true
+            }
+          }
+        ],
+        "sort": "+albumartist,+album,+track"
+      }
+    },
+    {
+      "label": "The Time Capsule",
+      "slug": "the-time-capsule",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "The Time Capsule",
+        "comment": "Original release date before 1970 — prehistoric recordings in your library",
+        "all": [
+          {
+            "before": {
+              "originaldate": "1970-01-01"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "New Classics",
+      "slug": "new-classics",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "New Classics",
+        "comment": "Released 2020+ and already rated 4+ — instant modern classics",
+        "all": [
+          {
+            "gt": {
+              "year": 2019
+            }
+          },
+          {
+            "gt": {
+              "rating": 3
+            }
+          }
+        ],
+        "sort": "rating",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Vintage Lossless",
+      "slug": "vintage-lossless",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "Vintage Lossless",
+        "comment": "Pre-1970 music in FLAC — old soul, pristine quality",
+        "all": [
+          {
+            "lt": {
+              "year": 1970
+            }
+          },
+          {
+            "gt": {
+              "year": 0
+            }
+          },
+          {
+            "is": {
+              "filetype": "flac"
+            }
+          }
+        ],
+        "sort": "year",
+        "order": "asc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The Growers",
+      "slug": "the-growers",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "The Growers",
+        "comment": "Played 10+ times but still not loved — they grew on you quietly",
+        "all": [
+          {
+            "gt": {
+              "playcount": 9
+            }
+          },
+          {
+            "isNot": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "playcount",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Soundtrack",
+      "slug": "the-soundtrack",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "The Soundtrack",
+        "comment": "Your loved tracks, album-ordered — the movie of your life",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "+year,+albumartist,+album,+track"
+      }
+    },
+    {
+      "label": "The Anti-Shuffle",
+      "slug": "the-anti-shuffle",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "The Anti-Shuffle",
+        "comment": "Your best tracks in strict chronological order — no randomness allowed",
+        "all": [
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "+year,+album,+track"
+      }
+    },
+    {
+      "label": "Zero to Hero",
+      "slug": "zero-to-hero",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "Zero to Hero",
+        "comment": "Never played but recently added — fresh arrivals awaiting their debut",
+        "all": [
+          {
+            "is": {
+              "playcount": 0
+            }
+          },
+          {
+            "inTheLast": {
+              "dateadded": 14
+            }
+          }
+        ],
+        "sort": "dateadded",
+        "order": "desc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The Shapeshifters",
+      "slug": "the-shapeshifters",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "The Shapeshifters",
+        "comment": "Tracks from multi-disc albums — sprawling artistic statements",
+        "all": [
+          {
+            "gt": {
+              "discnumber": 1
+            }
+          }
+        ],
+        "sort": "+albumartist,+album,+discnumber,+track"
+      }
+    },
+    {
+      "label": "Format Roulette",
+      "slug": "format-roulette",
+      "category": "Weird & Wonderful",
+      "definition": {
+        "name": "Format Roulette",
+        "comment": "Non-FLAC, non-MP3 files — the weird and wonderful formats",
+        "all": [
+          {
+            "isNot": {
+              "filetype": "flac"
+            }
+          },
+          {
+            "isNot": {
+              "filetype": "mp3"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The Renaissance",
+      "slug": "the-renaissance",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Renaissance",
+        "comment": "Not played in 6+ months but recently loved or rated — rediscovered and reborn",
+        "all": [
+          {
+            "notInTheLast": {
+              "lastplayed": 180
+            }
+          },
+          {
+            "any": [
+              {
+                "inTheLast": {
+                  "dateloved": 60
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Genre Hopper",
+      "slug": "genre-hopper",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "Genre Hopper",
+        "comment": "Loved tracks from compilations or multi-disc sets — eclectic by nature",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "compilation": true
+                }
+              },
+              {
+                "gt": {
+                  "discnumber": 1
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Paradox",
+      "slug": "the-paradox",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Paradox",
+        "comment": "Low-rated tracks you've played a lot OR high-rated ones you've barely touched",
+        "any": [
+          {
+            "all": [
+              {
+                "lt": {
+                  "rating": 3
+                }
+              },
+              {
+                "gt": {
+                  "rating": 0
+                }
+              },
+              {
+                "gt": {
+                  "playcount": 10
+                }
+              }
+            ]
+          },
+          {
+            "all": [
+              {
+                "gt": {
+                  "rating": 3
+                }
+              },
+              {
+                "lt": {
+                  "playcount": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Upgrade List",
+      "slug": "the-upgrade-list",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Upgrade List",
+        "comment": "Loved tracks in lossy format — candidates for a lossless upgrade",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "filetype": "mp3"
+                }
+              },
+              {
+                "is": {
+                  "filetype": "aac"
+                }
+              },
+              {
+                "is": {
+                  "filetype": "ogg"
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "+albumartist,+album,+track"
+      }
+    },
+    {
+      "label": "Peak Discovery",
+      "slug": "peak-discovery",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "Peak Discovery",
+        "comment": "Added in the last 90 days AND (already loved OR rated 4+) — love at first listen",
+        "all": [
+          {
+            "inTheLast": {
+              "dateadded": 90
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "dateadded",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Deep End",
+      "slug": "the-deep-end",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Deep End",
+        "comment": "Long tracks (7+ min), loved or highly rated, from deep in the album — sonic journeys",
+        "all": [
+          {
+            "gt": {
+              "duration": 420
+            }
+          },
+          {
+            "gt": {
+              "track": 5
+            }
+          },
+          {
+            "any": [
+              {
+                "is": {
+                  "loved": true
+                }
+              },
+              {
+                "gt": {
+                  "rating": 3
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "duration",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Full Circle",
+      "slug": "the-full-circle",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Full Circle",
+        "comment": "Track 1 from albums where you've loved it AND played 5+ times — iconic opening moments",
+        "all": [
+          {
+            "is": {
+              "track": 1
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "gt": {
+              "playcount": 4
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Shelf Life",
+      "slug": "the-shelf-life",
+      "category": "Complex / Nested",
+      "definition": {
+        "name": "The Shelf Life",
+        "comment": "Added 1-2 years ago, played 1-3 times, not loved — the forgotten middle ground",
+        "all": [
+          {
+            "notInTheLast": {
+              "dateadded": 365
+            }
+          },
+          {
+            "inTheLast": {
+              "dateadded": 730
+            }
+          },
+          {
+            "inTheRange": {
+              "playcount": [
+                1,
+                3
+              ]
+            }
+          },
+          {
+            "isNot": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Rock Essentials",
+      "slug": "rock-essentials",
+      "category": "Genre",
+      "definition": {
+        "name": "Rock Essentials",
+        "comment": "All your rock tracks — the backbone of any collection",
+        "all": [
+          {
+            "contains": {
+              "genre": "rock"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Pop Hits",
+      "slug": "pop-hits",
+      "category": "Genre",
+      "definition": {
+        "name": "Pop Hits",
+        "comment": "Pure pop — catchy, polished, irresistible",
+        "all": [
+          {
+            "contains": {
+              "genre": "pop"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Hip-Hop & Rap",
+      "slug": "hip-hop-and-rap",
+      "category": "Genre",
+      "definition": {
+        "name": "Hip-Hop & Rap",
+        "comment": "Beats, bars, and bass — every hip-hop track in your library",
+        "any": [
+          {
+            "contains": {
+              "genre": "hip-hop"
+            }
+          },
+          {
+            "contains": {
+              "genre": "hip hop"
+            }
+          },
+          {
+            "contains": {
+              "genre": "rap"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Electronic & EDM",
+      "slug": "electronic-and-edm",
+      "category": "Genre",
+      "definition": {
+        "name": "Electronic & EDM",
+        "comment": "Synths, beats, and drops — the electronic spectrum",
+        "any": [
+          {
+            "contains": {
+              "genre": "electronic"
+            }
+          },
+          {
+            "contains": {
+              "genre": "edm"
+            }
+          },
+          {
+            "contains": {
+              "genre": "techno"
+            }
+          },
+          {
+            "contains": {
+              "genre": "house"
+            }
+          },
+          {
+            "contains": {
+              "genre": "trance"
+            }
+          },
+          {
+            "contains": {
+              "genre": "drum and bass"
+            }
+          },
+          {
+            "contains": {
+              "genre": "dubstep"
+            }
+          },
+          {
+            "contains": {
+              "genre": "electro"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Jazz Collection",
+      "slug": "jazz-collection",
+      "category": "Genre",
+      "definition": {
+        "name": "Jazz Collection",
+        "comment": "Smooth, free, bebop, fusion — all that jazz",
+        "all": [
+          {
+            "contains": {
+              "genre": "jazz"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Blues Sessions",
+      "slug": "blues-sessions",
+      "category": "Genre",
+      "definition": {
+        "name": "Blues Sessions",
+        "comment": "12 bars of feeling — every shade of blue",
+        "all": [
+          {
+            "contains": {
+              "genre": "blues"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Metal Mayhem",
+      "slug": "metal-mayhem",
+      "category": "Genre",
+      "definition": {
+        "name": "Metal Mayhem",
+        "comment": "Heavy, heavier, heaviest — all metal subgenres welcome",
+        "all": [
+          {
+            "contains": {
+              "genre": "metal"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Classical Corner",
+      "slug": "classical-corner",
+      "category": "Genre",
+      "definition": {
+        "name": "Classical Corner",
+        "comment": "Centuries of composed genius — from baroque to modern classical",
+        "all": [
+          {
+            "contains": {
+              "genre": "classical"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Country Roads",
+      "slug": "country-roads",
+      "category": "Genre",
+      "definition": {
+        "name": "Country Roads",
+        "comment": "Twang, steel guitars, and storytelling — country & western",
+        "any": [
+          {
+            "contains": {
+              "genre": "country"
+            }
+          },
+          {
+            "contains": {
+              "genre": "western"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "R&B & Soul",
+      "slug": "rnb-and-soul",
+      "category": "Genre",
+      "definition": {
+        "name": "R&B & Soul",
+        "comment": "Rhythm, blues, and soul — smooth grooves",
+        "any": [
+          {
+            "contains": {
+              "genre": "r&b"
+            }
+          },
+          {
+            "contains": {
+              "genre": "soul"
+            }
+          },
+          {
+            "contains": {
+              "genre": "rhythm and blues"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Folk & Acoustic",
+      "slug": "folk-and-acoustic",
+      "category": "Genre",
+      "definition": {
+        "name": "Folk & Acoustic",
+        "comment": "Stripped back, honest, raw — campfire music",
+        "any": [
+          {
+            "contains": {
+              "genre": "folk"
+            }
+          },
+          {
+            "contains": {
+              "genre": "acoustic"
+            }
+          },
+          {
+            "contains": {
+              "genre": "singer-songwriter"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Punk Rock",
+      "slug": "punk-rock",
+      "category": "Genre",
+      "definition": {
+        "name": "Punk Rock",
+        "comment": "Three chords and the truth — fast, loud, attitude",
+        "all": [
+          {
+            "contains": {
+              "genre": "punk"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Reggae & Dub",
+      "slug": "reggae-and-dub",
+      "category": "Genre",
+      "definition": {
+        "name": "Reggae & Dub",
+        "comment": "Island rhythms and bass-heavy echoes",
+        "any": [
+          {
+            "contains": {
+              "genre": "reggae"
+            }
+          },
+          {
+            "contains": {
+              "genre": "dub"
+            }
+          },
+          {
+            "contains": {
+              "genre": "ska"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Funk Machine",
+      "slug": "funk-machine",
+      "category": "Genre",
+      "definition": {
+        "name": "Funk Machine",
+        "comment": "Get up offa that thing — pure funk",
+        "all": [
+          {
+            "contains": {
+              "genre": "funk"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Disco Nights",
+      "slug": "disco-nights",
+      "category": "Genre",
+      "definition": {
+        "name": "Disco Nights",
+        "comment": "Mirror balls and four-on-the-floor — disco never died",
+        "all": [
+          {
+            "contains": {
+              "genre": "disco"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Indie & Alternative",
+      "slug": "indie-and-alternative",
+      "category": "Genre",
+      "definition": {
+        "name": "Indie & Alternative",
+        "comment": "Left of the dial — indie and alt everything",
+        "any": [
+          {
+            "contains": {
+              "genre": "indie"
+            }
+          },
+          {
+            "contains": {
+              "genre": "alternative"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Ambient & Downtempo",
+      "slug": "ambient-and-downtempo",
+      "category": "Genre",
+      "definition": {
+        "name": "Ambient & Downtempo",
+        "comment": "Sonic wallpaper — ambient textures and slow atmospheres",
+        "any": [
+          {
+            "contains": {
+              "genre": "ambient"
+            }
+          },
+          {
+            "contains": {
+              "genre": "downtempo"
+            }
+          },
+          {
+            "contains": {
+              "genre": "chillout"
+            }
+          },
+          {
+            "contains": {
+              "genre": "new age"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Latin Flavours",
+      "slug": "latin-flavours",
+      "category": "Genre",
+      "definition": {
+        "name": "Latin Flavours",
+        "comment": "Salsa, bossa nova, reggaeton, and more — ritmo latino",
+        "any": [
+          {
+            "contains": {
+              "genre": "latin"
+            }
+          },
+          {
+            "contains": {
+              "genre": "salsa"
+            }
+          },
+          {
+            "contains": {
+              "genre": "bossa nova"
+            }
+          },
+          {
+            "contains": {
+              "genre": "reggaeton"
+            }
+          },
+          {
+            "contains": {
+              "genre": "samba"
+            }
+          },
+          {
+            "contains": {
+              "genre": "cumbia"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Soundtrack & Score",
+      "slug": "soundtrack-and-score",
+      "category": "Genre",
+      "definition": {
+        "name": "Soundtrack & Score",
+        "comment": "Film scores, game soundtracks, and musical theatre",
+        "any": [
+          {
+            "contains": {
+              "genre": "soundtrack"
+            }
+          },
+          {
+            "contains": {
+              "genre": "score"
+            }
+          },
+          {
+            "contains": {
+              "genre": "film"
+            }
+          },
+          {
+            "contains": {
+              "genre": "game"
+            }
+          },
+          {
+            "contains": {
+              "genre": "musical"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "World Music",
+      "slug": "world-music",
+      "category": "Genre",
+      "definition": {
+        "name": "World Music",
+        "comment": "Global sounds — music from every corner of the planet",
+        "any": [
+          {
+            "contains": {
+              "genre": "world"
+            }
+          },
+          {
+            "contains": {
+              "genre": "afrobeat"
+            }
+          },
+          {
+            "contains": {
+              "genre": "celtic"
+            }
+          },
+          {
+            "contains": {
+              "genre": "flamenco"
+            }
+          },
+          {
+            "contains": {
+              "genre": "african"
+            }
+          },
+          {
+            "contains": {
+              "genre": "arabic"
+            }
+          },
+          {
+            "contains": {
+              "genre": "indian"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Experimental & Avant-Garde",
+      "slug": "experimental-and-avant-garde",
+      "category": "Genre",
+      "definition": {
+        "name": "Experimental & Avant-Garde",
+        "comment": "The outer limits — music that defies categorisation",
+        "any": [
+          {
+            "contains": {
+              "genre": "experimental"
+            }
+          },
+          {
+            "contains": {
+              "genre": "avant-garde"
+            }
+          },
+          {
+            "contains": {
+              "genre": "noise"
+            }
+          },
+          {
+            "contains": {
+              "genre": "industrial"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Gospel & Spiritual",
+      "slug": "gospel-and-spiritual",
+      "category": "Genre",
+      "definition": {
+        "name": "Gospel & Spiritual",
+        "comment": "Hallelujah — uplifting gospel and spiritual music",
+        "any": [
+          {
+            "contains": {
+              "genre": "gospel"
+            }
+          },
+          {
+            "contains": {
+              "genre": "spiritual"
+            }
+          },
+          {
+            "contains": {
+              "genre": "christian"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Loved Rock",
+      "slug": "loved-rock",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Loved Rock",
+        "comment": "Rock tracks you've loved — your personal rock hall of fame",
+        "all": [
+          {
+            "contains": {
+              "genre": "rock"
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Jazz in FLAC",
+      "slug": "jazz-in-flac",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Jazz in FLAC",
+        "comment": "Jazz the way it should be heard — lossless and warm",
+        "all": [
+          {
+            "contains": {
+              "genre": "jazz"
+            }
+          },
+          {
+            "is": {
+              "filetype": "flac"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Top Rated Electronic",
+      "slug": "top-rated-electronic",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Top Rated Electronic",
+        "comment": "Your best electronic tracks — rated 4 or higher",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "genre": "electronic"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "techno"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "house"
+                }
+              }
+            ]
+          },
+          {
+            "gt": {
+              "rating": 3
+            }
+          }
+        ],
+        "sort": "rating",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Metal Marathons",
+      "slug": "metal-marathons",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Metal Marathons",
+        "comment": "Metal tracks over 7 minutes — epic prog and doom journeys",
+        "all": [
+          {
+            "contains": {
+              "genre": "metal"
+            }
+          },
+          {
+            "gt": {
+              "duration": 420
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Mellow Classics",
+      "slug": "mellow-classics",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Mellow Classics",
+        "comment": "Classical tracks under 100 BPM — serene and peaceful",
+        "all": [
+          {
+            "contains": {
+              "genre": "classical"
+            }
+          },
+          {
+            "lt": {
+              "bpm": 100
+            }
+          },
+          {
+            "gt": {
+              "bpm": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Unplayed Genres",
+      "slug": "unplayed-genres",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Unplayed Genres",
+        "comment": "Never-played tracks from jazz, classical, or folk — explore your blind spots",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "genre": "jazz"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "classical"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "folk"
+                }
+              }
+            ]
+          },
+          {
+            "is": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Hip-Hop Classics",
+      "slug": "hip-hop-classics",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Hip-Hop Classics",
+        "comment": "Pre-2000 hip-hop — golden age bars and beats",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "genre": "hip-hop"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "hip hop"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "rap"
+                }
+              }
+            ]
+          },
+          {
+            "lt": {
+              "year": 2000
+            }
+          },
+          {
+            "gt": {
+              "year": 0
+            }
+          }
+        ],
+        "sort": "year",
+        "order": "asc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Pop Perfection",
+      "slug": "pop-perfection",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Pop Perfection",
+        "comment": "Pop tracks rated 5 stars — verified bangers only",
+        "all": [
+          {
+            "contains": {
+              "genre": "pop"
+            }
+          },
+          {
+            "is": {
+              "rating": 5
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Punk Under 2 Minutes",
+      "slug": "punk-under-2-minutes",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Punk Under 2 Minutes",
+        "comment": "The punkest tracks — blisteringly short, maximum energy",
+        "all": [
+          {
+            "contains": {
+              "genre": "punk"
+            }
+          },
+          {
+            "lt": {
+              "duration": 120
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Epic Soundtracks",
+      "slug": "epic-soundtracks",
+      "category": "Genre Fusions",
+      "definition": {
+        "name": "Epic Soundtracks",
+        "comment": "Soundtrack tracks over 5 mins — cinematic epics",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "genre": "soundtrack"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "score"
+                }
+              }
+            ]
+          },
+          {
+            "gt": {
+              "duration": 300
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Happy Vibes",
+      "slug": "happy-vibes",
+      "category": "Mood",
+      "definition": {
+        "name": "Happy Vibes",
+        "comment": "Tracks tagged with a happy mood — guaranteed smiles",
+        "any": [
+          {
+            "contains": {
+              "mood": "happy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "cheerful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "joyful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "upbeat"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Sad Songs",
+      "slug": "sad-songs",
+      "category": "Mood",
+      "definition": {
+        "name": "Sad Songs",
+        "comment": "Permission to feel — melancholy, sad, somber tracks",
+        "any": [
+          {
+            "contains": {
+              "mood": "sad"
+            }
+          },
+          {
+            "contains": {
+              "mood": "melancholy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "somber"
+            }
+          },
+          {
+            "contains": {
+              "mood": "sorrowful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "lonely"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Energetic",
+      "slug": "energetic",
+      "category": "Mood",
+      "definition": {
+        "name": "Energetic",
+        "comment": "High-energy mood tags — for when you need a boost",
+        "any": [
+          {
+            "contains": {
+              "mood": "energetic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "uplifting"
+            }
+          },
+          {
+            "contains": {
+              "mood": "powerful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "exciting"
+            }
+          },
+          {
+            "contains": {
+              "mood": "exhilarating"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Relaxing",
+      "slug": "relaxing",
+      "category": "Mood",
+      "definition": {
+        "name": "Relaxing",
+        "comment": "Chill, calm, peaceful — music to decompress to",
+        "any": [
+          {
+            "contains": {
+              "mood": "relaxing"
+            }
+          },
+          {
+            "contains": {
+              "mood": "calm"
+            }
+          },
+          {
+            "contains": {
+              "mood": "peaceful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "soothing"
+            }
+          },
+          {
+            "contains": {
+              "mood": "tranquil"
+            }
+          },
+          {
+            "contains": {
+              "mood": "serene"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Aggressive",
+      "slug": "aggressive",
+      "category": "Mood",
+      "definition": {
+        "name": "Aggressive",
+        "comment": "Raw, angry, intense — music with teeth",
+        "any": [
+          {
+            "contains": {
+              "mood": "aggressive"
+            }
+          },
+          {
+            "contains": {
+              "mood": "angry"
+            }
+          },
+          {
+            "contains": {
+              "mood": "intense"
+            }
+          },
+          {
+            "contains": {
+              "mood": "fierce"
+            }
+          },
+          {
+            "contains": {
+              "mood": "hostile"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Romantic",
+      "slug": "romantic",
+      "category": "Mood",
+      "definition": {
+        "name": "Romantic",
+        "comment": "Love songs and tender feelings — set the mood",
+        "any": [
+          {
+            "contains": {
+              "mood": "romantic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "love"
+            }
+          },
+          {
+            "contains": {
+              "mood": "tender"
+            }
+          },
+          {
+            "contains": {
+              "mood": "passionate"
+            }
+          },
+          {
+            "contains": {
+              "mood": "sensual"
+            }
+          },
+          {
+            "contains": {
+              "mood": "intimate"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Dark & Brooding",
+      "slug": "dark-and-brooding",
+      "category": "Mood",
+      "definition": {
+        "name": "Dark & Brooding",
+        "comment": "Gothic, moody, ominous — for your darker moments",
+        "any": [
+          {
+            "contains": {
+              "mood": "dark"
+            }
+          },
+          {
+            "contains": {
+              "mood": "brooding"
+            }
+          },
+          {
+            "contains": {
+              "mood": "ominous"
+            }
+          },
+          {
+            "contains": {
+              "mood": "gothic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "menacing"
+            }
+          },
+          {
+            "contains": {
+              "mood": "eerie"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Dreamy",
+      "slug": "dreamy",
+      "category": "Mood",
+      "definition": {
+        "name": "Dreamy",
+        "comment": "Ethereal, floating, otherworldly — music from another dimension",
+        "any": [
+          {
+            "contains": {
+              "mood": "dreamy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "ethereal"
+            }
+          },
+          {
+            "contains": {
+              "mood": "atmospheric"
+            }
+          },
+          {
+            "contains": {
+              "mood": "hypnotic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "mystical"
+            }
+          },
+          {
+            "contains": {
+              "mood": "trippy"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Nostalgic",
+      "slug": "nostalgic",
+      "category": "Mood",
+      "definition": {
+        "name": "Nostalgic",
+        "comment": "Wistful, bittersweet, sentimental — music that takes you back",
+        "any": [
+          {
+            "contains": {
+              "mood": "nostalgic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "bittersweet"
+            }
+          },
+          {
+            "contains": {
+              "mood": "wistful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "sentimental"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Epic & Cinematic",
+      "slug": "epic-and-cinematic",
+      "category": "Mood",
+      "definition": {
+        "name": "Epic & Cinematic",
+        "comment": "Grand, triumphant, sweeping — your life needs a soundtrack",
+        "any": [
+          {
+            "contains": {
+              "mood": "epic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "cinematic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "triumphant"
+            }
+          },
+          {
+            "contains": {
+              "mood": "heroic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "majestic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "grandiose"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Groovy",
+      "slug": "groovy",
+      "category": "Mood",
+      "definition": {
+        "name": "Groovy",
+        "comment": "Funky, groovy, rhythmic — get your head nodding",
+        "any": [
+          {
+            "contains": {
+              "mood": "groovy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "funky"
+            }
+          },
+          {
+            "contains": {
+              "mood": "rhythmic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "bouncy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "swagger"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Rebellious",
+      "slug": "rebellious",
+      "category": "Mood",
+      "definition": {
+        "name": "Rebellious",
+        "comment": "Defiant, rebellious, anarchic — music that fights back",
+        "any": [
+          {
+            "contains": {
+              "mood": "rebellious"
+            }
+          },
+          {
+            "contains": {
+              "mood": "defiant"
+            }
+          },
+          {
+            "contains": {
+              "mood": "anarchic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "provocative"
+            }
+          },
+          {
+            "contains": {
+              "mood": "confrontational"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Spooky",
+      "slug": "spooky",
+      "category": "Mood",
+      "definition": {
+        "name": "Spooky",
+        "comment": "Creepy, haunting, sinister — perfect for Halloween or 3AM listening",
+        "any": [
+          {
+            "contains": {
+              "mood": "spooky"
+            }
+          },
+          {
+            "contains": {
+              "mood": "creepy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "haunting"
+            }
+          },
+          {
+            "contains": {
+              "mood": "sinister"
+            }
+          },
+          {
+            "contains": {
+              "mood": "scary"
+            }
+          },
+          {
+            "contains": {
+              "mood": "eerie"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Uplifting",
+      "slug": "uplifting",
+      "category": "Mood",
+      "definition": {
+        "name": "Uplifting",
+        "comment": "Inspirational, hopeful, uplifting — music to lift your spirits",
+        "any": [
+          {
+            "contains": {
+              "mood": "uplifting"
+            }
+          },
+          {
+            "contains": {
+              "mood": "inspirational"
+            }
+          },
+          {
+            "contains": {
+              "mood": "hopeful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "optimistic"
+            }
+          },
+          {
+            "contains": {
+              "mood": "encouraging"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Sexy",
+      "slug": "sexy",
+      "category": "Mood",
+      "definition": {
+        "name": "Sexy",
+        "comment": "Sultry, seductive, steamy — after-dark listening",
+        "any": [
+          {
+            "contains": {
+              "mood": "sexy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "sultry"
+            }
+          },
+          {
+            "contains": {
+              "mood": "seductive"
+            }
+          },
+          {
+            "contains": {
+              "mood": "steamy"
+            }
+          },
+          {
+            "contains": {
+              "mood": "sensual"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Playful",
+      "slug": "playful",
+      "category": "Mood",
+      "definition": {
+        "name": "Playful",
+        "comment": "Quirky, whimsical, fun — music that doesn't take itself seriously",
+        "any": [
+          {
+            "contains": {
+              "mood": "playful"
+            }
+          },
+          {
+            "contains": {
+              "mood": "quirky"
+            }
+          },
+          {
+            "contains": {
+              "mood": "whimsical"
+            }
+          },
+          {
+            "contains": {
+              "mood": "fun"
+            }
+          },
+          {
+            "contains": {
+              "mood": "humorous"
+            }
+          },
+          {
+            "contains": {
+              "mood": "silly"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Happy & Loved",
+      "slug": "happy-and-loved",
+      "category": "Mood Fusions",
+      "definition": {
+        "name": "Happy & Loved",
+        "comment": "Tracks tagged happy that you've also loved — double the joy",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "mood": "happy"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "cheerful"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "joyful"
+                }
+              }
+            ]
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Sad & Highly Rated",
+      "slug": "sad-and-highly-rated",
+      "category": "Mood Fusions",
+      "definition": {
+        "name": "Sad & Highly Rated",
+        "comment": "Beautiful sadness — melancholy tracks you rated 4 or higher",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "mood": "sad"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "melancholy"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "somber"
+                }
+              }
+            ]
+          },
+          {
+            "gt": {
+              "rating": 3
+            }
+          }
+        ],
+        "sort": "rating",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Dark & Heavy",
+      "slug": "dark-and-heavy",
+      "category": "Mood Fusions",
+      "definition": {
+        "name": "Dark & Heavy",
+        "comment": "Dark mood + metal genre — the heaviest, darkest corner of your library",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "mood": "dark"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "ominous"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "aggressive"
+                }
+              }
+            ]
+          },
+          {
+            "contains": {
+              "genre": "metal"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Chill Electronic",
+      "slug": "chill-electronic",
+      "category": "Mood Fusions",
+      "definition": {
+        "name": "Chill Electronic",
+        "comment": "Relaxing mood meets electronic genre — ambient beats and warm synths",
+        "all": [
+          {
+            "any": [
+              {
+                "contains": {
+                  "mood": "relaxing"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "calm"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "peaceful"
+                }
+              },
+              {
+                "contains": {
+                  "mood": "dreamy"
+                }
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "contains": {
+                  "genre": "electronic"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "ambient"
+                }
+              },
+              {
+                "contains": {
+                  "genre": "downtempo"
+                }
+              }
+            ]
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Moody Discoveries",
+      "slug": "moody-discoveries",
+      "category": "Mood Fusions",
+      "definition": {
+        "name": "Moody Discoveries",
+        "comment": "Tracks with a mood tag but never played — what vibe are you missing?",
+        "all": [
+          {
+            "notContains": {
+              "mood": ""
+            }
+          },
+          {
+            "is": {
+              "playcount": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Loudness War",
+      "slug": "the-loudness-war",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "The Loudness War",
+        "comment": "Tracks with very low ReplayGain — mastered LOUD, brickwalled, no mercy",
+        "all": [
+          {
+            "lt": {
+              "replaygain_track_gain": -12
+            }
+          }
+        ],
+        "sort": "replaygain_track_gain",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Whisper Quiet",
+      "slug": "whisper-quiet",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Whisper Quiet",
+        "comment": "Tracks with high ReplayGain — delicately mastered, natural dynamics",
+        "all": [
+          {
+            "gt": {
+              "replaygain_track_gain": 5
+            }
+          }
+        ],
+        "sort": "replaygain_track_gain",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Dynamic Range Kings",
+      "slug": "dynamic-range-kings",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Dynamic Range Kings",
+        "comment": "Low peak values with moderate gain — well-mastered with real dynamics",
+        "all": [
+          {
+            "lt": {
+              "replaygain_track_peak": 0.9
+            }
+          },
+          {
+            "gt": {
+              "replaygain_track_gain": -6
+            }
+          }
+        ],
+        "sort": "replaygain_track_peak",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Clipping Danger",
+      "slug": "clipping-danger",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Clipping Danger",
+        "comment": "Tracks with peak at or near 1.0 — pushing the hard limits of digital audio",
+        "all": [
+          {
+            "gt": {
+              "replaygain_track_peak": 0.99
+            }
+          }
+        ],
+        "sort": "replaygain_track_peak",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Hot Albums",
+      "slug": "hot-albums",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Hot Albums",
+        "comment": "Albums mastered loud — low album ReplayGain means a hot master",
+        "all": [
+          {
+            "lt": {
+              "replaygain_album_gain": -10
+            }
+          }
+        ],
+        "sort": "replaygain_album_gain",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Gentle Albums",
+      "slug": "gentle-albums",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Gentle Albums",
+        "comment": "Albums with high positive gain — mastered with restraint and space",
+        "all": [
+          {
+            "gt": {
+              "replaygain_album_gain": 3
+            }
+          }
+        ],
+        "sort": "replaygain_album_gain",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "The Loud & Loved",
+      "slug": "the-loud-and-loved",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "The Loud & Loved",
+        "comment": "Brickwalled masters you love anyway — loudness war survivors",
+        "all": [
+          {
+            "lt": {
+              "replaygain_track_gain": -10
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "replaygain_track_gain",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Audiophile Masters",
+      "slug": "audiophile-masters",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Audiophile Masters",
+        "comment": "FLAC + low peak + moderate gain + high rating — mastering perfection",
+        "all": [
+          {
+            "is": {
+              "filetype": "flac"
+            }
+          },
+          {
+            "lt": {
+              "replaygain_track_peak": 0.95
+            }
+          },
+          {
+            "gt": {
+              "replaygain_track_gain": -8
+            }
+          },
+          {
+            "gt": {
+              "rating": 3
+            }
+          }
+        ],
+        "sort": "rating",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "R128 Normalized",
+      "slug": "r128-normalized",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "R128 Normalized",
+        "comment": "Tracks with R128 loudness normalization tags — broadcast-standard levels",
+        "all": [
+          {
+            "isNot": {
+              "r128_track_gain": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Loudness Outliers",
+      "slug": "loudness-outliers",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Loudness Outliers",
+        "comment": "Tracks with extreme gain values (> +10 or < -15) — the volume oddballs",
+        "any": [
+          {
+            "gt": {
+              "replaygain_track_gain": 10
+            }
+          },
+          {
+            "lt": {
+              "replaygain_track_gain": -15
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Headroom Heroes",
+      "slug": "headroom-heroes",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Headroom Heroes",
+        "comment": "Tracks with peak well below 1.0 — plenty of headroom, no distortion",
+        "all": [
+          {
+            "lt": {
+              "replaygain_track_peak": 0.8
+            }
+          },
+          {
+            "gt": {
+              "replaygain_track_peak": 0
+            }
+          }
+        ],
+        "sort": "replaygain_track_peak",
+        "order": "asc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Volume Crankers",
+      "slug": "volume-crankers",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Volume Crankers",
+        "comment": "Very quiet tracks needing +8 dB or more gain — turn it up!",
+        "all": [
+          {
+            "gt": {
+              "replaygain_track_gain": 8
+            }
+          }
+        ],
+        "sort": "replaygain_track_gain",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Album vs Track Mismatch",
+      "slug": "album-vs-track-mismatch",
+      "category": "ReplayGain & Loudness",
+      "definition": {
+        "name": "Album vs Track Mismatch",
+        "comment": "Tracks where album gain is much different from track gain — the loud/quiet song on the album",
+        "all": [
+          {
+            "lt": {
+              "replaygain_album_gain": -5
+            }
+          },
+          {
+            "gt": {
+              "replaygain_track_gain": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Key of C Major",
+      "slug": "key-of-c-major",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Key of C Major",
+        "comment": "The people's key — bright, simple, triumphant",
+        "any": [
+          {
+            "is": {
+              "key": "Cmaj"
+            }
+          },
+          {
+            "is": {
+              "key": "C"
+            }
+          },
+          {
+            "is": {
+              "key": "C major"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Key of A Minor",
+      "slug": "key-of-a-minor",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Key of A Minor",
+        "comment": "The relative minor of C — moody and introspective",
+        "any": [
+          {
+            "is": {
+              "key": "Amin"
+            }
+          },
+          {
+            "is": {
+              "key": "Am"
+            }
+          },
+          {
+            "is": {
+              "key": "A minor"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Key of D Major",
+      "slug": "key-of-d-major",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Key of D Major",
+        "comment": "The key of glory — Beethoven's favourite for joy",
+        "any": [
+          {
+            "is": {
+              "key": "Dmaj"
+            }
+          },
+          {
+            "is": {
+              "key": "D"
+            }
+          },
+          {
+            "is": {
+              "key": "D major"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Key of E Minor",
+      "slug": "key-of-e-minor",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Key of E Minor",
+        "comment": "The guitar key — rock and metal's natural home",
+        "any": [
+          {
+            "is": {
+              "key": "Emin"
+            }
+          },
+          {
+            "is": {
+              "key": "Em"
+            }
+          },
+          {
+            "is": {
+              "key": "E minor"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Key of G Major",
+      "slug": "key-of-g-major",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Key of G Major",
+        "comment": "Pastoral and warm — folk and country's sweet spot",
+        "any": [
+          {
+            "is": {
+              "key": "Gmaj"
+            }
+          },
+          {
+            "is": {
+              "key": "G"
+            }
+          },
+          {
+            "is": {
+              "key": "G major"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Key of B-flat Major",
+      "slug": "key-of-bb-major",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Key of B-flat Major",
+        "comment": "The key of jazz and brass — warm and sophisticated",
+        "any": [
+          {
+            "is": {
+              "key": "Bbmaj"
+            }
+          },
+          {
+            "is": {
+              "key": "Bb"
+            }
+          },
+          {
+            "is": {
+              "key": "Bb major"
+            }
+          },
+          {
+            "is": {
+              "key": "B-flat major"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Minor Keys Only",
+      "slug": "minor-keys-only",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Minor Keys Only",
+        "comment": "Every track in a minor key — melancholy, tension, and drama",
+        "any": [
+          {
+            "contains": {
+              "key": "min"
+            }
+          },
+          {
+            "contains": {
+              "key": "minor"
+            }
+          },
+          {
+            "endsWith": {
+              "key": "m"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Major Keys Only",
+      "slug": "major-keys-only",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Major Keys Only",
+        "comment": "Every track in a major key — bright, happy, resolved",
+        "any": [
+          {
+            "contains": {
+              "key": "maj"
+            }
+          },
+          {
+            "contains": {
+              "key": "major"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Sharp Keys",
+      "slug": "sharp-keys",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Sharp Keys",
+        "comment": "Keys with sharps — bright and cutting",
+        "any": [
+          {
+            "contains": {
+              "key": "F#"
+            }
+          },
+          {
+            "contains": {
+              "key": "C#"
+            }
+          },
+          {
+            "contains": {
+              "key": "G#"
+            }
+          },
+          {
+            "contains": {
+              "key": "D#"
+            }
+          },
+          {
+            "contains": {
+              "key": "A#"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Flat Keys",
+      "slug": "flat-keys",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "Flat Keys",
+        "comment": "Keys with flats — dark, warm, and mellow",
+        "any": [
+          {
+            "contains": {
+              "key": "Bb"
+            }
+          },
+          {
+            "contains": {
+              "key": "Eb"
+            }
+          },
+          {
+            "contains": {
+              "key": "Ab"
+            }
+          },
+          {
+            "contains": {
+              "key": "Db"
+            }
+          },
+          {
+            "contains": {
+              "key": "Gb"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "DJ Mix Ready",
+      "slug": "dj-mix-ready",
+      "category": "Musical Keys",
+      "definition": {
+        "name": "DJ Mix Ready",
+        "comment": "Tracks with both key and BPM data — ready for harmonic mixing",
+        "all": [
+          {
+            "notContains": {
+              "key": ""
+            }
+          },
+          {
+            "gt": {
+              "bpm": 0
+            }
+          }
+        ],
+        "sort": "+key,+bpm"
+      }
+    },
+    {
+      "label": "English Language",
+      "slug": "english-language",
+      "category": "Language & International",
+      "definition": {
+        "name": "English Language",
+        "comment": "Tracks tagged as English — lingua franca of pop",
+        "any": [
+          {
+            "is": {
+              "language": "eng"
+            }
+          },
+          {
+            "is": {
+              "language": "en"
+            }
+          },
+          {
+            "is": {
+              "language": "English"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "French Chansons",
+      "slug": "french-chansons",
+      "category": "Language & International",
+      "definition": {
+        "name": "French Chansons",
+        "comment": "Music in French — la vie en rose",
+        "any": [
+          {
+            "is": {
+              "language": "fra"
+            }
+          },
+          {
+            "is": {
+              "language": "fre"
+            }
+          },
+          {
+            "is": {
+              "language": "fr"
+            }
+          },
+          {
+            "is": {
+              "language": "French"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "German Musik",
+      "slug": "german-musik",
+      "category": "Language & International",
+      "definition": {
+        "name": "German Musik",
+        "comment": "Tracks in German — Kraftwerk to classical lieder",
+        "any": [
+          {
+            "is": {
+              "language": "deu"
+            }
+          },
+          {
+            "is": {
+              "language": "ger"
+            }
+          },
+          {
+            "is": {
+              "language": "de"
+            }
+          },
+          {
+            "is": {
+              "language": "German"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Spanish Musica",
+      "slug": "spanish-musica",
+      "category": "Language & International",
+      "definition": {
+        "name": "Spanish Musica",
+        "comment": "Music in Spanish — from flamenco to reggaeton",
+        "any": [
+          {
+            "is": {
+              "language": "spa"
+            }
+          },
+          {
+            "is": {
+              "language": "es"
+            }
+          },
+          {
+            "is": {
+              "language": "Spanish"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Italian Melodia",
+      "slug": "italian-melodia",
+      "category": "Language & International",
+      "definition": {
+        "name": "Italian Melodia",
+        "comment": "Tracks in Italian — opera, pop, and canzone",
+        "any": [
+          {
+            "is": {
+              "language": "ita"
+            }
+          },
+          {
+            "is": {
+              "language": "it"
+            }
+          },
+          {
+            "is": {
+              "language": "Italian"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Japanese Ongaku",
+      "slug": "japanese-ongaku",
+      "category": "Language & International",
+      "definition": {
+        "name": "Japanese Ongaku",
+        "comment": "Music in Japanese — J-pop, J-rock, enka, and more",
+        "any": [
+          {
+            "is": {
+              "language": "jpn"
+            }
+          },
+          {
+            "is": {
+              "language": "ja"
+            }
+          },
+          {
+            "is": {
+              "language": "Japanese"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Korean Eumak",
+      "slug": "korean-eumak",
+      "category": "Language & International",
+      "definition": {
+        "name": "Korean Eumak",
+        "comment": "Tracks in Korean — K-pop and beyond",
+        "any": [
+          {
+            "is": {
+              "language": "kor"
+            }
+          },
+          {
+            "is": {
+              "language": "ko"
+            }
+          },
+          {
+            "is": {
+              "language": "Korean"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Portuguese Musica",
+      "slug": "portuguese-musica",
+      "category": "Language & International",
+      "definition": {
+        "name": "Portuguese Musica",
+        "comment": "Music in Portuguese — bossa nova, fado, MPB, and sertanejo",
+        "any": [
+          {
+            "is": {
+              "language": "por"
+            }
+          },
+          {
+            "is": {
+              "language": "pt"
+            }
+          },
+          {
+            "is": {
+              "language": "Portuguese"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Non-English Favourites",
+      "slug": "non-english-favourites",
+      "category": "Language & International",
+      "definition": {
+        "name": "Non-English Favourites",
+        "comment": "Loved tracks not in English — your polyglot picks",
+        "all": [
+          {
+            "isNot": {
+              "language": "eng"
+            }
+          },
+          {
+            "isNot": {
+              "language": "en"
+            }
+          },
+          {
+            "isNot": {
+              "language": "English"
+            }
+          },
+          {
+            "notContains": {
+              "language": ""
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Multilingual Library",
+      "slug": "multilingual-library",
+      "category": "Language & International",
+      "definition": {
+        "name": "Multilingual Library",
+        "comment": "All tracks with a language tag — discover what languages live in your library",
+        "all": [
+          {
+            "notContains": {
+              "language": ""
+            }
+          }
+        ],
+        "sort": "+language,+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Has Lyrics",
+      "slug": "has-lyrics",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Has Lyrics",
+        "comment": "Tracks with embedded lyrics — singalong ready",
+        "all": [
+          {
+            "notContains": {
+              "lyrics": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lyrics Karaoke Night",
+      "slug": "lyrics-karaoke-night",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Lyrics Karaoke Night",
+        "comment": "Loved tracks with lyrics — your personal karaoke setlist",
+        "all": [
+          {
+            "notContains": {
+              "lyrics": ""
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Lyrical Love Songs",
+      "slug": "lyrical-love-songs",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Lyrical Love Songs",
+        "comment": "Tracks with 'love' in the lyrics — the universal theme",
+        "all": [
+          {
+            "contains": {
+              "lyrics": "love"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lyrical Night Tracks",
+      "slug": "lyrical-night-tracks",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Lyrical Night Tracks",
+        "comment": "Songs mentioning 'night' in the lyrics — after-dark anthems",
+        "all": [
+          {
+            "contains": {
+              "lyrics": "night"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lyrical Rain Songs",
+      "slug": "lyrical-rain-songs",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Lyrical Rain Songs",
+        "comment": "Songs with 'rain' in the lyrics — tear-stained and atmospheric",
+        "all": [
+          {
+            "contains": {
+              "lyrics": "rain"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lyrical Fire",
+      "slug": "lyrical-fire",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Lyrical Fire",
+        "comment": "Songs mentioning 'fire' in the lyrics — burning intensity",
+        "all": [
+          {
+            "contains": {
+              "lyrics": "fire"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lyrical Dream",
+      "slug": "lyrical-dream",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Lyrical Dream",
+        "comment": "Songs with 'dream' in the lyrics — subconscious songwriting",
+        "all": [
+          {
+            "contains": {
+              "lyrics": "dream"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Lyrical Heart Songs",
+      "slug": "lyrical-heart-songs",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Lyrical Heart Songs",
+        "comment": "Songs mentioning 'heart' in the lyrics — pure emotion",
+        "all": [
+          {
+            "contains": {
+              "lyrics": "heart"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Missing Lyrics",
+      "slug": "missing-lyrics",
+      "category": "Lyrics",
+      "definition": {
+        "name": "Missing Lyrics",
+        "comment": "Loved tracks without embedded lyrics — candidates for lyric tagging",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "contains": {
+              "lyrics": ""
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Composed Works",
+      "slug": "composed-works",
+      "category": "Classical & Composed",
+      "definition": {
+        "name": "Composed Works",
+        "comment": "Tracks with a composer tag — composed, not just performed",
+        "all": [
+          {
+            "notContains": {
+              "composer": ""
+            }
+          }
+        ],
+        "sort": "+composer,+album,+track"
+      }
+    },
+    {
+      "label": "Multi-Movement Works",
+      "slug": "multi-movement-works",
+      "category": "Classical & Composed",
+      "definition": {
+        "name": "Multi-Movement Works",
+        "comment": "Tracks with movement data — symphonies, sonatas, suites",
+        "all": [
+          {
+            "notContains": {
+              "movementname": ""
+            }
+          }
+        ],
+        "sort": "+work,+movement"
+      }
+    },
+    {
+      "label": "Grand Works",
+      "slug": "grand-works",
+      "category": "Classical & Composed",
+      "definition": {
+        "name": "Grand Works",
+        "comment": "Works with 4+ movements — the big symphonies and concertos",
+        "all": [
+          {
+            "gt": {
+              "movementtotal": 3
+            }
+          }
+        ],
+        "sort": "+work,+movement"
+      }
+    },
+    {
+      "label": "Conducted Performances",
+      "slug": "conducted-performances",
+      "category": "Classical & Composed",
+      "definition": {
+        "name": "Conducted Performances",
+        "comment": "Tracks with a named conductor — orchestral and choral works",
+        "all": [
+          {
+            "notContains": {
+              "conductor": ""
+            }
+          }
+        ],
+        "sort": "+conductor,+album,+track"
+      }
+    },
+    {
+      "label": "Arranged Pieces",
+      "slug": "arranged-pieces",
+      "category": "Classical & Composed",
+      "definition": {
+        "name": "Arranged Pieces",
+        "comment": "Tracks with an arranger — reinterpreted and rearranged",
+        "all": [
+          {
+            "notContains": {
+              "arranger": ""
+            }
+          }
+        ],
+        "sort": "+arranger,+album,+track"
+      }
+    },
+    {
+      "label": "Long Classical",
+      "slug": "long-classical",
+      "category": "Classical & Composed",
+      "definition": {
+        "name": "Long Classical",
+        "comment": "Classical tracks over 10 minutes — symphonic movements and extended pieces",
+        "all": [
+          {
+            "contains": {
+              "genre": "classical"
+            }
+          },
+          {
+            "gt": {
+              "duration": 600
+            }
+          }
+        ],
+        "sort": "duration",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Favourite Composers",
+      "slug": "favourite-composers",
+      "category": "Classical & Composed",
+      "definition": {
+        "name": "Favourite Composers",
+        "comment": "Composed tracks you've loved — your personal classical canon",
+        "all": [
+          {
+            "notContains": {
+              "composer": ""
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "+composer,+album,+track"
+      }
+    },
+    {
+      "label": "Producer Spotlight",
+      "slug": "producer-spotlight",
+      "category": "Production & Credits",
+      "definition": {
+        "name": "Producer Spotlight",
+        "comment": "Tracks with a named producer — the invisible architects of sound",
+        "all": [
+          {
+            "notContains": {
+              "producer": ""
+            }
+          }
+        ],
+        "sort": "+producer,+album,+track"
+      }
+    },
+    {
+      "label": "Remixed",
+      "slug": "remixed",
+      "category": "Production & Credits",
+      "definition": {
+        "name": "Remixed",
+        "comment": "Tracks with a remixer credit — twisted, flipped, and reinvented",
+        "all": [
+          {
+            "notContains": {
+              "remixer": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Engineered Sound",
+      "slug": "engineered-sound",
+      "category": "Production & Credits",
+      "definition": {
+        "name": "Engineered Sound",
+        "comment": "Tracks with an engineer credit — the unsung heroes of recording",
+        "all": [
+          {
+            "notContains": {
+              "engineer": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "DJ Mixed",
+      "slug": "dj-mixed",
+      "category": "Production & Credits",
+      "definition": {
+        "name": "DJ Mixed",
+        "comment": "Tracks with a DJ mixer credit — club-tested and approved",
+        "all": [
+          {
+            "notContains": {
+              "djmixer": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Performed By",
+      "slug": "performed-by",
+      "category": "Production & Credits",
+      "definition": {
+        "name": "Performed By",
+        "comment": "Tracks with a performer credit — featured performances and guests",
+        "all": [
+          {
+            "notContains": {
+              "performer": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Loved Remixes",
+      "slug": "loved-remixes",
+      "category": "Production & Credits",
+      "definition": {
+        "name": "Loved Remixes",
+        "comment": "Remixed tracks you've loved — proof that the remix can beat the original",
+        "all": [
+          {
+            "notContains": {
+              "remixer": ""
+            }
+          },
+          {
+            "is": {
+              "loved": true
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Label Browser",
+      "slug": "label-browser",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Label Browser",
+        "comment": "Tracks with a record label tag — browse your library by label",
+        "all": [
+          {
+            "notContains": {
+              "recordlabel": ""
+            }
+          }
+        ],
+        "sort": "+recordlabel,+album,+track"
+      }
+    },
+    {
+      "label": "Official Releases",
+      "slug": "official-releases",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Official Releases",
+        "comment": "Tracks marked as official release status — the real deal",
+        "all": [
+          {
+            "is": {
+              "releasestatus": "official"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Bootleg Corner",
+      "slug": "bootleg-corner",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Bootleg Corner",
+        "comment": "Bootleg release status — raw, unofficial, underground",
+        "all": [
+          {
+            "is": {
+              "releasestatus": "bootleg"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Promotional",
+      "slug": "promotional",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Promotional",
+        "comment": "Promotional releases — advance copies and promos",
+        "all": [
+          {
+            "is": {
+              "releasestatus": "promotional"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Singles Only",
+      "slug": "singles-only",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Singles Only",
+        "comment": "Release type: single — the A-sides and lead tracks",
+        "all": [
+          {
+            "is": {
+              "releasetype": "single"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "EPs Only",
+      "slug": "eps-only",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "EPs Only",
+        "comment": "Release type: EP — more than a single, less than an album",
+        "all": [
+          {
+            "is": {
+              "releasetype": "ep"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Live Albums",
+      "slug": "live-albums",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Live Albums",
+        "comment": "Release type: live — captured in the moment",
+        "any": [
+          {
+            "is": {
+              "releasetype": "live"
+            }
+          },
+          {
+            "contains": {
+              "albumtype": "live"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Made in USA",
+      "slug": "made-in-usa",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Made in USA",
+        "comment": "Released in the United States",
+        "any": [
+          {
+            "is": {
+              "releasecountry": "US"
+            }
+          },
+          {
+            "is": {
+              "releasecountry": "USA"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Made in UK",
+      "slug": "made-in-uk",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Made in UK",
+        "comment": "Released in the United Kingdom — birthplace of countless genres",
+        "any": [
+          {
+            "is": {
+              "releasecountry": "GB"
+            }
+          },
+          {
+            "is": {
+              "releasecountry": "UK"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Made in Japan",
+      "slug": "made-in-japan",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Made in Japan",
+        "comment": "Released in Japan — the home of bonus tracks",
+        "any": [
+          {
+            "is": {
+              "releasecountry": "JP"
+            }
+          },
+          {
+            "is": {
+              "releasecountry": "JPN"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Made in Germany",
+      "slug": "made-in-germany",
+      "category": "Labels & Releases",
+      "definition": {
+        "name": "Made in Germany",
+        "comment": "Released in Germany — precision engineering and electronic pioneers",
+        "any": [
+          {
+            "is": {
+              "releasecountry": "DE"
+            }
+          },
+          {
+            "is": {
+              "releasecountry": "DEU"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Short EPs",
+      "slug": "short-eps",
+      "category": "Album Structure",
+      "definition": {
+        "name": "Short EPs",
+        "comment": "Albums with 6 or fewer tracks — EPs and mini-albums",
+        "all": [
+          {
+            "lt": {
+              "tracktotal": 7
+            }
+          },
+          {
+            "gt": {
+              "tracktotal": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Standard Albums",
+      "slug": "standard-albums",
+      "category": "Album Structure",
+      "definition": {
+        "name": "Standard Albums",
+        "comment": "Albums with 8-14 tracks — the classic LP format",
+        "all": [
+          {
+            "inTheRange": {
+              "tracktotal": [
+                8,
+                14
+              ]
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Mammoth Albums",
+      "slug": "mammoth-albums",
+      "category": "Album Structure",
+      "definition": {
+        "name": "Mammoth Albums",
+        "comment": "Albums with 20+ tracks — sprawling epics and deluxe editions",
+        "all": [
+          {
+            "gt": {
+              "tracktotal": 19
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Box Sets",
+      "slug": "box-sets",
+      "category": "Album Structure",
+      "definition": {
+        "name": "Box Sets",
+        "comment": "Releases with 3+ discs — comprehensive collections and box sets",
+        "all": [
+          {
+            "gt": {
+              "disctotal": 2
+            }
+          }
+        ],
+        "sort": "+albumartist,+album,+discnumber,+track"
+      }
+    },
+    {
+      "label": "Double Albums",
+      "slug": "double-albums",
+      "category": "Album Structure",
+      "definition": {
+        "name": "Double Albums",
+        "comment": "2-disc releases — double albums and expanded editions",
+        "all": [
+          {
+            "is": {
+              "disctotal": 2
+            }
+          }
+        ],
+        "sort": "+albumartist,+album,+discnumber,+track"
+      }
+    },
+    {
+      "label": "Reissued Classics",
+      "slug": "reissued-classics",
+      "category": "Dates & History",
+      "definition": {
+        "name": "Reissued Classics",
+        "comment": "Tracks where original date is before 1990 — vintage recordings, modern releases",
+        "all": [
+          {
+            "before": {
+              "originaldate": "1990-01-01"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Recorded Before Released",
+      "slug": "recorded-before-released",
+      "category": "Dates & History",
+      "definition": {
+        "name": "Recorded Before Released",
+        "comment": "Tracks with recording date data — vault recordings and studio session dates",
+        "all": [
+          {
+            "notContains": {
+              "recordingdate": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Brand New Releases",
+      "slug": "brand-new-releases",
+      "category": "Dates & History",
+      "definition": {
+        "name": "Brand New Releases",
+        "comment": "Release date in the last 90 days — freshly pressed",
+        "all": [
+          {
+            "inTheLast": {
+              "releasedate": 90
+            }
+          }
+        ],
+        "sort": "releasedate",
+        "order": "desc",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Loved This Week",
+      "slug": "loved-this-week",
+      "category": "Dates & History",
+      "definition": {
+        "name": "Loved This Week",
+        "comment": "Tracks loved in the last 7 days — this week's sonic crushes",
+        "all": [
+          {
+            "inTheLast": {
+              "dateloved": 7
+            }
+          }
+        ],
+        "sort": "dateloved",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Loved This Month",
+      "slug": "loved-this-month",
+      "category": "Dates & History",
+      "definition": {
+        "name": "Loved This Month",
+        "comment": "Tracks loved in the last 30 days — this month's highlights",
+        "all": [
+          {
+            "inTheLast": {
+              "dateloved": 30
+            }
+          }
+        ],
+        "sort": "dateloved",
+        "order": "desc",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Yesterday's Jams",
+      "slug": "yesterdays-jams",
+      "category": "Dates & History",
+      "definition": {
+        "name": "Yesterday's Jams",
+        "comment": "Played in the last 24 hours — what you were vibing to yesterday",
+        "all": [
+          {
+            "inTheLast": {
+              "lastplayed": 1
+            }
+          }
+        ],
+        "sort": "lastplayed",
+        "order": "desc",
+        "limit": 50
+      }
+    },
+    {
+      "label": "This Year's Harvest",
+      "slug": "this-years-harvest",
+      "category": "Dates & History",
+      "definition": {
+        "name": "This Year's Harvest",
+        "comment": "Added to library this year — your annual haul",
+        "all": [
+          {
+            "inTheLast": {
+              "dateadded": 365
+            }
+          }
+        ],
+        "sort": "dateadded",
+        "order": "desc",
+        "limit": 500
+      }
+    },
+    {
+      "label": "Has Comments",
+      "slug": "has-comments",
+      "category": "Comments & Tags",
+      "definition": {
+        "name": "Has Comments",
+        "comment": "Tracks with something in the comment tag — little notes from the tagger",
+        "all": [
+          {
+            "notContains": {
+              "comment": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Subtitled Tracks",
+      "slug": "subtitled-tracks",
+      "category": "Comments & Tags",
+      "definition": {
+        "name": "Subtitled Tracks",
+        "comment": "Tracks with a subtitle — alternate versions, duets, and variations",
+        "all": [
+          {
+            "notContains": {
+              "subtitle": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Grouped Tracks",
+      "slug": "grouped-tracks",
+      "category": "Comments & Tags",
+      "definition": {
+        "name": "Grouped Tracks",
+        "comment": "Tracks with a grouping tag — custom categories beyond genre",
+        "all": [
+          {
+            "notContains": {
+              "grouping": ""
+            }
+          }
+        ],
+        "sort": "+grouping,+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Album With Commentary",
+      "slug": "album-with-commentary",
+      "category": "Comments & Tags",
+      "definition": {
+        "name": "Album With Commentary",
+        "comment": "Albums with a comment in the album tag — liner notes in digital form",
+        "all": [
+          {
+            "notContains": {
+              "albumcomment": ""
+            }
+          }
+        ],
+        "sort": "+album,+track"
+      }
+    },
+    {
+      "label": "Disc Subtitled",
+      "slug": "disc-subtitled",
+      "category": "Comments & Tags",
+      "definition": {
+        "name": "Disc Subtitled",
+        "comment": "Tracks with disc subtitles — named discs in multi-disc releases",
+        "all": [
+          {
+            "notContains": {
+              "discsubtitle": ""
+            }
+          }
+        ],
+        "sort": "+album,+discnumber,+track"
+      }
+    },
+    {
+      "label": "Perfectly Tagged",
+      "slug": "perfectly-tagged",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "Perfectly Tagged",
+        "comment": "Tracks with MusicBrainz ID, cover art, genre, and year — textbook metadata",
+        "all": [
+          {
+            "notContains": {
+              "mbz_recording_id": ""
+            }
+          },
+          {
+            "is": {
+              "hascoverart": true
+            }
+          },
+          {
+            "notContains": {
+              "genre": ""
+            }
+          },
+          {
+            "gt": {
+              "year": 0
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "MusicBrainz Tagged",
+      "slug": "musicbrainz-tagged",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "MusicBrainz Tagged",
+        "comment": "Tracks with a MusicBrainz recording ID — database-verified metadata",
+        "all": [
+          {
+            "notContains": {
+              "mbz_recording_id": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "No MusicBrainz ID",
+      "slug": "no-musicbrainz-id",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "No MusicBrainz ID",
+        "comment": "Tracks missing a MusicBrainz ID — candidates for Picard tagging",
+        "all": [
+          {
+            "contains": {
+              "mbz_recording_id": ""
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Missing Genre",
+      "slug": "missing-genre",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "Missing Genre",
+        "comment": "Tracks with no genre tag — the uncategorised wilderness",
+        "all": [
+          {
+            "contains": {
+              "genre": ""
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Missing Year",
+      "slug": "missing-year",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "Missing Year",
+        "comment": "Tracks with year set to 0 or missing — when were these released?",
+        "all": [
+          {
+            "is": {
+              "year": 0
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Has ISRC",
+      "slug": "has-isrc",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "Has ISRC",
+        "comment": "Tracks with an ISRC code — internationally standardised recordings",
+        "all": [
+          {
+            "notContains": {
+              "isrc": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Has Barcode",
+      "slug": "has-barcode",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "Has Barcode",
+        "comment": "Releases with a barcode — commercially released and catalogued",
+        "all": [
+          {
+            "notContains": {
+              "barcode": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Catalog Numbered",
+      "slug": "catalog-numbered",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "Catalog Numbered",
+        "comment": "Releases with a catalog number — label-indexed and official",
+        "all": [
+          {
+            "notContains": {
+              "catalognumber": ""
+            }
+          }
+        ],
+        "sort": "+recordlabel,+catalognumber,+track"
+      }
+    },
+    {
+      "label": "Well-Tagged Loved",
+      "slug": "well-tagged-loved",
+      "category": "Metadata Completeness",
+      "definition": {
+        "name": "Well-Tagged Loved",
+        "comment": "Loved tracks with genre, year, cover art, and MB ID — your curated jewels",
+        "all": [
+          {
+            "is": {
+              "loved": true
+            }
+          },
+          {
+            "notContains": {
+              "genre": ""
+            }
+          },
+          {
+            "gt": {
+              "year": 0
+            }
+          },
+          {
+            "is": {
+              "hascoverart": true
+            }
+          },
+          {
+            "notContains": {
+              "mbz_recording_id": ""
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "CD Rips",
+      "slug": "cd-rips",
+      "category": "Media & Encoding",
+      "definition": {
+        "name": "CD Rips",
+        "comment": "Media type: CD — ripped from compact disc",
+        "all": [
+          {
+            "is": {
+              "media": "CD"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Vinyl Rips",
+      "slug": "vinyl-rips",
+      "category": "Media & Encoding",
+      "definition": {
+        "name": "Vinyl Rips",
+        "comment": "Media type: Vinyl — digitised from the grooves",
+        "any": [
+          {
+            "is": {
+              "media": "Vinyl"
+            }
+          },
+          {
+            "is": {
+              "media": "vinyl"
+            }
+          },
+          {
+            "is": {
+              "media": "12\" Vinyl"
+            }
+          },
+          {
+            "is": {
+              "media": "7\" Vinyl"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Digital Media",
+      "slug": "digital-media",
+      "category": "Media & Encoding",
+      "definition": {
+        "name": "Digital Media",
+        "comment": "Media type: Digital Media — born digital, no physical source",
+        "any": [
+          {
+            "is": {
+              "media": "Digital Media"
+            }
+          },
+          {
+            "is": {
+              "media": "digital"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Cassette Captures",
+      "slug": "cassette-captures",
+      "category": "Media & Encoding",
+      "definition": {
+        "name": "Cassette Captures",
+        "comment": "Media type: Cassette — tape hiss and warm analogue charm",
+        "any": [
+          {
+            "is": {
+              "media": "Cassette"
+            }
+          },
+          {
+            "is": {
+              "media": "cassette"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Encoded By You",
+      "slug": "encoded-by-you",
+      "category": "Media & Encoding",
+      "definition": {
+        "name": "Encoded By You",
+        "comment": "Tracks with an encoded-by tag — personally ripped or converted",
+        "all": [
+          {
+            "notContains": {
+              "encodedby": ""
+            }
+          }
+        ],
+        "sort": "+encodedby,+album,+track"
+      }
+    },
+    {
+      "label": "Encoder Settings Log",
+      "slug": "encoder-settings-log",
+      "category": "Media & Encoding",
+      "definition": {
+        "name": "Encoder Settings Log",
+        "comment": "Tracks with encoder settings recorded — the forensic audit trail",
+        "all": [
+          {
+            "notContains": {
+              "encodersettings": ""
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Copyrighted Works",
+      "slug": "copyrighted-works",
+      "category": "Copyright & Licensing",
+      "definition": {
+        "name": "Copyrighted Works",
+        "comment": "Tracks with copyright info — properly attributed",
+        "all": [
+          {
+            "notContains": {
+              "copyright": ""
+            }
+          }
+        ],
+        "sort": "+copyright,+album,+track"
+      }
+    },
+    {
+      "label": "Licensed Music",
+      "slug": "licensed-music",
+      "category": "Copyright & Licensing",
+      "definition": {
+        "name": "Licensed Music",
+        "comment": "Tracks with a license tag — Creative Commons, royalty-free, and more",
+        "all": [
+          {
+            "notContains": {
+              "license": ""
+            }
+          }
+        ],
+        "sort": "+license,+artist,+album"
+      }
+    },
+    {
+      "label": "Has Website",
+      "slug": "has-website",
+      "category": "Copyright & Licensing",
+      "definition": {
+        "name": "Has Website",
+        "comment": "Tracks linking to an artist or album website — direct to the source",
+        "all": [
+          {
+            "notContains": {
+              "website": ""
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Instrumental Tracks",
+      "slug": "instrumental-tracks",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Instrumental Tracks",
+        "comment": "Titles containing 'instrumental' — no vocals, pure music",
+        "any": [
+          {
+            "contains": {
+              "title": "instrumental"
+            }
+          },
+          {
+            "contains": {
+              "title": "Instrumental"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Acoustic Versions",
+      "slug": "acoustic-versions",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Acoustic Versions",
+        "comment": "Titles containing 'acoustic' — stripped-back reworkings",
+        "any": [
+          {
+            "contains": {
+              "title": "acoustic"
+            }
+          },
+          {
+            "contains": {
+              "title": "Acoustic"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Live Recordings",
+      "slug": "live-recordings",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Live Recordings",
+        "comment": "Titles containing 'live' — captured in the moment",
+        "any": [
+          {
+            "contains": {
+              "title": "live"
+            }
+          },
+          {
+            "contains": {
+              "title": "Live"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "live"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "Live"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Demo Recordings",
+      "slug": "demo-recordings",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Demo Recordings",
+        "comment": "Titles containing 'demo' — rough diamonds from the studio",
+        "any": [
+          {
+            "contains": {
+              "title": "demo"
+            }
+          },
+          {
+            "contains": {
+              "title": "Demo"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "demo"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "Demo"
+            }
+          },
+          {
+            "contains": {
+              "albumversion": "demo"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Remix Versions",
+      "slug": "remix-versions",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Remix Versions",
+        "comment": "Titles or subtitles containing 'remix' — reworked for the floor",
+        "any": [
+          {
+            "contains": {
+              "title": "remix"
+            }
+          },
+          {
+            "contains": {
+              "title": "Remix"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "remix"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "Remix"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Remastered Editions",
+      "slug": "remastered-editions",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Remastered Editions",
+        "comment": "Tracks marked as remastered — polished for a new generation",
+        "any": [
+          {
+            "contains": {
+              "title": "remaster"
+            }
+          },
+          {
+            "contains": {
+              "title": "Remaster"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "remaster"
+            }
+          },
+          {
+            "contains": {
+              "albumversion": "remaster"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Bonus Tracks",
+      "slug": "bonus-tracks",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Bonus Tracks",
+        "comment": "Tracks with 'bonus' in the title — the hidden extras",
+        "any": [
+          {
+            "contains": {
+              "title": "bonus"
+            }
+          },
+          {
+            "contains": {
+              "title": "Bonus"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "bonus"
+            }
+          },
+          {
+            "contains": {
+              "albumversion": "bonus"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Extended Mixes",
+      "slug": "extended-mixes",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Extended Mixes",
+        "comment": "Titles containing 'extended' — longer versions for deeper listening",
+        "any": [
+          {
+            "contains": {
+              "title": "extended"
+            }
+          },
+          {
+            "contains": {
+              "title": "Extended"
+            }
+          },
+          {
+            "contains": {
+              "subtitle": "extended"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Deluxe Editions",
+      "slug": "deluxe-editions",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Deluxe Editions",
+        "comment": "Album versions marked as deluxe — expanded with extras",
+        "any": [
+          {
+            "contains": {
+              "albumversion": "deluxe"
+            }
+          },
+          {
+            "contains": {
+              "albumversion": "Deluxe"
+            }
+          },
+          {
+            "contains": {
+              "album": "deluxe"
+            }
+          },
+          {
+            "contains": {
+              "album": "Deluxe"
+            }
+          }
+        ],
+        "sort": "+album,+track"
+      }
+    },
+    {
+      "label": "Covers & Tributes",
+      "slug": "covers-and-tributes",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Covers & Tributes",
+        "comment": "Titles containing 'cover' or 'tribute' — homage tracks",
+        "any": [
+          {
+            "contains": {
+              "title": "cover"
+            }
+          },
+          {
+            "contains": {
+              "title": "Cover"
+            }
+          },
+          {
+            "contains": {
+              "title": "tribute"
+            }
+          },
+          {
+            "contains": {
+              "title": "Tribute"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Featuring Collaborations",
+      "slug": "featuring-collaborations",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Featuring Collaborations",
+        "comment": "Titles with 'feat.' or 'ft.' — collaborative moments",
+        "any": [
+          {
+            "contains": {
+              "title": "feat."
+            }
+          },
+          {
+            "contains": {
+              "title": "ft."
+            }
+          },
+          {
+            "contains": {
+              "title": "Feat."
+            }
+          },
+          {
+            "contains": {
+              "title": "Ft."
+            }
+          },
+          {
+            "contains": {
+              "title": "featuring"
+            }
+          },
+          {
+            "contains": {
+              "title": "Featuring"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "Numbered Sequels",
+      "slug": "numbered-sequels",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Numbered Sequels",
+        "comment": "Titles containing 'Part' or 'Pt.' — serialised storytelling",
+        "any": [
+          {
+            "contains": {
+              "title": "Part"
+            }
+          },
+          {
+            "contains": {
+              "title": "Pt."
+            }
+          },
+          {
+            "contains": {
+              "title": "pt."
+            }
+          }
+        ],
+        "sort": "+artist,+title"
+      }
+    },
+    {
+      "label": "Interlude & Skit",
+      "slug": "interlude-and-skit",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Interlude & Skit",
+        "comment": "Titles containing 'interlude', 'skit', or 'intro' — the spaces between",
+        "any": [
+          {
+            "contains": {
+              "title": "interlude"
+            }
+          },
+          {
+            "contains": {
+              "title": "Interlude"
+            }
+          },
+          {
+            "contains": {
+              "title": "skit"
+            }
+          },
+          {
+            "contains": {
+              "title": "Skit"
+            }
+          },
+          {
+            "contains": {
+              "title": "intro"
+            }
+          },
+          {
+            "contains": {
+              "title": "Intro"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 100
+      }
+    },
+    {
+      "label": "Self-Titled Tracks",
+      "slug": "self-titled-tracks",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Self-Titled Tracks",
+        "comment": "Tracks where title starts with the same text as the album — the namesake",
+        "all": [
+          {
+            "notContains": {
+              "title": ""
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "Parenthetical Versions",
+      "slug": "parenthetical-versions",
+      "category": "Title Patterns",
+      "definition": {
+        "name": "Parenthetical Versions",
+        "comment": "Titles containing parentheses — alternate versions, editions, and notes",
+        "all": [
+          {
+            "contains": {
+              "title": "("
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The A-List",
+      "slug": "the-a-list",
+      "category": "Filepath & Organisation",
+      "definition": {
+        "name": "The A-List",
+        "comment": "Artists starting with 'A' — top of the alphabet, top of the pile",
+        "all": [
+          {
+            "startsWith": {
+              "artist": "A"
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track"
+      }
+    },
+    {
+      "label": "The Number Ones",
+      "slug": "the-number-ones",
+      "category": "Filepath & Organisation",
+      "definition": {
+        "name": "The Number Ones",
+        "comment": "Tracks with numbers in the title — countable music",
+        "any": [
+          {
+            "contains": {
+              "title": "1"
+            }
+          },
+          {
+            "contains": {
+              "title": "2"
+            }
+          },
+          {
+            "contains": {
+              "title": "3"
+            }
+          },
+          {
+            "contains": {
+              "title": "one"
+            }
+          },
+          {
+            "contains": {
+              "title": "One"
+            }
+          },
+          {
+            "contains": {
+              "title": "two"
+            }
+          },
+          {
+            "contains": {
+              "title": "Two"
+            }
+          },
+          {
+            "contains": {
+              "title": "three"
+            }
+          },
+          {
+            "contains": {
+              "title": "Three"
+            }
+          }
+        ],
+        "sort": "random",
+        "limit": 200
+      }
+    },
+    {
+      "label": "The 'The' Bands",
+      "slug": "the-the-bands",
+      "category": "Filepath & Organisation",
+      "definition": {
+        "name": "The 'The' Bands",
+        "comment": "Artists starting with 'The' — the most common word in band names",
+        "all": [
+          {
+            "startsWith": {
+              "artist": "The "
+            }
+          }
+        ],
+        "sort": "+artist,+album,+track",
+        "limit": 500
+      }
+    }
+  ],
+  "this_is_methods": [
+    {
+      "id": "random",
+      "label": "Random selection"
+    },
+    {
+      "id": "top_rated",
+      "label": "Top rated"
+    },
+    {
+      "id": "most_played",
+      "label": "Most played"
+    },
+    {
+      "id": "recently_played",
+      "label": "Recently played"
+    },
+    {
+      "id": "recently_added",
+      "label": "Recently added"
+    },
+    {
+      "id": "loved",
+      "label": "Loved tracks only"
+    },
+    {
+      "id": "deep_cuts",
+      "label": "Deep cuts"
+    },
+    {
+      "id": "greatest_hits",
+      "label": "Greatest hits"
+    },
+    {
+      "id": "chronological",
+      "label": "Chronological"
+    },
+    {
+      "id": "reverse_chrono",
+      "label": "Reverse chronological"
+    },
+    {
+      "id": "longest",
+      "label": "Longest tracks"
+    },
+    {
+      "id": "shortest",
+      "label": "Shortest tracks"
+    },
+    {
+      "id": "high_energy",
+      "label": "High energy"
+    },
+    {
+      "id": "chill",
+      "label": "Chill"
+    },
+    {
+      "id": "lossless_only",
+      "label": "Lossless only"
+    },
+    {
+      "id": "unplayed",
+      "label": "Unplayed"
+    },
+    {
+      "id": "rare_gems",
+      "label": "Rare gems"
+    },
+    {
+      "id": "album_openers",
+      "label": "Album openers"
+    },
+    {
+      "id": "album_closers",
+      "label": "Album closers"
+    },
+    {
+      "id": "singles",
+      "label": "Singles"
+    }
+  ]
+}

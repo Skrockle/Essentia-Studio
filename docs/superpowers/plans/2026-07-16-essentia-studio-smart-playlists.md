@@ -12,7 +12,7 @@
 
 - Source is `WB2024/Navidrome-SmartPlaylist-Generator-nsp` pinned to commit `b706d70` for this implementation.
 - The vendor license and source revision are committed beside the imported source.
-- Runtime behavior includes all 100+ fields, field-specific operators, sort options, every preset/category, and exactly the 20 upstream “This is …” methods.
+- Runtime behavior includes all 100+ fields, field-specific operators, sort options, all 298 presets from pinned commit `b706d70`, every category, and exactly the 20 upstream “This is …” methods.
 - Rule nesting depth is at most 12, total condition count at most 500, string values at most 500 characters, playlist limit from 1 to 100000.
 - Only canonical `.nsp` names beneath the configured playlist directory are accepted.
 - Saves use a sibling temporary file, flush, `fsync`, and `os.replace`; external changes cause a fingerprint conflict rather than overwrite.
@@ -60,7 +60,7 @@ def test_catalog_contains_complete_upstream_inventory() -> None:
     catalog = PlaylistCatalog.load()
     assert len(catalog.fields) >= 100
     assert {item.type for item in catalog.fields} == {"string", "number", "boolean", "date", "playlist"}
-    assert len(catalog.presets) >= 300
+    assert len(catalog.presets) == 298
     assert len(catalog.this_is_methods) == 20
     assert {method.id for method in catalog.this_is_methods} == {
         "random", "top_rated", "most_played", "recently_played", "recently_added",
@@ -332,7 +332,7 @@ git commit -m "feat: persist smart playlists atomically"
 # tests/api/test_playlists.py
 def test_catalog_preset_and_file_lifecycle(client) -> None:
     catalog = client.get("/api/playlists/catalog").json()
-    assert len(catalog["presets"]) >= 300
+    assert len(catalog["presets"]) == 298
     assert len(catalog["this_is_methods"]) == 20
 
     built = client.post("/api/playlists/from-preset/recently-played", json={
