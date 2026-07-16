@@ -4,8 +4,10 @@ from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
+from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
+from essentia_studio.services.tag_operations import TagOperationService
 
 
 def get_settings_repository(request: Request) -> SettingsRepository:
@@ -30,3 +32,11 @@ def get_result_repository(request: Request) -> ResultRepository:
 
 def get_job_coordinator(request: Request) -> JobCoordinator:
     return request.app.state.job_coordinator
+
+
+def get_write_repository(request: Request) -> WriteRepository:
+    return request.app.state.write_repository
+
+
+def get_tag_operation_service(request: Request) -> TagOperationService:
+    return request.app.state.tag_operation_service

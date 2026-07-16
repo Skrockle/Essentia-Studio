@@ -137,7 +137,7 @@ class ResultRepository:
         return self.get(result_id)
 
     def update_selection(self, selection: dict[str, object], selected: bool) -> int:
-        result_ids = self._selected_result_ids(selection)
+        result_ids = self.resolve_selection(selection)
         if not result_ids:
             return 0
         placeholders, parameters = self._id_parameters(result_ids)
@@ -158,7 +158,7 @@ class ResultRepository:
         operation: str,
         value: str,
     ) -> int:
-        result_ids = self._selected_result_ids(selection)
+        result_ids = self.resolve_selection(selection)
         if not result_ids:
             return 0
         placeholders, parameters = self._id_parameters(result_ids)
@@ -183,7 +183,7 @@ class ResultRepository:
             )
         return len(updates)
 
-    def _selected_result_ids(self, selection: dict[str, object]) -> list[str]:
+    def resolve_selection(self, selection: dict[str, object]) -> list[str]:
         if selection["mode"] == "ids":
             return list(dict.fromkeys(selection["ids"]))
 

@@ -14,4 +14,4 @@ def test_migrations_are_idempotent(tmp_path) -> None:
             text("SELECT version FROM schema_migrations ORDER BY version")
         ).scalars().all()
 
-    assert versions == [1, 2, 3]
+    assert versions == [1, 2, 3, 4]

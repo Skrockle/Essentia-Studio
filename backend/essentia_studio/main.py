@@ -22,10 +22,13 @@ from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
+from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.analysis_jobs import AnalysisJobService
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.scanner import scan_music_root
+from essentia_studio.services.tag_operations import TagOperationService
+from essentia_studio.tags.registry import TagAdapterRegistry
 
 
 def create_app(config: RuntimeConfig | None = None) -> FastAPI:
@@ -40,6 +43,15 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         track_repository = TrackRepository(engine)
         job_repository = JobRepository(engine)
         result_repository = ResultRepository(engine)
+        write_repository = WriteRepository(engine)
+        tag_registry = TagAdapterRegistry()
+        tag_operation_service = TagOperationService(
+            result_repository,
+            write_repository,
+            tag_registry,
+            runtime_config.music_root,
+            application_settings.overwrite_existing,
+        )
         analysis_backend: AnalysisBackend
         if runtime_config.analysis_backend == "fake":
             analysis_backend = FakeAnalysisBackend()
@@ -86,6 +98,9 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.track_repository = track_repository
         app.state.job_repository = job_repository
         app.state.result_repository = result_repository
+        app.state.write_repository = write_repository
+        app.state.tag_registry = tag_registry
+        app.state.tag_operation_service = tag_operation_service
         app.state.job_coordinator = job_coordinator
         app.state.analysis_backend = analysis_backend
         app.state.capability_service = CapabilityService(runtime_config, analysis_backend)
