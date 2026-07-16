@@ -80,6 +80,7 @@ jobs:
           mkdir -p /tmp/essentia-music /tmp/essentia-data
           chmod 0777 /tmp/essentia-music /tmp/essentia-data
           python scripts/ci/generate_fixture.py /tmp/essentia-music/tone.wav
+          chmod 0666 /tmp/essentia-music/tone.wav
           docker run --rm -d --name essentia-studio-cpu -p 18000:8000 \
             -v /tmp/essentia-music:/music -v /tmp/essentia-data:/data \
             essentia-studio:ci-cpu

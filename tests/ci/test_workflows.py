@@ -34,6 +34,16 @@ def test_source_matrix_covers_supported_development_hosts() -> None:
         assert runner in text
 
 
+def test_cpu_smoke_fixture_is_writable_by_the_non_root_container() -> None:
+    text = (WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+    generated = "python scripts/ci/generate_fixture.py /tmp/essentia-music/tone.wav"
+    made_writable = "chmod 0666 /tmp/essentia-music/tone.wav"
+
+    assert generated in text
+    assert made_writable in text
+    assert text.index(generated) < text.index(made_writable)
+
+
 def test_release_workflow_publishes_all_required_tags() -> None:
     text = (WORKFLOW_DIR / "release.yml").read_text(encoding="utf-8")
     for tag in [
