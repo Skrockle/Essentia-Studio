@@ -31,6 +31,7 @@ from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.analysis_jobs import AnalysisJobService
+from essentia_studio.services.automation_status import AutomationStatusStore
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.metadata import MetadataService
@@ -119,6 +120,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.config = runtime_config
         app.state.engine = engine
         app.state.settings_service = settings_service
+        app.state.automation_status_store = AutomationStatusStore(settings_service)
         app.state.track_repository = track_repository
         app.state.track_state_service = track_state_service
         app.state.job_repository = job_repository
