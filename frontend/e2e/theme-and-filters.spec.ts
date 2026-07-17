@@ -27,3 +27,37 @@ test('persists theme and configurable library columns', async ({ page }) => {
   })
   expect(colors.foreground).not.toBe(colors.background)
 })
+
+test('uses dark surfaces throughout the workbench', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Bibliothek scannen' }).click()
+  await expect(page.getByText('Scan abgeschlossen')).toBeVisible()
+
+  if (await page.locator('.result-table th').count() === 0) {
+    await page.getByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }).check()
+    await page.getByRole('button', { name: '1 Titel analysieren' }).click()
+    await expect(page.getByText('Analyse abgeschlossen')).toBeVisible()
+  }
+
+  await page.getByLabel('Farbschema').selectOption('dark')
+  await page.waitForTimeout(180)
+  const surfaces = await page.evaluate(() => {
+    const selectors = {
+      navigation: '.app-nav',
+      libraryHeader: '.library-table th',
+      selectionToolbar: '.selection-toolbar',
+      resultHeader: '.result-table th',
+      tagInput: '.tag-editor input',
+    }
+    return Object.fromEntries(Object.entries(selectors).map(([name, selector]) => {
+      const element = document.querySelector(selector)
+      return [name, element ? getComputedStyle(element).backgroundColor : null]
+    }))
+  })
+
+  for (const [name, color] of Object.entries(surfaces)) {
+    expect(color, `${name} should exist`).not.toBeNull()
+    const channels = color?.match(/\d+/g)?.slice(0, 3).map(Number) ?? [255]
+    expect(Math.max(...channels), `${name} should use a dark surface`).toBeLessThan(100)
+  }
+})

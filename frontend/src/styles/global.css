@@ -74,7 +74,7 @@ code,
   height: 100vh;
   padding: 28px 18px 20px;
   color: #e9f0f7;
-  background: var(--ink);
+  background: var(--nav-surface);
 }
 
 .app-nav__identity {
@@ -357,9 +357,9 @@ code,
   gap: 9px;
   min-height: 52px;
   padding: 9px 12px;
-  border: 1px solid #cbd8f8;
+  border: 1px solid var(--selection-line);
   border-radius: var(--radius-md);
-  background: #eef3ff;
+  background: var(--selection-surface);
 }
 
 .selection-toolbar[data-visible="false"] {
@@ -379,7 +379,7 @@ code,
   gap: 5px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: white;
+  background: var(--control-surface);
   cursor: pointer;
 }
 
@@ -473,7 +473,7 @@ code,
   top: 0;
   z-index: 1;
   color: var(--ink-muted);
-  background: #fafbfc;
+  background: var(--table-head-surface);
   font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -567,7 +567,7 @@ code,
 
 .result-table th {
   color: var(--ink-muted);
-  background: #fafbfc;
+  background: var(--table-head-surface);
   font-family: "IBM Plex Mono", "Cascadia Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -1667,7 +1667,7 @@ select {
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   color: var(--ink);
-  background: white;
+  background: var(--control-surface);
 }
 
 input[type="checkbox"],

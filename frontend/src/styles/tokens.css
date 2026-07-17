@@ -2,6 +2,11 @@
   --paper: #f2f4f7;
   --surface: #ffffff;
   --surface-subtle: #e9edf2;
+  --control-surface: #ffffff;
+  --table-head-surface: #fafbfc;
+  --selection-surface: #eef3ff;
+  --selection-line: #cbd8f8;
+  --nav-surface: #12243a;
   --ink: #12243a;
   --ink-muted: #667386;
   --line: #d9e0e8;
@@ -26,6 +31,11 @@
   --paper: #0c1521;
   --surface: #142131;
   --surface-subtle: #1b2a3d;
+  --control-surface: #1b2a3d;
+  --table-head-surface: #1b2a3d;
+  --selection-surface: #172844;
+  --selection-line: #35527d;
+  --nav-surface: #09131f;
   --ink: #edf4fb;
   --ink-muted: #a9b8c9;
   --line: #324257;
