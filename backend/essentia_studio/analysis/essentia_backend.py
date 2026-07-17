@@ -31,6 +31,9 @@ class EssentiaBackend:
     def available_compute(self) -> list[str]:
         return ["cpu", "cuda"] if self._image_variant == "cuda" else ["cpu"]
 
+    def initialize(self) -> None:
+        self._load_models()
+
     def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
         models = self._load_models()
         audio = models["MonoLoader"](
