@@ -33,6 +33,7 @@ from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.analysis_jobs import AnalysisJobService
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
+from essentia_studio.services.metadata import MetadataService
 from essentia_studio.services.scanner import scan_music_root
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.tags.registry import TagAdapterRegistry
@@ -54,6 +55,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         playlist_storage = PlaylistStorage(runtime_config.playlist_dir, playlist_repository)
         write_repository = WriteRepository(engine)
         tag_registry = TagAdapterRegistry()
+        metadata_service = MetadataService()
         tag_operation_service = TagOperationService(
             result_repository,
             write_repository,
@@ -92,7 +94,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             if cancelled.is_set():
                 return {"scanned": 0, "present": 0, "missing": 0}
             summary = track_repository.replace_scan(
-                scan_music_root(runtime_config.music_root),
+                scan_music_root(runtime_config.music_root, metadata_service),
                 datetime.now(timezone.utc),
             )
             return asdict(summary)

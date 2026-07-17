@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime
+from pathlib import Path
 
 from sqlalchemy import Engine, text
 
@@ -8,14 +9,17 @@ from essentia_studio.domain.tracks import (
     ScannedTrack,
     ScanSummary,
     TrackFingerprint,
+    TrackMetadata,
 )
 
 UPSERT_TRACK = text(
     """
     INSERT INTO library_tracks (
-      relative_path, extension, size, mtime_ns, last_seen, present
+      relative_path, extension, size, mtime_ns, last_seen, present,
+      artist, title, album, duration_seconds, metadata_source
     ) VALUES (
-      :relative_path, :extension, :size, :mtime_ns, :last_seen, 1
+      :relative_path, :extension, :size, :mtime_ns, :last_seen, 1,
+      :artist, :title, :album, :duration_seconds, :metadata_source
     )
     ON CONFLICT(relative_path) DO UPDATE SET
       extension = excluded.extension,
@@ -23,6 +27,11 @@ UPSERT_TRACK = text(
       mtime_ns = excluded.mtime_ns,
       last_seen = excluded.last_seen,
       present = 1,
+      artist = excluded.artist,
+      title = excluded.title,
+      album = excluded.album,
+      duration_seconds = excluded.duration_seconds,
+      metadata_source = excluded.metadata_source,
       updated_at = CURRENT_TIMESTAMP
     """
 )
@@ -66,7 +75,8 @@ class TrackRepository:
             row = connection.execute(
                 text(
                     """
-                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present
+                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present,
+                           artist, title, album, duration_seconds, metadata_source
                     FROM library_tracks
                     WHERE relative_path = :relative_path
                     """
@@ -90,7 +100,11 @@ class TrackRepository:
             "offset": (page - 1) * page_size,
         }
         if search:
-            conditions.append("LOWER(relative_path) LIKE :search")
+            conditions.append(
+                "(LOWER(relative_path) LIKE :search OR LOWER(COALESCE(artist, '')) LIKE :search "
+                "OR LOWER(COALESCE(title, '')) LIKE :search "
+                "OR LOWER(COALESCE(album, '')) LIKE :search)"
+            )
             parameters["search"] = f"%{search.casefold()}%"
         if present is not None:
             conditions.append("present = :present")
@@ -108,7 +122,8 @@ class TrackRepository:
             rows = connection.execute(
                 text(
                     f"""
-                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present
+                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present,
+                           artist, title, album, duration_seconds, metadata_source
                     FROM library_tracks {where_clause}
                     ORDER BY relative_path, id LIMIT :limit OFFSET :offset
                     """
@@ -126,7 +141,8 @@ class TrackRepository:
             rows = connection.execute(
                 text(
                     f"""
-                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present
+                    SELECT id, relative_path, extension, size, mtime_ns, last_seen, present,
+                           artist, title, album, duration_seconds, metadata_source
                     FROM library_tracks
                     WHERE id IN ({placeholders}) AND present = 1
                     ORDER BY relative_path, id
@@ -144,6 +160,11 @@ class TrackRepository:
             "size": track.fingerprint.size,
             "mtime_ns": track.fingerprint.mtime_ns,
             "last_seen": seen_value,
+            "artist": track.metadata.artist,
+            "title": track.metadata.title,
+            "album": track.metadata.album,
+            "duration_seconds": track.metadata.duration_seconds,
+            "metadata_source": track.metadata.source,
         }
 
     @staticmethod
@@ -155,4 +176,11 @@ class TrackRepository:
             fingerprint=TrackFingerprint(size=row.size, mtime_ns=row.mtime_ns),
             last_seen=datetime.fromisoformat(row.last_seen),
             present=bool(row.present),
+            metadata=TrackMetadata(
+                artist=row.artist or "Unbekannter Interpret",
+                title=row.title or Path(row.relative_path).stem,
+                album=row.album,
+                duration_seconds=row.duration_seconds,
+                source=row.metadata_source or "fallback",
+            ),
         )
