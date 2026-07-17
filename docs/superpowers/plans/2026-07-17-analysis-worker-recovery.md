@@ -32,7 +32,7 @@
 - Consumes: `AnalysisBackend.analyze(path, options)`, `BackendFactory`, `BrokenProcessPool`.
 - Produces: unchanged `WorkerPoolManager.analyze(path: Path, options: AnalysisOptions) -> AnalysisResult`, now with one bounded recovery attempt.
 
-- [ ] **Step 1: Add deterministic crash backends and a first-crash recovery test**
+- [ ] **Step 1: Add deterministic crash backends and all recovery tests**
 
 Add these imports and test support to `tests/analysis/test_pool_manager.py`:
 
@@ -72,6 +72,65 @@ def test_analyze_retries_once_with_replacement_after_broken_pool() -> None:
     result = manager.analyze(Path("song.flac"), AnalysisOptions())
 
     assert result == AnalysisResult()
+    assert len(created) == 2
+    assert created[0].closed is True
+    assert created[1].closed is False
+```
+
+Add the repeat-crash and concurrent-caller tests before changing production code:
+
+```python
+def test_analyze_reports_stable_error_after_second_broken_pool() -> None:
+    created: list[FakeBackend] = []
+
+    def factory(settings: AnalysisSettings) -> FakeBackend:
+        backend = CrashingBackend(settings.workers)
+        created.append(backend)
+        return backend
+
+    manager = WorkerPoolManager(factory, AnalysisSettings(workers=1))
+
+    with pytest.raises(AppError) as raised:
+        manager.analyze(Path("song.flac"), AnalysisOptions())
+
+    assert raised.value.code == "analysis_worker_crashed"
+    assert "übrige Analyse wird fortgesetzt" in raised.value.message
+    assert len(created) == 3
+    assert created[0].closed is True
+    assert created[1].closed is True
+    assert created[2].closed is False
+
+
+def test_concurrent_callers_share_one_replacement_for_a_broken_pool() -> None:
+    barrier = Barrier(2)
+    created: list[FakeBackend] = []
+
+    def factory(settings: AnalysisSettings) -> FakeBackend:
+        backend = (
+            CrashingBackend(settings.workers, barrier)
+            if not created
+            else FakeBackend(settings.workers)
+        )
+        created.append(backend)
+        return backend
+
+    manager = WorkerPoolManager(factory, AnalysisSettings(workers=2))
+    results: list[AnalysisResult] = []
+    threads = [
+        Thread(
+            target=lambda path=Path(f"song-{index}.flac"): results.append(
+                manager.analyze(path, AnalysisOptions())
+            )
+        )
+        for index in range(2)
+    ]
+
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=2)
+
+    assert len(results) == 2
     assert len(created) == 2
     assert created[0].closed is True
     assert created[1].closed is False
@@ -140,7 +199,7 @@ def test_repeated_worker_crash_does_not_stop_later_job_items(tmp_path) -> None:
 Run:
 
 ```text
-python -m pytest tests/analysis/test_pool_manager.py::test_analyze_retries_once_with_replacement_after_broken_pool tests/services/test_jobs.py::test_repeated_worker_crash_does_not_stop_later_job_items -q
+python -m pytest tests/analysis/test_pool_manager.py tests/services/test_jobs.py::test_repeated_worker_crash_does_not_stop_later_job_items -q
 ```
 
 Expected: both tests FAIL because `BrokenProcessPool` escapes instead of retrying; the multi-item job records the later healthy item as failed.
@@ -189,73 +248,12 @@ Do not change `_discard_broken`: its identity check already ensures that only th
 Run:
 
 ```text
-python -m pytest tests/analysis/test_pool_manager.py::test_analyze_retries_once_with_replacement_after_broken_pool tests/services/test_jobs.py::test_repeated_worker_crash_does_not_stop_later_job_items -q
+python -m pytest tests/analysis/test_pool_manager.py tests/services/test_jobs.py::test_repeated_worker_crash_does_not_stop_later_job_items -q
 ```
 
 Expected: PASS.
 
-- [ ] **Step 5: Add repeat-crash and concurrent-caller tests**
-
-Add to `tests/analysis/test_pool_manager.py`:
-
-```python
-def test_analyze_reports_stable_error_after_second_broken_pool() -> None:
-    created: list[FakeBackend] = []
-
-    def factory(settings: AnalysisSettings) -> FakeBackend:
-        backend = CrashingBackend(settings.workers)
-        created.append(backend)
-        return backend
-
-    manager = WorkerPoolManager(factory, AnalysisSettings(workers=1))
-
-    with pytest.raises(AppError) as raised:
-        manager.analyze(Path("song.flac"), AnalysisOptions())
-
-    assert raised.value.code == "analysis_worker_crashed"
-    assert "übrige Analyse wird fortgesetzt" in raised.value.message
-    assert len(created) == 3
-    assert created[0].closed is True
-    assert created[1].closed is True
-    assert created[2].closed is False
-
-
-def test_concurrent_callers_share_one_replacement_for_a_broken_pool() -> None:
-    barrier = Barrier(2)
-    created: list[FakeBackend] = []
-
-    def factory(settings: AnalysisSettings) -> FakeBackend:
-        backend = (
-            CrashingBackend(settings.workers, barrier)
-            if not created
-            else FakeBackend(settings.workers)
-        )
-        created.append(backend)
-        return backend
-
-    manager = WorkerPoolManager(factory, AnalysisSettings(workers=2))
-    results: list[AnalysisResult] = []
-    threads = [
-        Thread(
-            target=lambda path=Path(f"song-{index}.flac"): results.append(
-                manager.analyze(path, AnalysisOptions())
-            )
-        )
-        for index in range(2)
-    ]
-
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join(timeout=2)
-
-    assert len(results) == 2
-    assert len(created) == 2
-    assert created[0].closed is True
-    assert created[1].closed is False
-```
-
-- [ ] **Step 6: Run all pool-manager tests and review readability**
+- [ ] **Step 5: Run all pool-manager tests and review readability**
 
 Run:
 
@@ -266,7 +264,7 @@ python -m ruff check backend/essentia_studio/analysis/pool_manager.py tests/anal
 
 Expected: all pool tests PASS and Ruff reports no issues. Confirm retry control flow is direct, the approved message appears once, and no arbitrary exceptions are caught.
 
-- [ ] **Step 7: Commit the isolated pool recovery**
+- [ ] **Step 6: Commit the isolated pool recovery**
 
 ```text
 git add backend/essentia_studio/analysis/pool_manager.py tests/analysis/test_pool_manager.py tests/services/test_jobs.py
