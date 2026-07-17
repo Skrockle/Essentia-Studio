@@ -1,6 +1,6 @@
 # Analysis Worker Recovery Design
 
-**Status:** Approved design pending written review
+**Status:** Approved design
 
 **Date:** 2026-07-17
 
