@@ -31,6 +31,8 @@ def metadata_from_path(relative_path: Path) -> TrackMetadata:
     clean_title = TRACK_PREFIX.sub("", stem).strip() or stem
     if len(path.parts) >= 3:
         return TrackMetadata(path.parts[-3], clean_title, album, None, "directory")
+    if len(path.parts) == 2:
+        return TrackMetadata(path.parent.name, clean_title, None, None, "directory")
     return TrackMetadata(UNKNOWN_ARTIST, clean_title, None, None, "fallback")
 
 

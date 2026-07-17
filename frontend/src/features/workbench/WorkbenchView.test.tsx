@@ -136,19 +136,43 @@ function libraryTrack(id: number, relativePath: string) {
     mtime_ns: 1,
     last_seen: '2026-07-17T00:00:00Z',
     present: true,
+    artist: id === 11 ? 'Bastille' : 'Underworld',
+    title: id === 11 ? 'Quarter Past Midnight' : 'Rez',
+    album: id === 11 ? 'Doom Days' : 'Everything, Everything',
+    duration_seconds: 180,
+    metadata_source: 'embedded',
+    processing_state: 'new',
   }
 }
 
 test('shows scanned tracks and analyzes only explicitly selected track ids', async () => {
   render(<WorkbenchView />)
 
-  expect(await screen.findByText('Library/one.flac')).toBeVisible()
+  expect((await screen.findAllByText('Quarter Past Midnight')).length).toBeGreaterThan(0)
+  expect(screen.getAllByText('Bastille').length).toBeGreaterThan(0)
   expect(screen.getByRole('button', { name: 'Auswahl analysieren' })).toBeDisabled()
 
   await userEvent.click(screen.getByRole('checkbox', { name: 'Library/one.flac analysieren' }))
   await userEvent.click(screen.getByRole('button', { name: '1 Titel analysieren' }))
 
   await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [11] }]))
+})
+
+test('reports a partially failed analysis instead of success', async () => {
+  render(<WorkbenchView />)
+
+  await userEvent.click(
+    await screen.findByRole('checkbox', { name: 'Library/one.flac analysieren' }),
+  )
+  await userEvent.click(screen.getByRole('button', { name: '1 Titel analysieren' }))
+  await waitFor(() => expect(FakeEventSource.latest).not.toBeNull())
+  FakeEventSource.latest?.emit('terminal', {
+    sequence: 1,
+    kind: 'terminal',
+    payload: { status: 'completed_with_errors', failed_items: 1 },
+  })
+
+  expect(await screen.findByText('Analyse beendet – 1 Titel fehlgeschlagen')).toBeVisible()
 })
 
 test('select all analyzes every scanned track', async () => {
@@ -200,6 +224,12 @@ function resultRow(name: string) {
     id: name,
     track_id: name === 'one' ? 1 : 2,
     relative_path: `Artist/${name}.flac`,
+    artist: name === 'one' ? 'Bastille' : 'Underworld',
+    title: name === 'one' ? 'Quarter Past Midnight' : 'Rez',
+    album: name === 'one' ? 'Doom Days' : 'Everything, Everything',
+    duration_seconds: 180,
+    metadata_source: 'embedded',
+    processing_state: 'current',
     genres: [{ label: 'Electronic---House', confidence: 0.9 }],
     moods: [{ label: 'moodtheme---happy', confidence: 0.8 }],
     draft: {

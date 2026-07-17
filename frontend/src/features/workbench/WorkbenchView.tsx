@@ -118,7 +118,17 @@ export function WorkbenchView() {
         )
         setStatusMessage(`Scan abgeschlossen – ${scannedTracks.length} Titel gefunden`)
       } else {
-        setStatusMessage('Analyse abgeschlossen')
+        const failedItems = Number(event.payload.failed_items ?? 0)
+        const status = String(event.payload.status ?? '')
+        setStatusMessage(
+          status === 'completed_with_errors' || failedItems > 0
+            ? `Analyse beendet – ${failedItems} ${failedItems === 1 ? 'Titel' : 'Titel'} fehlgeschlagen`
+            : status === 'failed'
+              ? 'Analyse fehlgeschlagen'
+              : status === 'cancelled'
+                ? 'Analyse abgebrochen'
+                : 'Analyse abgeschlossen',
+        )
       }
       setActiveJob(null)
       refresh()

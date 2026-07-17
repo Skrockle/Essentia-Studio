@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from essentia_studio.domain.tracks import TrackFingerprint
+from essentia_studio.domain.tracks import TrackFingerprint, TrackMetadata
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,6 +39,7 @@ class StoredAnalysis:
     id: str
     track_id: int
     relative_path: str
+    metadata: TrackMetadata
     fingerprint: TrackFingerprint
     result: AnalysisResult
     draft: TagDraft

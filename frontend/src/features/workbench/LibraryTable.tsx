@@ -7,6 +7,14 @@ interface LibraryTableProps {
   onSelectTrack: (trackId: number, selected: boolean) => void
 }
 
+const stateLabels = {
+  new: 'Neu',
+  current: 'Aktuell',
+  changed: 'Verändert',
+  written: 'Geschrieben',
+  failed: 'Fehler',
+}
+
 export function LibraryTable({
   tracks,
   selectedIds,
@@ -39,8 +47,11 @@ export function LibraryTable({
                     type="checkbox"
                   />
                 </th>
+                <th>Interpret</th>
                 <th>Titel</th>
+                <th>Album</th>
                 <th>Format</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -54,8 +65,18 @@ export function LibraryTable({
                       type="checkbox"
                     />
                   </td>
-                  <td><code className="track-path">{track.relative_path}</code></td>
+                  <td className="track-artist">{track.artist}</td>
+                  <td>
+                    <strong className="track-title">{track.title}</strong>
+                    <code className="track-path">{track.relative_path}</code>
+                  </td>
+                  <td className="track-album">{track.album ?? '—'}</td>
                   <td><span className="format-badge">{track.extension.slice(1).toUpperCase()}</span></td>
+                  <td>
+                    <span className="processing-state" data-state={track.processing_state}>
+                      {stateLabels[track.processing_state]}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

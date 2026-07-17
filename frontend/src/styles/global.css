@@ -464,6 +464,52 @@ code,
   accent-color: var(--genre);
 }
 
+.track-artist,
+.track-title,
+.track-album,
+.track-path {
+  display: block;
+}
+
+.track-artist {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.track-title {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.track-album,
+.track-path {
+  margin-top: 3px;
+  color: var(--ink-muted);
+  font-size: 11px;
+}
+
+.processing-state {
+  display: inline-flex;
+  margin-top: 5px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--ink-muted);
+  background: var(--surface-subtle);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.processing-state[data-state="written"],
+.processing-state[data-state="current"] {
+  color: var(--success);
+  background: #eef8f3;
+}
+
+.processing-state[data-state="failed"] {
+  color: var(--danger);
+  background: #fff0ef;
+}
+
 .format-badge {
   display: inline-flex;
   padding: 3px 7px;

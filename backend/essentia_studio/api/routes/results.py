@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from essentia_studio.api.dependencies import get_result_repository
+from essentia_studio.api.dependencies import get_result_repository, get_track_state_service
 from essentia_studio.errors import AppError
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.schemas.results import (
@@ -15,6 +15,7 @@ from essentia_studio.schemas.results import (
     SelectionUpdate,
 )
 from essentia_studio.services.labels import normalize_tags
+from essentia_studio.services.track_state import TrackStateService
 
 router = APIRouter(prefix="/results")
 
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/results")
 @router.get("", response_model=ResultPage)
 def list_results(
     repository: Annotated[ResultRepository, Depends(get_result_repository)],
+    state_service: Annotated[TrackStateService, Depends(get_track_state_service)],
     job_id: str | None = None,
     search: str | None = None,
     genre: str | None = None,
@@ -40,8 +42,11 @@ def list_results(
         selected=selected,
     ).model_dump(exclude_none=True)
     results, total, selected_count = repository.query(filters, page, page_size)
+    states = state_service.states([result.track_id for result in results])
     return ResultPage(
-        items=[ResultResponse.from_record(result) for result in results],
+        items=[
+            ResultResponse.from_record(result, states[result.track_id]) for result in results
+        ],
         total=total,
         page=page,
         page_size=page_size,

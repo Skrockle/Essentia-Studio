@@ -42,6 +42,15 @@ def test_loose_file_uses_safe_fallback() -> None:
     )
 
 
+def test_single_parent_directory_is_used_as_artist() -> None:
+    metadata = metadata_from_path(Path("Artist/song.flac"))
+
+    assert metadata.artist == "Artist"
+    assert metadata.title == "song"
+    assert metadata.album is None
+    assert metadata.source == "directory"
+
+
 class FakeInfo:
     length = 185.25
 

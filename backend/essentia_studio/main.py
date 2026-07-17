@@ -36,6 +36,7 @@ from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.metadata import MetadataService
 from essentia_studio.services.scanner import scan_music_root
 from essentia_studio.services.tag_operations import TagOperationService
+from essentia_studio.services.track_state import TrackStateService
 from essentia_studio.tags.registry import TagAdapterRegistry
 
 
@@ -49,6 +50,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         settings_repository = SettingsRepository(engine)
         application_settings = settings_repository.get()
         track_repository = TrackRepository(engine)
+        track_state_service = TrackStateService(engine)
         job_repository = JobRepository(engine)
         result_repository = ResultRepository(engine)
         playlist_repository = PlaylistRepository(engine)
@@ -116,6 +118,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.engine = engine
         app.state.settings_repository = settings_repository
         app.state.track_repository = track_repository
+        app.state.track_state_service = track_state_service
         app.state.job_repository = job_repository
         app.state.result_repository = result_repository
         app.state.playlist_repository = playlist_repository

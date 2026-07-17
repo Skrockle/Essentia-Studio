@@ -2,12 +2,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from essentia_studio.api.dependencies import get_job_coordinator, get_track_repository
+from essentia_studio.api.dependencies import (
+    get_job_coordinator,
+    get_track_repository,
+    get_track_state_service,
+)
 from essentia_studio.domain.jobs import JobType
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.schemas.jobs import JobResponse
 from essentia_studio.schemas.library import TrackPage, TrackResponse
 from essentia_studio.services.jobs import JobCoordinator
+from essentia_studio.services.track_state import TrackStateService
 
 router = APIRouter(prefix="/library")
 
@@ -23,6 +28,7 @@ def scan_library(
 @router.get("/tracks", response_model=TrackPage)
 def list_tracks(
     repository: Annotated[TrackRepository, Depends(get_track_repository)],
+    state_service: Annotated[TrackStateService, Depends(get_track_state_service)],
     search: str | None = None,
     present: bool | None = True,
     extension: str | None = None,
@@ -30,8 +36,9 @@ def list_tracks(
     page_size: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> TrackPage:
     tracks, total = repository.query(search, present, extension, page, page_size)
+    states = state_service.states([track.id for track in tracks])
     return TrackPage(
-        items=[TrackResponse.from_record(track) for track in tracks],
+        items=[TrackResponse.from_record(track, states[track.id]) for track in tracks],
         total=total,
         page=page,
         page_size=page_size,
