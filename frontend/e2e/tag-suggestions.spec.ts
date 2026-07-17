@@ -65,11 +65,13 @@ async function expectActiveOptionContrast(page: Page) {
   await expect.poll(
     () => activeOption.evaluate((element) => getComputedStyle(element).backgroundColor),
   ).not.toContain('rgba')
-  const colors = await activeOption.evaluate((element) => {
-    const styles = getComputedStyle(element)
-    return { background: styles.backgroundColor, foreground: styles.color }
-  })
-  expect(contrastRatio(rgbChannels(colors.foreground), rgbChannels(colors.background))).toBeGreaterThanOrEqual(4.5)
+  await expect.poll(async () => {
+    const colors = await activeOption.evaluate((element) => {
+      const styles = getComputedStyle(element)
+      return { background: styles.backgroundColor, foreground: styles.color }
+    })
+    return contrastRatio(rgbChannels(colors.foreground), rgbChannels(colors.background))
+  }).toBeGreaterThanOrEqual(4.5)
 }
 
 test('splits hierarchical tags and edits drafts with catalog suggestions', async ({ page }) => {
