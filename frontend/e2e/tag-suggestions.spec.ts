@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 function rgbChannels(color: string): [number, number, number] {
   const channels = color.match(/\d+/g)?.map(Number) ?? []
@@ -26,6 +26,52 @@ function contrastRatio(
   return (lighter + 0.05) / (darker + 0.05)
 }
 
+async function popupBounds(listbox: Locator) {
+  return listbox.evaluate((element) => {
+    const bounds = element.getBoundingClientRect()
+    let exposedTop = Math.max(bounds.top, 0)
+    let exposedRight = Math.min(bounds.right, window.innerWidth)
+    let exposedBottom = Math.min(bounds.bottom, window.innerHeight)
+    let exposedLeft = Math.max(bounds.left, 0)
+
+    for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
+      const styles = getComputedStyle(ancestor)
+      const clipsX = ['auto', 'clip', 'hidden', 'scroll'].includes(styles.overflowX)
+      const clipsY = ['auto', 'clip', 'hidden', 'scroll'].includes(styles.overflowY)
+      if (!clipsX && !clipsY) continue
+      const ancestorBounds = ancestor.getBoundingClientRect()
+      if (clipsX) {
+        exposedLeft = Math.max(exposedLeft, ancestorBounds.left)
+        exposedRight = Math.min(exposedRight, ancestorBounds.right)
+      }
+      if (clipsY) {
+        exposedTop = Math.max(exposedTop, ancestorBounds.top)
+        exposedBottom = Math.min(exposedBottom, ancestorBounds.bottom)
+      }
+    }
+
+    return {
+      height: bounds.height,
+      width: bounds.width,
+      exposedHeight: Math.max(0, exposedBottom - exposedTop),
+      exposedWidth: Math.max(0, exposedRight - exposedLeft),
+    }
+  })
+}
+
+async function expectActiveOptionContrast(page: Page) {
+  const activeOption = page.getByRole('listbox').getByRole('option', { selected: true })
+  await expect(activeOption).toBeVisible()
+  await expect.poll(
+    () => activeOption.evaluate((element) => getComputedStyle(element).backgroundColor),
+  ).not.toContain('rgba')
+  const colors = await activeOption.evaluate((element) => {
+    const styles = getComputedStyle(element)
+    return { background: styles.backgroundColor, foreground: styles.color }
+  })
+  expect(contrastRatio(rgbChannels(colors.foreground), rgbChannels(colors.background))).toBeGreaterThanOrEqual(4.5)
+}
+
 test('splits hierarchical tags and edits drafts with catalog suggestions', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Bibliothek scannen' }).click()
@@ -50,14 +96,19 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
   expect(rowBeforePopup).not.toBeNull()
   await genreInput.focus()
   await expect(page.getByRole('option', { name: 'Ambient', exact: true })).toBeVisible()
+  const listbox = page.getByRole('listbox')
+  const bounds = await popupBounds(listbox)
+  expect(bounds.exposedHeight).toBeCloseTo(bounds.height, 1)
+  expect(bounds.exposedWidth).toBeCloseTo(bounds.width, 1)
   const rowWithPopup = await resultRow.boundingBox()
   expect(rowWithPopup).not.toBeNull()
   expect(rowWithPopup?.height).toBe(rowBeforePopup?.height)
 
   await genreInput.fill('Amb')
   await genreInput.press('ArrowDown')
-  await genreInput.press('Enter')
-  await expect(resultRow.getByText('Ambient', { exact: true })).toBeVisible()
+  await expectActiveOptionContrast(page)
+  await resultRow.getByRole('button', { name: 'Genre hinzufügen' }).click()
+  await expect(resultRow.getByText('Amb', { exact: true })).toBeVisible()
 
   await genreInput.fill('Eigener Stil')
   await genreInput.press('Enter')
@@ -74,21 +125,18 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
     return results.items[0].draft
   })
   expect(draft).toMatchObject({
-    genres: ['Electronic', 'House', 'Ambient', 'Eigener Stil'],
+    genres: ['Electronic', 'House', 'Amb', 'Eigener Stil'],
     moods: ['Happy', 'Sad'],
   })
 
   await genreInput.focus()
-  const listbox = page.getByRole('listbox')
   await expect(listbox).toBeVisible()
   await page.getByLabel('Farbschema').selectOption('dark')
   const darkBackground = await listbox.evaluate((element) => getComputedStyle(element).backgroundColor)
   expect(Math.max(...rgbChannels(darkBackground))).toBeLessThan(100)
+  await genreInput.press('ArrowDown')
+  await expectActiveOptionContrast(page)
 
   await page.getByLabel('Farbschema').selectOption('light')
-  const lightColors = await listbox.evaluate((element) => {
-    const styles = getComputedStyle(element)
-    return { background: styles.backgroundColor, foreground: styles.color }
-  })
-  expect(contrastRatio(rgbChannels(lightColors.foreground), rgbChannels(lightColors.background))).toBeGreaterThanOrEqual(4.5)
+  await expectActiveOptionContrast(page)
 })

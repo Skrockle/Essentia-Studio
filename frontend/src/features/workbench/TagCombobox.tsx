@@ -1,4 +1,14 @@
-import { useId, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
+import {
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type KeyboardEvent,
+} from 'react'
+import { createPortal } from 'react-dom'
 import { Plus } from 'lucide-react'
 
 interface TagComboboxProps {
@@ -9,6 +19,24 @@ interface TagComboboxProps {
 }
 
 const maximumSuggestions = 8
+const maximumPopupHeight = 212
+const popupGap = 4
+const viewportPadding = 8
+
+function popupPosition(anchor: HTMLFormElement): CSSProperties {
+  const anchorBounds = anchor.getBoundingClientRect()
+  const spaceBelow = window.innerHeight - anchorBounds.bottom - popupGap - viewportPadding
+  const spaceAbove = anchorBounds.top - popupGap - viewportPadding
+  const openAbove = spaceBelow < maximumPopupHeight && spaceAbove > spaceBelow
+  const availableHeight = Math.max(0, openAbove ? spaceAbove : spaceBelow)
+  return {
+    bottom: openAbove ? window.innerHeight - anchorBounds.top + popupGap : undefined,
+    left: Math.max(viewportPadding, anchorBounds.left),
+    maxHeight: Math.min(maximumPopupHeight, availableHeight),
+    top: openAbove ? undefined : anchorBounds.bottom + popupGap,
+    width: Math.min(anchorBounds.width, window.innerWidth - viewportPadding * 2),
+  }
+}
 
 function includesValue(values: string[], candidate: string) {
   const normalizedCandidate = candidate.toLocaleLowerCase()
@@ -18,7 +46,9 @@ function includesValue(values: string[], candidate: string) {
 export function TagCombobox({ kind, options, selectedValues, onAdd }: TagComboboxProps) {
   const inputId = useId()
   const listboxId = useId()
+  const formRef = useRef<HTMLFormElement>(null)
   const [open, setOpen] = useState(false)
+  const [listboxPosition, setListboxPosition] = useState<CSSProperties>({})
   const [inputValue, setInputValue] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
   const [activeSuggestionSignature, setActiveSuggestionSignature] = useState('')
@@ -38,6 +68,20 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
     ? activeIndex
     : -1
   const activeOptionId = visibleActiveIndex >= 0 ? `${listboxId}-option-${visibleActiveIndex}` : undefined
+
+  useLayoutEffect(() => {
+    if (!open) return
+    function updateListboxPosition() {
+      if (formRef.current) setListboxPosition(popupPosition(formRef.current))
+    }
+    updateListboxPosition()
+    window.addEventListener('resize', updateListboxPosition)
+    window.addEventListener('scroll', updateListboxPosition, true)
+    return () => {
+      window.removeEventListener('resize', updateListboxPosition)
+      window.removeEventListener('scroll', updateListboxPosition, true)
+    }
+  }, [open])
 
   function updateActiveIndex(nextIndex: number) {
     setActiveIndex(nextIndex)
@@ -83,7 +127,7 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
   }
 
   return (
-    <form className="tag-editor__form" onSubmit={submitValue}>
+    <form className="tag-editor__form" onSubmit={submitValue} ref={formRef}>
       <label className="sr-only" htmlFor={inputId}>
         {kind} hinzufügen
       </label>
@@ -107,11 +151,22 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
         role="combobox"
         value={inputValue}
       />
-      <button aria-label={`${kind} hinzufügen`} disabled={!inputValue.trim()} type="submit">
+      <button
+        aria-label={`${kind} hinzufügen`}
+        disabled={!inputValue.trim()}
+        onClick={() => addValue(inputValue)}
+        type="button"
+      >
         <Plus aria-hidden="true" size={13} />
       </button>
-      {open && (
-        <div className="tag-editor__suggestions" id={listboxId} role="listbox">
+      {open && createPortal(
+        <div
+          className="tag-editor__suggestions"
+          data-kind={kind.toLocaleLowerCase()}
+          id={listboxId}
+          role="listbox"
+          style={listboxPosition}
+        >
           {suggestions.map((suggestion, index) => (
             <button
               aria-selected={index === visibleActiveIndex}
@@ -126,7 +181,8 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
               {suggestion}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
     </form>
   )

@@ -113,6 +113,18 @@ describe('TagCombobox', () => {
     expect(input).toHaveValue('')
   })
 
+  test('the Plus button adds the typed value instead of the active suggestion', async () => {
+    const user = userEvent.setup()
+    const { input, onAdd } = renderCombobox({ options: ['Ambient'] })
+
+    await user.type(input, 'Amb')
+    await user.keyboard('{ArrowDown}')
+    await user.click(screen.getByRole('button', { name: 'Genre hinzufügen' }))
+
+    expect(onAdd).toHaveBeenCalledWith('Amb')
+    expect(input).toHaveValue('')
+  })
+
   test('adds a free-form value when Enter has no active option', async () => {
     const user = userEvent.setup()
     const { input, onAdd } = renderCombobox()

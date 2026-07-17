@@ -639,12 +639,8 @@ code,
 }
 
 .tag-editor__suggestions {
-  position: absolute;
-  z-index: 2;
-  top: calc(100% + 4px);
-  right: 0;
-  left: 0;
-  max-height: 212px;
+  position: fixed;
+  z-index: 20;
   overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -672,16 +668,17 @@ code,
 }
 
 .tag-editor__suggestion[aria-selected="true"] {
+  color: var(--ink);
   background: var(--selection-surface);
   box-shadow: inset 3px 0 0 var(--selection-line);
 }
 
-.tag-editor[data-kind="genre"] .tag-editor__suggestion[aria-selected="true"] {
-  color: var(--genre);
+.tag-editor__suggestions[data-kind="genre"] .tag-editor__suggestion[aria-selected="true"] {
+  box-shadow: inset 3px 0 0 var(--genre);
 }
 
-.tag-editor[data-kind="mood"] .tag-editor__suggestion[aria-selected="true"] {
-  color: var(--mood);
+.tag-editor__suggestions[data-kind="mood"] .tag-editor__suggestion[aria-selected="true"] {
+  box-shadow: inset 3px 0 0 var(--mood);
 }
 
 .draft-state {
