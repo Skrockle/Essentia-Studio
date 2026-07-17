@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, expect, test, vi } from 'vitest'
 
@@ -8,6 +8,7 @@ let selectedCount = 0
 let ambientAdded = false
 let writeCalls = 0
 let analysisBodies: unknown[] = []
+let includeWrittenTrack = false
 
 class FakeEventSource {
   static latest: FakeEventSource | null = null
@@ -29,10 +30,12 @@ class FakeEventSource {
 }
 
 beforeEach(() => {
+  localStorage.clear()
   selectedCount = 0
   ambientAdded = false
   writeCalls = 0
   analysisBodies = []
+  includeWrittenTrack = false
   FakeEventSource.latest = null
   vi.stubGlobal('EventSource', FakeEventSource)
   vi.stubGlobal(
@@ -46,6 +49,14 @@ beforeEach(() => {
           items: [
             libraryTrack(11, 'Library/one.flac'),
             libraryTrack(12, 'Library/two.mp3'),
+            ...(includeWrittenTrack
+              ? [{
+                  ...libraryTrack(13, 'Library/written.flac'),
+                  artist: 'Archive',
+                  title: 'Already Written',
+                  processing_state: 'written',
+                }]
+              : []),
           ],
           total: 2,
           page: 1,
@@ -262,6 +273,30 @@ test('select all analyzes every scanned track', async () => {
   await userEvent.click(screen.getByRole('button', { name: '2 Titel analysieren' }))
 
   await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [11, 12] }]))
+})
+
+test('hides written tracks by default and keeps file paths in a configurable column', async () => {
+  includeWrittenTrack = true
+  render(<WorkbenchView />)
+
+  const libraryRow = (await screen.findByRole('checkbox', {
+    name: 'Library/one.flac analysieren',
+  })).closest('tr')
+  expect(libraryRow).not.toBeNull()
+  expect(screen.queryByText('Already Written')).not.toBeInTheDocument()
+  const titleCell = libraryRow?.querySelector('.track-title')?.closest('td')
+  const libraryTable = libraryRow?.closest('table')
+  expect(libraryTable).not.toBeNull()
+  expect(titleCell).not.toHaveTextContent('Library/one.flac')
+  expect(within(libraryTable as HTMLTableElement).getByRole('columnheader', { name: 'Datei' })).toBeVisible()
+
+  await userEvent.click(screen.getByText('Filter'))
+  await userEvent.click(screen.getByLabelText('Vollständig geschriebene anzeigen'))
+  expect(await screen.findByText('Already Written')).toBeVisible()
+
+  await userEvent.click(screen.getByText('Spalten'))
+  await userEvent.click(screen.getByLabelText('Spalte Datei anzeigen'))
+  expect(within(libraryTable as HTMLTableElement).queryByRole('columnheader', { name: 'Datei' })).not.toBeInTheDocument()
 })
 
 test('reports the number of tracks after a completed scan', async () => {

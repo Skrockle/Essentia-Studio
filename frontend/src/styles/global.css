@@ -680,6 +680,59 @@ code,
   transition: width 180ms ease;
 }
 
+.table-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.table-controls details {
+  position: relative;
+}
+
+.table-controls summary,
+.table-controls__reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--surface);
+  cursor: pointer;
+  font: inherit;
+}
+
+.table-controls__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  display: grid;
+  min-width: 250px;
+  max-height: 390px;
+  gap: 8px;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.table-controls__menu label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-controls__columns {
+  grid-template-columns: repeat(2, minmax(110px, 1fr));
+}
+
 .dialog-backdrop {
   position: fixed;
   z-index: 30;

@@ -8,10 +8,16 @@ import { LibraryTable } from './LibraryTable'
 import { JobProgress } from './JobProgress'
 import { ResultTable } from './ResultTable'
 import { SelectionToolbar } from './SelectionToolbar'
+import { WorkbenchViewControls } from './WorkbenchViewControls'
 import { useResults } from './useResults'
 import { WritePreviewDialog, type WriteJobSummary } from './WritePreviewDialog'
 import type { ResultRow } from './types'
 import { useLibraryTracks } from './useLibraryTracks'
+import {
+  loadWorkbenchPreferences,
+  saveWorkbenchPreferences,
+  type ResultColumn,
+} from './viewPreferences'
 
 interface WorkbenchActionsProps {
   active: boolean
@@ -53,6 +59,7 @@ interface ResultsProps {
   onSelectAll: (selected: boolean) => void
   onSelectRow: (row: ResultRow, selected: boolean) => void
   onSaveDraft: (row: ResultRow, genres: string[], moods: string[]) => void
+  visibleColumns: ResultColumn[]
 }
 
 function WorkbenchResults({ error, rows, ...tableProps }: ResultsProps) {
@@ -92,12 +99,27 @@ export function WorkbenchView() {
   const [activeJob, setActiveJob] = useState<JobRecord | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [viewPreferences, setViewPreferences] = useState(loadWorkbenchPreferences)
   const event = useJobEvents(activeJob?.id ?? null)
   const allSelected = page.total > 0 && page.selected_count === page.total
-  const visibleTrackIds = useMemo(
-    () => new Set(libraryTracks.map((track) => track.id)),
+  const availableFormats = useMemo(
+    () => [...new Set(libraryTracks.map((track) => track.extension))].sort(),
     [libraryTracks],
   )
+  const filteredLibraryTracks = useMemo(
+    () => libraryTracks.filter((track) => (
+      viewPreferences.statuses.includes(track.processing_state)
+      && (viewPreferences.showWritten || track.processing_state !== 'written')
+      && (viewPreferences.formats.length === 0 || viewPreferences.formats.includes(track.extension))
+    )),
+    [libraryTracks, viewPreferences],
+  )
+  const visibleTrackIds = useMemo(
+    () => new Set(filteredLibraryTracks.map((track) => track.id)),
+    [filteredLibraryTracks],
+  )
+
+  useEffect(() => saveWorkbenchPreferences(viewPreferences), [viewPreferences])
   const visibleAnalysisSelection = useMemo(
     () => new Set([...analysisSelection].filter((id) => visibleTrackIds.has(id))),
     [analysisSelection, visibleTrackIds],
@@ -152,7 +174,7 @@ export function WorkbenchView() {
   }
 
   function selectAllForAnalysis(selected: boolean) {
-    setAnalysisSelection(selected ? new Set(libraryTracks.map((track) => track.id)) : new Set())
+    setAnalysisSelection(selected ? new Set(filteredLibraryTracks.map((track) => track.id)) : new Set())
   }
 
   function selectTrackForAnalysis(trackId: number, selected: boolean) {
@@ -218,11 +240,17 @@ export function WorkbenchView() {
       </section>
 
       {libraryError && <p className="notice notice--error">{libraryError}</p>}
+      <WorkbenchViewControls
+        availableFormats={availableFormats}
+        onChange={setViewPreferences}
+        value={viewPreferences}
+      />
       <LibraryTable
         onSelectAll={selectAllForAnalysis}
         onSelectTrack={selectTrackForAnalysis}
         selectedIds={visibleAnalysisSelection}
-        tracks={libraryTracks}
+        tracks={filteredLibraryTracks}
+        visibleColumns={viewPreferences.libraryColumns}
       />
 
       <SelectionToolbar selectedCount={page.selected_count} onBulkUpdate={bulkUpdate} />
@@ -242,6 +270,7 @@ export function WorkbenchView() {
         onSelectAll={selectAll}
         onSelectRow={selectRow}
         rows={page.items}
+        visibleColumns={viewPreferences.resultColumns}
       />
       {showPreview && (
         <WritePreviewDialog
