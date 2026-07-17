@@ -36,7 +36,7 @@
 - Produces: `format_mood_label(raw_label: str) -> str`
 - Consumes: existing `normalize_tags(values: list[str]) -> list[str]`
 
-- [ ] **Step 1: Write failing pure-label tests**
+- [x] **Step 1: Write failing pure-label tests**
 
 Add assertions that establish the exact contract:
 
@@ -67,7 +67,7 @@ assert stored.draft.genres == ["Electronic", "House"]
 assert stored.draft.moods == ["Happy"]
 ```
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run:
 
@@ -77,7 +77,7 @@ Run:
 
 Expected: collection fails because `essentia_studio.domain.tag_labels` does not exist, or the old combined genre assertion fails.
 
-- [ ] **Step 3: Implement the pure functions and analysis expansion**
+- [x] **Step 3: Implement the pure functions and analysis expansion**
 
 Create direct, side-effect-free functions:
 
@@ -103,11 +103,11 @@ genres = normalize_tags([
 moods = normalize_tags([format_mood_label(value.label) for value in result.moods])
 ```
 
-- [ ] **Step 4: Run focused tests and verify GREEN**
+- [x] **Step 4: Run focused tests and verify GREEN**
 
 Run the command from Step 2. Expected: all focused label and analysis-service tests pass.
 
-- [ ] **Step 5: Review readability and commit**
+- [x] **Step 5: Review readability and commit**
 
 Confirm that raw prediction handling, label formatting, and validation remain separate responsibilities. Commit:
 
@@ -130,7 +130,7 @@ feat: split hierarchical genre predictions
 - Produces: `rewrite_legacy_genres(draft_values: list[str], raw_labels: list[str]) -> list[str]`
 - Produces: `ResultRepository.reconcile_hierarchical_genres() -> int`
 
-- [ ] **Step 1: Write failing reconciliation tests**
+- [x] **Step 1: Write failing reconciliation tests**
 
 Add pure behavior coverage:
 
@@ -154,7 +154,7 @@ assert stored.draft.genres == ["Electronic", "House", "Manual; Value"]
 assert selected_dirty_and_status_are_unchanged
 ```
 
-- [ ] **Step 2: Run the focused repository test and verify RED**
+- [x] **Step 2: Run the focused repository test and verify RED**
 
 Run:
 
@@ -164,7 +164,7 @@ Run:
 
 Expected: failure because the rewrite and repository method do not exist.
 
-- [ ] **Step 3: Implement exact-match rewriting**
+- [x] **Step 3: Implement exact-match rewriting**
 
 Build replacements only from raw labels that expand to more than one value:
 
@@ -189,7 +189,7 @@ select `result_id`, `raw_genres`, and draft `genres`, compute changed rows in Py
 and update only the `genres` column inside one `engine.begin()` transaction. Do not
 touch `dirty`, `selected`, `status`, or `updated_at`.
 
-- [ ] **Step 4: Invoke reconciliation during startup**
+- [x] **Step 4: Invoke reconciliation during startup**
 
 Immediately after constructing `ResultRepository` in the FastAPI lifespan, call:
 
@@ -199,7 +199,7 @@ result_repository.reconcile_hierarchical_genres()
 
 This occurs after schema migrations and before job/automation threads start.
 
-- [ ] **Step 5: Run focused tests twice and verify idempotence**
+- [x] **Step 5: Run focused tests twice and verify idempotence**
 
 Run:
 
@@ -209,7 +209,7 @@ Run:
 
 Expected: all reconciliation tests pass, including the second no-op call.
 
-- [ ] **Step 6: Review transaction scope and commit**
+- [x] **Step 6: Review transaction scope and commit**
 
 Confirm there is one short transaction, no audio access, and no mutation of unrelated
 draft fields. Commit:
@@ -237,7 +237,7 @@ fix: reconcile legacy hierarchical genre drafts
 - Produces: `TagCatalogService(model_dir: Path).load() -> TagOptions`
 - Produces: `GET /api/tag-options`
 
-- [ ] **Step 1: Write failing service tests with synthetic catalogs**
+- [x] **Step 1: Write failing service tests with synthetic catalogs**
 
 Create temporary JSON files with `classes` arrays and assert:
 
@@ -250,7 +250,7 @@ Use duplicated and hierarchical source labels to prove sorting and deduplication
 missing-file and invalid-JSON cases expecting `AppError.code == "tag_catalog_unavailable"`
 and a German message naming the unavailable catalog, without exposing a host path.
 
-- [ ] **Step 2: Run service tests and verify RED**
+- [x] **Step 2: Run service tests and verify RED**
 
 Run:
 
@@ -260,7 +260,7 @@ Run:
 
 Expected: import failure because `TagCatalogService` does not exist.
 
-- [ ] **Step 3: Implement catalog loading**
+- [x] **Step 3: Implement catalog loading**
 
 Read exactly:
 
@@ -274,7 +274,7 @@ Validate that the JSON root contains `classes: list[str]`. Expand genres with
 case-insensitively, and sort with `str.casefold`. Convert `OSError`, `JSONDecodeError`,
 and invalid structure into the stable `AppError`.
 
-- [ ] **Step 4: Write the failing API contract test**
+- [x] **Step 4: Write the failing API contract test**
 
 Configure a test app with temporary model metadata and assert:
 
@@ -289,13 +289,13 @@ assert response.json() == {
 
 Also assert the standard error envelope and code for missing metadata.
 
-- [ ] **Step 5: Wire the typed route and dependency**
+- [x] **Step 5: Wire the typed route and dependency**
 
 Instantiate one `TagCatalogService(runtime_config.model_dir)` in lifespan state. Add a
 dependency getter, typed `TagOptions` response model, router module, and include it in
 the existing `/api` router without changing `/api/capabilities`.
 
-- [ ] **Step 6: Run service and API tests, then commit**
+- [x] **Step 6: Run service and API tests, then commit**
 
 Run:
 
@@ -327,7 +327,7 @@ feat: expose model-backed tag options
 - Produces: `useTagOptions() -> { options: TagOptions; error: string | null }`
 - Extends: `ResultTableProps` with `tagOptions: TagOptions`
 
-- [ ] **Step 1: Write failing hook tests**
+- [x] **Step 1: Write failing hook tests**
 
 Mock a successful fetch and assert normalized response storage. Mock the API error and
 assert the hook returns empty lists plus the German non-blocking message:
@@ -336,7 +336,7 @@ assert the hook returns empty lists plus the German non-blocking message:
 Tag-Vorschläge konnten nicht geladen werden. Freie Eingaben sind weiterhin möglich.
 ```
 
-- [ ] **Step 2: Run hook tests and verify RED**
+- [x] **Step 2: Run hook tests and verify RED**
 
 Run:
 
@@ -346,19 +346,19 @@ npm --prefix frontend test -- --run src/features/workbench/useTagOptions.test.ts
 
 Expected: import failure because the hook does not exist.
 
-- [ ] **Step 3: Implement one catalog request per Workbench mount**
+- [x] **Step 3: Implement one catalog request per Workbench mount**
 
 Use `apiRequest<TagOptions>('/api/tag-options')` inside an effect with an active flag.
 Keep `{ genres: [], moods: [] }` as the fallback and never block result editing.
 
-- [ ] **Step 4: Pass options through the existing table boundary**
+- [x] **Step 4: Pass options through the existing table boundary**
 
 `WorkbenchView` calls the hook once, renders a compact `notice notice--error` when the
 catalog fails, and passes `tagOptions` to `ResultTable`. `ResultTable` passes
 `tagOptions.genres` to Genre editors and `tagOptions.moods` to Mood editors. Update
 existing table fixtures to provide empty option arrays.
 
-- [ ] **Step 5: Run focused tests and commit**
+- [x] **Step 5: Run focused tests and commit**
 
 Run:
 
@@ -387,7 +387,7 @@ feat: load tag options in the workbench
 - Consumes: catalog strings and the existing `TagEditor.onChange` callback
 - Preserves: maximum tag length `120`, case-insensitive duplicate prevention, Plus button
 
-- [ ] **Step 1: Write failing interaction tests**
+- [x] **Step 1: Write failing interaction tests**
 
 Cover these user-visible behaviors with Testing Library and `userEvent`:
 
@@ -405,7 +405,7 @@ Cover these user-visible behaviors with Testing Library and `userEvent`:
 - blur closes the list.
 ```
 
-- [ ] **Step 2: Run combobox tests and verify RED**
+- [x] **Step 2: Run combobox tests and verify RED**
 
 Run:
 
@@ -415,7 +415,7 @@ npm --prefix frontend test -- --run src/features/workbench/TagCombobox.test.tsx
 
 Expected: import failure because the component does not exist.
 
-- [ ] **Step 3: Implement filtering and keyboard state directly**
+- [x] **Step 3: Implement filtering and keyboard state directly**
 
 Use at most eight visible suggestions. Compute two stable groups from unselected values:
 prefix matches first, then other substring matches, each retaining catalog order. Track
@@ -436,13 +436,13 @@ Render the popup as `role="listbox"` and each entry as `role="option"` with
 `aria-selected`. Use `onMouseDown(event.preventDefault())` before selection so a mouse
 choice does not lose focus before it is applied.
 
-- [ ] **Step 4: Integrate with TagEditor**
+- [x] **Step 4: Integrate with TagEditor**
 
 Keep chips/removal in `TagEditor`. Replace only its form/input logic with
 `TagCombobox`. On add, append when no case-insensitive duplicate exists, call the
 existing `onChange`, then let the combobox clear itself.
 
-- [ ] **Step 5: Add theme-safe popup styles**
+- [x] **Step 5: Add theme-safe popup styles**
 
 Make `.tag-editor__form` the positioning context. Add a popup below the input with
 `position: absolute`, `z-index`, `max-height`, internal scroll, `var(--surface)`,
@@ -450,7 +450,7 @@ Make `.tag-editor__form` the positioning context. Add a popup below the input wi
 `var(--selection-surface)` and `var(--selection-line)`. Use the existing blue/purple
 `data-kind` accents and do not add hard-coded light colors.
 
-- [ ] **Step 6: Run component tests, typecheck, and commit**
+- [x] **Step 6: Run component tests, typecheck, and commit**
 
 Run:
 
@@ -477,7 +477,7 @@ feat: add tag suggestion combobox
 **Interfaces:**
 - Verifies: backend expansion, legacy reconciliation, catalog API, combobox interaction, themes, and Docker packaging
 
-- [ ] **Step 1: Write the failing Playwright workflow**
+- [x] **Step 1: Write the failing Playwright workflow**
 
 The test must analyze a fixture whose fake backend returns `Electronic---House`, then
 assert separate `Electronic` and `House` chips. It opens the Genre combobox, selects a
@@ -489,7 +489,7 @@ height is unchanged. Select dark theme and assert the listbox background has all
 channels below `100`; repeat in light theme and assert readable foreground/background
 contrast is not identical.
 
-- [ ] **Step 2: Run Playwright and verify RED before final fixture wiring**
+- [x] **Step 2: Run Playwright and verify RED before final fixture wiring**
 
 Run:
 
@@ -499,12 +499,12 @@ npm --prefix frontend run e2e -- tag-suggestions.spec.ts
 
 Expected: failure until the E2E model catalogs and final selectors are connected.
 
-- [ ] **Step 3: Add only the required synthetic E2E catalogs**
+- [x] **Step 3: Add only the required synthetic E2E catalogs**
 
 Create temporary genre and mood JSON metadata inside the E2E server's existing temp
 root and point `ESSENTIA_MODEL_DIR` at it. Do not add real model metadata to the repo.
 
-- [ ] **Step 4: Run focused browser and complete source gates**
+- [x] **Step 4: Run focused browser and complete source gates**
 
 Run:
 
@@ -516,7 +516,7 @@ npm --prefix frontend run e2e -- tag-suggestions.spec.ts
 Expected: Playwright passes; all Python tests, Ruff, ESLint, Vitest, TypeScript, and
 production build pass.
 
-- [ ] **Step 5: Build and replace the Apple Container**
+- [x] **Step 5: Build and replace the Apple Container**
 
 Preserve the current `/Users/justus/Music:/music` and
 `/Users/justus/EssentiaStudio/data:/data` mounts, 4 CPUs, 4 GB RAM, and port mapping:
@@ -527,7 +527,7 @@ container stop essentia-studio
 container run --arch amd64 --rm -d --name essentia-studio --cpus 4 --memory 4g -p 0.0.0.0:8090:8000 --volume /Users/justus/Music:/music --volume /Users/justus/EssentiaStudio/data:/data -e ESSENTIA_DATA_DIR=/data essentia-studio:local-cpu
 ```
 
-- [ ] **Step 6: Verify the real mounted workflow in the integrated browser**
+- [x] **Step 6: Verify the real mounted workflow in the integrated browser**
 
 Open `http://localhost:8090/`, confirm the existing `Funk / Soul; Contemporary R&B`
 draft is now two chips without reanalysis, exercise Genre and Mood suggestions plus a
@@ -545,3 +545,17 @@ docs: record tag suggestion verification
 
 Push `feat/metadata-automation-benchmark` to the private origin and confirm the draft
 PR receives the new commits.
+
+#### Verification evidence (2026-07-17)
+
+- Focused Playwright: `tag-suggestions.spec.ts` passed in Chromium (1 test).
+- Complete source gate: 182 Python tests passed, 1 skipped; Ruff and ESLint passed;
+  46 Vitest tests passed; TypeScript typecheck and production build passed.
+- Apple Container image `essentia-studio:local-cpu` built for `amd64` and replaced on
+  port `8090` with 4 CPUs, 4 GB RAM, and the existing `/music` and `/data` mounts.
+- Integrated browser confirmed two independent `Funk / Soul` and `Contemporary R&B`
+  chips without reanalysis, catalog Genre/Mood selection, a free Genre value, and the
+  Escape-then-click popup regression in both themes.
+- Temporary manual values were removed. The API contains only the original separated
+  genres and moods for `The Waves`; final container logs contain successful requests
+  and no application, catalog, reconciliation, or API errors.
