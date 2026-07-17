@@ -1,7 +1,29 @@
 import { expect, test } from '@playwright/test'
 
-function colorChannels(color: string) {
-  return color.match(/\d+/g)?.slice(0, 3).map(Number) ?? []
+function rgbChannels(color: string): [number, number, number] {
+  const channels = color.match(/\d+/g)?.map(Number) ?? []
+  expect(channels).toHaveLength(3)
+  return [channels[0], channels[1], channels[2]]
+}
+
+function relativeLuminance(channels: [number, number, number]) {
+  const linearChannels = channels.map((channel) => {
+    const normalized = channel / 255
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4
+  })
+  return 0.2126 * linearChannels[0] + 0.7152 * linearChannels[1] + 0.0722 * linearChannels[2]
+}
+
+function contrastRatio(
+  first: [number, number, number],
+  second: [number, number, number],
+) {
+  const [lighter, darker] = [relativeLuminance(first), relativeLuminance(second)].sort(
+    (left, right) => right - left,
+  )
+  return (lighter + 0.05) / (darker + 0.05)
 }
 
 test('splits hierarchical tags and edits drafts with catalog suggestions', async ({ page }) => {
@@ -16,6 +38,12 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
   const resultRow = page.locator('.result-table tbody tr').first()
   await expect(resultRow.getByText('Electronic', { exact: true })).toBeVisible()
   await expect(resultRow.getByText('House', { exact: true })).toBeVisible()
+  const removeElectronic = resultRow.getByRole('button', { name: 'Genre Electronic entfernen' })
+  const removeHouse = resultRow.getByRole('button', { name: 'Genre House entfernen' })
+  await expect(removeElectronic).toHaveCount(1)
+  await expect(removeElectronic).toBeVisible()
+  await expect(removeHouse).toHaveCount(1)
+  await expect(removeHouse).toBeVisible()
 
   const genreInput = resultRow.getByRole('combobox', { name: 'Genre hinzufügen' })
   const rowBeforePopup = await resultRow.boundingBox()
@@ -55,12 +83,12 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
   await expect(listbox).toBeVisible()
   await page.getByLabel('Farbschema').selectOption('dark')
   const darkBackground = await listbox.evaluate((element) => getComputedStyle(element).backgroundColor)
-  expect(Math.max(...colorChannels(darkBackground))).toBeLessThan(100)
+  expect(Math.max(...rgbChannels(darkBackground))).toBeLessThan(100)
 
   await page.getByLabel('Farbschema').selectOption('light')
   const lightColors = await listbox.evaluate((element) => {
     const styles = getComputedStyle(element)
     return { background: styles.backgroundColor, foreground: styles.color }
   })
-  expect(lightColors.foreground).not.toBe(lightColors.background)
+  expect(contrastRatio(rgbChannels(lightColors.foreground), rgbChannels(lightColors.background))).toBeGreaterThanOrEqual(4.5)
 })
