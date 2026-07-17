@@ -13,6 +13,10 @@ docker login ghcr.io
 docker compose up -d
 ```
 
+Docker Desktop sollte dem Container zum Start mindestens **4 GB** RAM bereitstellen.
+Der Ressourcen-Benchmark berücksichtigt das tatsächlich sichtbare Limit, lässt 30
+Prozent Reserve und übernimmt die Worker-Empfehlung nur nach Bestätigung.
+
 Alternativ können die Variablen in WSL gesetzt und Linux-Pfade verwendet werden:
 
 ```bash
@@ -35,3 +39,16 @@ docker compose -f docker-compose.yml -f compose.cuda.yml up -d
 
 Die App hat im lokalen Netz absichtlich keine Anmeldung. Keine Portfreigabe am
 Router einrichten und den Dienst nicht öffentlich exponieren.
+
+## Dateiüberwachung und Zeitplan
+
+Bei Windows-Bind-Mounts und besonders bei Pfaden unter `/mnt/c` können
+Dateisystemereignisse verzögert oder unvollständig ankommen. Wenn der Watcher in der
+GUI keinen stabilen Zustand meldet, ihn ausschalten; die Zeitplan-Einstellung öffnet
+sich dann automatisch und übernimmt die Suche nach neuen oder geänderten Titeln.
+Die Entwicklung innerhalb des WSL2-Linux-Dateisystems liefert zuverlässigere Events.
+
+Der Benchmark nutzt automatisch einen Titel mit mindestens 60 Sekunden und schreibt
+keine Tags. CPU wird immer gemessen; CUDA nur im CUDA-Image mit sichtbarer NVIDIA-GPU.
+Nach Änderungen an Docker-RAM, Modellen oder Analyseoptionen ist eine alte Messung
+nicht mehr gültig und wird in der Oberfläche entsprechend markiert.

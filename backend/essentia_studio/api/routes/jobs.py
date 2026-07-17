@@ -8,7 +8,7 @@ from fastapi.sse import EventSourceResponse, ServerSentEvent
 from essentia_studio.api.dependencies import get_job_coordinator, get_job_repository
 from essentia_studio.domain.jobs import TERMINAL_STATUSES
 from essentia_studio.repositories.jobs import JobRepository
-from essentia_studio.schemas.jobs import JobEventResponse, JobResponse
+from essentia_studio.schemas.jobs import JobEventResponse, JobItemResponse, JobResponse
 from essentia_studio.services.jobs import JobCoordinator
 
 router = APIRouter(prefix="/jobs")
@@ -27,6 +27,15 @@ def get_job(
     repository: Annotated[JobRepository, Depends(get_job_repository)],
 ) -> JobResponse:
     return JobResponse.from_record(repository.get(job_id))
+
+
+@router.get("/{job_id}/items", response_model=list[JobItemResponse])
+def list_job_items(
+    job_id: str,
+    repository: Annotated[JobRepository, Depends(get_job_repository)],
+) -> list[JobItemResponse]:
+    repository.get(job_id)
+    return [JobItemResponse.from_record(item) for item in repository.list_items(job_id)]
 
 
 @router.post("/{job_id}/cancel", response_model=JobResponse)

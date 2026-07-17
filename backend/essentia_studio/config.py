@@ -12,6 +12,7 @@ class RuntimeConfig:
     music_root: Path
     data_dir: Path
     database_path: Path
+    settings_path: Path
     playlist_dir: Path
     frontend_dir: Path
     model_dir: Path
@@ -31,6 +32,9 @@ class RuntimeConfig:
             data_dir=data_dir,
             database_path=Path(
                 values.get("ESSENTIA_DATABASE_PATH", str(data_dir / "essentia-studio.db"))
+            ),
+            settings_path=Path(
+                values.get("ESSENTIA_SETTINGS_PATH", str(data_dir / "settings.yaml"))
             ),
             playlist_dir=Path(
                 values.get("ESSENTIA_PLAYLIST_DIR", str(music_root / "SmartPlaylists"))

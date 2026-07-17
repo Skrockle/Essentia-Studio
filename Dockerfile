@@ -37,6 +37,7 @@ COPY backend/essentia_studio /app/essentia_studio
 COPY --from=frontend /src/frontend/dist /app/frontend
 COPY docker/entrypoint.py /app/entrypoint.py
 COPY scripts/cpu_smoke.py /app/scripts/cpu_smoke.py
+COPY scripts/worker_recovery_smoke.py /app/scripts/worker_recovery_smoke.py
 RUN mkdir -p /music /data \
     && chown -R root:root /app \
     && chmod -R a+rX,a-w /app \

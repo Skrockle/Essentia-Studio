@@ -22,8 +22,9 @@ def write_tone(path: Path, seconds: int = 10) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("output", type=Path)
+    parser.add_argument("--seconds", type=int, default=10)
     arguments = parser.parse_args()
-    write_tone(arguments.output)
+    write_tone(arguments.output, arguments.seconds)
 
 
 if __name__ == "__main__":

@@ -18,4 +18,11 @@ def test_scan_records_mounted_tracks_without_analysis(client, music_root) -> Non
     tracks = client.get("/api/library/tracks").json()
     assert job["status"] == "completed"
     assert tracks["total"] == 1
-    assert tracks["items"][0]["relative_path"] == "Artist/song.flac"
+    item = tracks["items"][0]
+    assert item["relative_path"] == "Artist/song.flac"
+    assert item["artist"] == "Artist"
+    assert item["title"] == "song"
+    assert item["processing_state"] == "new"
+
+    searched = client.get("/api/library/tracks", params={"search": "artist"}).json()
+    assert searched["total"] == 1

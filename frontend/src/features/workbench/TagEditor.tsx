@@ -1,24 +1,18 @@
-import { useId, useState, type FormEvent } from 'react'
-import { Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
+
+import { TagCombobox } from './TagCombobox'
 
 interface TagEditorProps {
   kind: 'Genre' | 'Mood'
+  options: string[]
   values: string[]
   onChange: (values: string[]) => void
 }
 
-export function TagEditor({ kind, values, onChange }: TagEditorProps) {
-  const inputId = useId()
-  const [value, setValue] = useState('')
-
-  function addValue(event: FormEvent) {
-    event.preventDefault()
-    const normalized = value.trim()
-    if (!normalized) return
-    if (!values.some((entry) => entry.toLocaleLowerCase() === normalized.toLocaleLowerCase())) {
-      onChange([...values, normalized])
-    }
-    setValue('')
+export function TagEditor({ kind, options, values, onChange }: TagEditorProps) {
+  function addValue(value: string) {
+    if (values.some((entry) => entry.toLocaleLowerCase() === value.toLocaleLowerCase())) return
+    onChange([...values, value])
   }
 
   return (
@@ -37,21 +31,7 @@ export function TagEditor({ kind, values, onChange }: TagEditorProps) {
           </span>
         ))}
       </div>
-      <form className="tag-editor__form" onSubmit={addValue}>
-        <label className="sr-only" htmlFor={inputId}>
-          {kind} hinzufügen
-        </label>
-        <input
-          id={inputId}
-          maxLength={120}
-          onChange={(event) => setValue(event.target.value)}
-          placeholder={`${kind} ergänzen`}
-          value={value}
-        />
-        <button aria-label={`${kind} hinzufügen`} type="submit">
-          <Plus aria-hidden="true" size={13} />
-        </button>
-      </form>
+      <TagCombobox kind={kind} onAdd={addValue} options={options} selectedValues={values} />
     </div>
   )
 }

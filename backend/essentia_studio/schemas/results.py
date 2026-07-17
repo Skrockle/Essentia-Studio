@@ -3,6 +3,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field
 
 from essentia_studio.domain.analysis import StoredAnalysis
+from essentia_studio.services.track_state import ProcessingState
 
 
 class ResultQuery(BaseModel):
@@ -43,22 +44,39 @@ class DraftResponse(BaseModel):
 class PredictionResponse(BaseModel):
     label: str
     confidence: float
+    accepted: bool
 
 
 class ResultResponse(BaseModel):
     id: str
     track_id: int
     relative_path: str
+    artist: str
+    title: str
+    album: str | None
+    duration_seconds: float | None
+    metadata_source: str
+    processing_state: ProcessingState
     genres: list[PredictionResponse]
     moods: list[PredictionResponse]
     draft: DraftResponse
 
     @classmethod
-    def from_record(cls, result: StoredAnalysis) -> "ResultResponse":
+    def from_record(
+        cls,
+        result: StoredAnalysis,
+        processing_state: ProcessingState = "current",
+    ) -> "ResultResponse":
         return cls(
             id=result.id,
             track_id=result.track_id,
             relative_path=result.relative_path,
+            artist=result.metadata.artist,
+            title=result.metadata.title,
+            album=result.metadata.album,
+            duration_seconds=result.metadata.duration_seconds,
+            metadata_source=result.metadata.source,
+            processing_state=processing_state,
             genres=[
                 PredictionResponse.model_validate(value, from_attributes=True)
                 for value in result.result.genres

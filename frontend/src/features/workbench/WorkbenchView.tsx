@@ -2,15 +2,24 @@ import { useEffect, useMemo, useState } from 'react'
 import { AudioWaveform, FolderSearch, PenLine, Search, Sparkles } from 'lucide-react'
 
 import { apiRequest } from '../../api/client'
-import type { JobRecord, WriteOperation } from '../jobs/types'
+import type { JobRecord } from '../jobs/types'
 import { useJobEvents } from '../jobs/useJobEvents'
 import { LibraryTable } from './LibraryTable'
+import { JobProgress } from './JobProgress'
 import { ResultTable } from './ResultTable'
 import { SelectionToolbar } from './SelectionToolbar'
+import { WorkbenchViewControls } from './WorkbenchViewControls'
 import { useResults } from './useResults'
-import { WritePreviewDialog } from './WritePreviewDialog'
+import { useTagOptions } from './useTagOptions'
+import { WritePreviewDialog, type WriteJobSummary } from './WritePreviewDialog'
 import type { ResultRow } from './types'
+import type { TagOptions } from '../../api/types'
 import { useLibraryTracks } from './useLibraryTracks'
+import {
+  loadWorkbenchPreferences,
+  saveWorkbenchPreferences,
+  type ResultColumn,
+} from './viewPreferences'
 
 interface WorkbenchActionsProps {
   active: boolean
@@ -52,6 +61,8 @@ interface ResultsProps {
   onSelectAll: (selected: boolean) => void
   onSelectRow: (row: ResultRow, selected: boolean) => void
   onSaveDraft: (row: ResultRow, genres: string[], moods: string[]) => void
+  tagOptions: TagOptions
+  visibleColumns: ResultColumn[]
 }
 
 function WorkbenchResults({ error, rows, ...tableProps }: ResultsProps) {
@@ -67,10 +78,6 @@ function WorkbenchResults({ error, rows, ...tableProps }: ResultsProps) {
       </div>
     </section>
   )
-}
-
-function jobMessage(job: JobRecord): string {
-  return job.type === 'scan' ? 'Scan läuft …' : 'Analyse läuft …'
 }
 
 export function WorkbenchView() {
@@ -91,16 +98,32 @@ export function WorkbenchView() {
     error: libraryError,
     refresh: refreshLibrary,
   } = useLibraryTracks(search)
+  const { options: tagOptions, error: tagOptionsError } = useTagOptions()
   const [analysisSelection, setAnalysisSelection] = useState<Set<number>>(new Set())
   const [activeJob, setActiveJob] = useState<JobRecord | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
+  const [viewPreferences, setViewPreferences] = useState(loadWorkbenchPreferences)
   const event = useJobEvents(activeJob?.id ?? null)
   const allSelected = page.total > 0 && page.selected_count === page.total
-  const visibleTrackIds = useMemo(
-    () => new Set(libraryTracks.map((track) => track.id)),
+  const availableFormats = useMemo(
+    () => [...new Set(libraryTracks.map((track) => track.extension))].sort(),
     [libraryTracks],
   )
+  const filteredLibraryTracks = useMemo(
+    () => libraryTracks.filter((track) => (
+      viewPreferences.statuses.includes(track.processing_state)
+      && (viewPreferences.showWritten || track.processing_state !== 'written')
+      && (viewPreferences.formats.length === 0 || viewPreferences.formats.includes(track.extension))
+    )),
+    [libraryTracks, viewPreferences],
+  )
+  const visibleTrackIds = useMemo(
+    () => new Set(filteredLibraryTracks.map((track) => track.id)),
+    [filteredLibraryTracks],
+  )
+
+  useEffect(() => saveWorkbenchPreferences(viewPreferences), [viewPreferences])
   const visibleAnalysisSelection = useMemo(
     () => new Set([...analysisSelection].filter((id) => visibleTrackIds.has(id))),
     [analysisSelection, visibleTrackIds],
@@ -118,7 +141,17 @@ export function WorkbenchView() {
         )
         setStatusMessage(`Scan abgeschlossen – ${scannedTracks.length} Titel gefunden`)
       } else {
-        setStatusMessage('Analyse abgeschlossen')
+        const failedItems = Number(event.payload.failed_items ?? 0)
+        const status = String(event.payload.status ?? '')
+        setStatusMessage(
+          status === 'completed_with_errors' || failedItems > 0
+            ? `Analyse beendet – ${failedItems} ${failedItems === 1 ? 'Titel' : 'Titel'} fehlgeschlagen`
+            : status === 'failed'
+              ? 'Analyse fehlgeschlagen'
+              : status === 'cancelled'
+                ? 'Analyse abgebrochen'
+                : 'Analyse abgeschlossen',
+        )
       }
       setActiveJob(null)
       refresh()
@@ -145,7 +178,7 @@ export function WorkbenchView() {
   }
 
   function selectAllForAnalysis(selected: boolean) {
-    setAnalysisSelection(selected ? new Set(libraryTracks.map((track) => track.id)) : new Set())
+    setAnalysisSelection(selected ? new Set(filteredLibraryTracks.map((track) => track.id)) : new Set())
   }
 
   function selectTrackForAnalysis(trackId: number, selected: boolean) {
@@ -157,10 +190,10 @@ export function WorkbenchView() {
     })
   }
 
-  function finishWrite(operations: WriteOperation[]) {
-    const verified = operations.filter((operation) => operation.status === 'verified').length
+  async function finishWrite(summary: WriteJobSummary) {
     setShowPreview(false)
-    setStatusMessage(`${verified} verifiziert`)
+    setStatusMessage(`${summary.verified} verifiziert`)
+    await Promise.all([refresh(), refreshLibrary()])
   }
 
   return (
@@ -211,17 +244,28 @@ export function WorkbenchView() {
       </section>
 
       {libraryError && <p className="notice notice--error">{libraryError}</p>}
+      {tagOptionsError && <p className="notice notice--error">{tagOptionsError}</p>}
+      <WorkbenchViewControls
+        availableFormats={availableFormats}
+        onChange={setViewPreferences}
+        value={viewPreferences}
+      />
       <LibraryTable
         onSelectAll={selectAllForAnalysis}
         onSelectTrack={selectTrackForAnalysis}
         selectedIds={visibleAnalysisSelection}
-        tracks={libraryTracks}
+        tracks={filteredLibraryTracks}
+        visibleColumns={viewPreferences.libraryColumns}
       />
 
       <SelectionToolbar selectedCount={page.selected_count} onBulkUpdate={bulkUpdate} />
 
       {activeJob && (
-        <p className="notice">{jobMessage(activeJob)}</p>
+        <JobProgress
+          event={event}
+          job={activeJob}
+          label={activeJob.type === 'scan' ? 'Scan' : 'Analyse'}
+        />
       )}
       {statusMessage && <p className="notice notice--success">{statusMessage}</p>}
       <WorkbenchResults
@@ -231,11 +275,13 @@ export function WorkbenchView() {
         onSelectAll={selectAll}
         onSelectRow={selectRow}
         rows={page.items}
+        tagOptions={tagOptions}
+        visibleColumns={viewPreferences.resultColumns}
       />
       {showPreview && (
         <WritePreviewDialog
           onClose={() => setShowPreview(false)}
-          onWritten={finishWrite}
+          onCompleted={finishWrite}
           selection={selection}
         />
       )}

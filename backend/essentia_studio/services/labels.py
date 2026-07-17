@@ -1,19 +1,26 @@
-import unicodedata
-
+from essentia_studio.domain.tag_labels import (
+    format_mood_label,
+    legacy_genre_label,
+    normalize_label,
+    split_genre_label,
+)
 from essentia_studio.errors import AppError
 
 MAX_TAGS = 64
 MAX_TAG_LENGTH = 120
 
+__all__ = [
+    "format_genre",
+    "format_mood",
+    "format_mood_label",
+    "legacy_genre_label",
+    "normalize_tags",
+    "split_genre_label",
+]
 
-def format_genre(raw_genre: str) -> str:
-    parts = [part.strip() for part in raw_genre.split("---", maxsplit=1)]
-    return "; ".join(part for part in parts if part)
 
-
-def format_mood(raw_mood: str) -> str:
-    label = raw_mood.rsplit("---", maxsplit=1)[-1]
-    return label.strip().title()
+format_genre = legacy_genre_label
+format_mood = format_mood_label
 
 
 def normalize_tags(values: list[str]) -> list[str]:
@@ -21,7 +28,7 @@ def normalize_tags(values: list[str]) -> list[str]:
     seen: set[str] = set()
 
     for value in values:
-        label = unicodedata.normalize("NFKC", value).strip()
+        label = normalize_label(value)
         if not label:
             continue
         if len(label) > MAX_TAG_LENGTH:

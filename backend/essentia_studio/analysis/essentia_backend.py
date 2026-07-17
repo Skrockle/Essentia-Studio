@@ -5,6 +5,7 @@ from typing import Any
 
 import numpy as np
 
+from essentia_studio.analysis.genre_selection import select_genre_predictions
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult, Prediction
 
 
@@ -30,6 +31,9 @@ class EssentiaBackend:
 
     def available_compute(self) -> list[str]:
         return ["cpu", "cuda"] if self._image_variant == "cuda" else ["cpu"]
+
+    def initialize(self) -> None:
+        self._load_models()
 
     def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
         models = self._load_models()
@@ -96,16 +100,12 @@ class EssentiaBackend:
         options: AnalysisOptions,
     ) -> list[Prediction]:
         activations = np.mean(models["genre"](embeddings), axis=0)
-        top_indices = np.argsort(activations)[::-1][: options.genre_count * 2]
-        predictions = [
-            Prediction(models["genre_labels"][index], float(activations[index]))
-            for index in top_indices
-            if activations[index] >= options.genre_threshold
-        ][: options.genre_count]
-        if predictions:
-            return predictions
-        top_index = int(np.argmax(activations))
-        return [Prediction(models["genre_labels"][top_index], float(activations[top_index]))]
+        return select_genre_predictions(
+            models["genre_labels"],
+            activations,
+            options.genre_threshold,
+            options.genre_count,
+        )
 
     @staticmethod
     def _predict_moods(

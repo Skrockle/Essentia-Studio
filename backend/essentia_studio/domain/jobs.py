@@ -9,6 +9,7 @@ class JobType(str, Enum):
     WRITE = "write"
     UNDO = "undo"
     PLAYLIST_WRITE = "playlist_write"
+    BENCHMARK = "benchmark"
 
 
 class JobStatus(str, Enum):
@@ -47,6 +48,18 @@ class JobItem:
     value: str
     position: int
     status: str
+
+
+@dataclass(frozen=True, slots=True)
+class JobItemRecord:
+    id: int
+    job_id: str
+    position: int
+    value: str
+    status: str
+    result: dict[str, Any] | None
+    error: str | None
+    error_code: str | None
 
 
 @dataclass(frozen=True, slots=True)

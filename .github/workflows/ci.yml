@@ -80,8 +80,11 @@ jobs:
           mkdir -p /tmp/essentia-music /tmp/essentia-data
           chmod 0777 /tmp/essentia-music /tmp/essentia-data
           python scripts/ci/generate_fixture.py /tmp/essentia-music/tone.wav
+          python scripts/ci/generate_fixture.py /tmp/essentia-music/zz-benchmark-tone.wav --seconds 65
           chmod 0666 /tmp/essentia-music/tone.wav
+          chmod 0666 /tmp/essentia-music/zz-benchmark-tone.wav
           docker run --rm -d --name essentia-studio-cpu -p 18000:8000 \
+            --memory 4g \
             -v /tmp/essentia-music:/music -v /tmp/essentia-data:/data \
             essentia-studio:ci-cpu
           for attempt in {1..30}; do
@@ -95,7 +98,10 @@ jobs:
             --variant cpu --compute cpu
           docker exec essentia-studio-cpu \
             python /app/scripts/cpu_smoke.py /music/tone.wav
+          docker exec essentia-studio-cpu \
+            python /app/scripts/worker_recovery_smoke.py
           python scripts/ci/container_api_smoke.py http://127.0.0.1:18000
+          python scripts/ci/benchmark_api_smoke.py http://127.0.0.1:18000
           docker stop essentia-studio-cpu
 
   cuda-image:
@@ -103,14 +109,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
       - name: Build CUDA image
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-        with:
-          context: .
-          file: Dockerfile.cuda
-          load: true
-          tags: essentia-studio:ci-cuda
+        run: docker build --file Dockerfile.cuda --tag essentia-studio:ci-cuda .
       - name: Verify CPU fallback
         run: |
           mkdir -p /tmp/essentia-music /tmp/essentia-data

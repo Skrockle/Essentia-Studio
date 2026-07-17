@@ -1,18 +1,40 @@
 from fastapi import Request
 
+from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.playlists.storage import PlaylistStorage
 from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
-from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
+from essentia_studio.services.automation import AutomationService
+from essentia_studio.services.automation_status import AutomationStatusStore
+from essentia_studio.services.benchmarks import BenchmarkService
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
+from essentia_studio.services.settings import SettingsService
+from essentia_studio.services.tag_catalog import TagCatalogService
 from essentia_studio.services.tag_operations import TagOperationService
+from essentia_studio.services.track_state import TrackStateService
 
 
-def get_settings_repository(request: Request) -> SettingsRepository:
-    return request.app.state.settings_repository
+def get_settings_service(request: Request) -> SettingsService:
+    return request.app.state.settings_service
+
+
+def get_automation_status_store(request: Request) -> AutomationStatusStore:
+    return request.app.state.automation_status_store
+
+
+def get_automation_service(request: Request) -> AutomationService:
+    return request.app.state.automation_service
+
+
+def get_benchmark_service(request: Request) -> BenchmarkService:
+    return request.app.state.benchmark_service
+
+
+def get_worker_pool_manager(request: Request) -> WorkerPoolManager:
+    return request.app.state.worker_pool_manager
 
 
 def get_capability_service(request: Request) -> CapabilityService:
@@ -25,6 +47,10 @@ def get_job_repository(request: Request) -> JobRepository:
 
 def get_track_repository(request: Request) -> TrackRepository:
     return request.app.state.track_repository
+
+
+def get_track_state_service(request: Request) -> TrackStateService:
+    return request.app.state.track_state_service
 
 
 def get_result_repository(request: Request) -> ResultRepository:
@@ -45,3 +71,7 @@ def get_tag_operation_service(request: Request) -> TagOperationService:
 
 def get_playlist_storage(request: Request) -> PlaylistStorage:
     return request.app.state.playlist_storage
+
+
+def get_tag_catalog_service(request: Request) -> TagCatalogService:
+    return request.app.state.tag_catalog_service

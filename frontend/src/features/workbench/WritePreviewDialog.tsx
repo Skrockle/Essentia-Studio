@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, Check, X } from 'lucide-react'
 
 import { apiRequest } from '../../api/client'
-import type { WriteOperation } from '../jobs/types'
+import type { JobItemRecord, JobRecord } from '../jobs/types'
+import { useJobEvents } from '../jobs/useJobEvents'
+import { JobProgress } from './JobProgress'
 import type { SelectionSpec } from './types'
 
 interface PreviewItem {
@@ -25,12 +27,19 @@ interface Preview {
 interface Props {
   selection: SelectionSpec
   onClose: () => void
-  onWritten: (operations: WriteOperation[]) => void
+  onCompleted: (summary: WriteJobSummary) => void
 }
 
-export function WritePreviewDialog({ selection, onClose, onWritten }: Props) {
+export interface WriteJobSummary {
+  verified: number
+  failed: Array<{ relativePath: string; error: string }>
+}
+
+export function WritePreviewDialog({ selection, onClose, onCompleted }: Props) {
   const [preview, setPreview] = useState<Preview | null>(null)
-  const [writing, setWriting] = useState(false)
+  const [writeJob, setWriteJob] = useState<JobRecord | null>(null)
+  const [summary, setSummary] = useState<WriteJobSummary | null>(null)
+  const writeEvent = useJobEvents(writeJob?.id ?? null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -46,13 +55,29 @@ export function WritePreviewDialog({ selection, onClose, onWritten }: Props) {
     return () => controller.abort()
   }, [selection])
 
+  useEffect(() => {
+    if (writeEvent?.kind !== 'terminal' || !writeJob || summary) return
+    queueMicrotask(async () => {
+      const items = await apiRequest<JobItemRecord[]>(`/api/jobs/${writeJob.id}/items`)
+      const nextSummary: WriteJobSummary = {
+        verified: items.filter((item) => item.status === 'completed').length,
+        failed: items
+          .filter((item) => item.status === 'failed')
+          .map((item) => ({
+            relativePath: item.value,
+            error: item.error ?? 'Die Tags konnten nicht geschrieben werden.',
+          })),
+      }
+      setSummary(nextSummary)
+      onCompleted(nextSummary)
+    })
+  }, [onCompleted, summary, writeEvent, writeJob])
+
   async function confirm() {
-    setWriting(true)
-    const response = await apiRequest<{ operations: WriteOperation[] }>('/api/writes', {
+    setWriteJob(await apiRequest<JobRecord>('/api/writes/jobs', {
       method: 'POST',
       body: JSON.stringify({ selection }),
-    })
-    onWritten(response.operations)
+    }))
   }
 
   return (
@@ -86,10 +111,21 @@ export function WritePreviewDialog({ selection, onClose, onWritten }: Props) {
                 </article>
               ))}
             </div>
+            {writeJob && !summary && (
+              <JobProgress event={writeEvent} job={writeJob} label="Schreibvorgang" />
+            )}
+            {summary && summary.failed.length > 0 && (
+              <div className="notice notice--error">
+                <strong>{summary.failed.length} fehlgeschlagen</strong>
+                {summary.failed.map((item) => (
+                  <p key={item.relativePath}><code>{item.relativePath}</code>: {item.error}</p>
+                ))}
+              </div>
+            )}
             <footer>
               <button onClick={onClose} type="button">Abbrechen</button>
-              <button className="primary-button" disabled={writing || preview.writable === 0} onClick={confirm} type="button">
-                {writing ? 'Schreibe …' : 'Schreiben bestätigen'}
+              <button className="primary-button" disabled={Boolean(writeJob) || preview.writable === 0} onClick={confirm} type="button">
+                {writeJob ? 'Schreibvorgang läuft …' : 'Schreiben bestätigen'}
               </button>
             </footer>
           </>

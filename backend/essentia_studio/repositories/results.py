@@ -10,7 +10,8 @@ from essentia_studio.domain.analysis import (
     StoredAnalysis,
     TagDraft,
 )
-from essentia_studio.domain.tracks import LibraryTrack, TrackFingerprint
+from essentia_studio.domain.tag_labels import rewrite_legacy_genres
+from essentia_studio.domain.tracks import LibraryTrack, TrackFingerprint, TrackMetadata
 
 
 class ResultRepository:
@@ -80,22 +81,34 @@ class ResultRepository:
             ).one()
         return self._from_row(row)
 
+    def for_job(self, job_id: str) -> list[StoredAnalysis]:
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                text(
+                    self._result_select("analysis_results")
+                    + " WHERE ar.job_id = :job_id ORDER BY lt.relative_path, ar.id"
+                ),
+                {"job_id": job_id},
+            ).all()
+        return [self._from_row(row) for row in rows]
+
     def query(
         self,
         filters: dict[str, object],
         page: int,
         page_size: int,
     ) -> tuple[list[StoredAnalysis], int, int]:
-        where_clause, parameters = self._where(filters)
+        where_clause, parameters = self._where(filters, latest_only=True)
         parameters |= {"limit": page_size, "offset": (page - 1) * page_size}
         with self._engine.connect() as connection:
             counts = connection.execute(
                 text(
-                    f"""
+                    self._latest_results_cte()
+                    + f"""
                     SELECT COUNT(*) AS total,
                            COALESCE(SUM(CASE WHEN td.selected = 1 THEN 1 ELSE 0 END), 0)
                              AS selected_count
-                    FROM analysis_results ar
+                    FROM latest_results ar
                     JOIN library_tracks lt ON lt.id = ar.track_id
                     JOIN tag_drafts td ON td.result_id = ar.id
                     {where_clause}
@@ -104,8 +117,12 @@ class ResultRepository:
                 parameters,
             ).one()
             rows = connection.execute(
-                text(self._result_select() + f" {where_clause} ORDER BY lt.relative_path, ar.id "
-                     "LIMIT :limit OFFSET :offset"),
+                text(
+                    self._latest_results_cte()
+                    + self._result_select("latest_results")
+                    + f" {where_clause} ORDER BY lt.relative_path, ar.id "
+                    "LIMIT :limit OFFSET :offset"
+                ),
                 parameters,
             ).all()
         return [self._from_row(row) for row in rows], counts.total, counts.selected_count
@@ -135,6 +152,41 @@ class ResultRepository:
                 },
             )
         return self.get(result_id)
+
+    def reconcile_hierarchical_genres(self) -> int:
+        with self._engine.begin() as connection:
+            rows = connection.execute(
+                text(
+                    """
+                    SELECT ar.id AS result_id, ar.raw_genres, td.genres
+                    FROM analysis_results ar
+                    JOIN tag_drafts td ON td.result_id = ar.id
+                    """
+                )
+            ).all()
+            updates = []
+            for row in rows:
+                raw_labels = [prediction["label"] for prediction in json.loads(row.raw_genres)]
+                genres = json.loads(row.genres)
+                reconciled_genres = rewrite_legacy_genres(genres, raw_labels)
+                if reconciled_genres != genres:
+                    updates.append(
+                        {
+                            "result_id": row.result_id,
+                            "genres": json.dumps(reconciled_genres),
+                        }
+                    )
+            if updates:
+                connection.execute(
+                    text(
+                        """
+                        UPDATE tag_drafts SET genres = :genres
+                        WHERE result_id = :result_id
+                        """
+                    ),
+                    updates,
+                )
+        return len(updates)
 
     def update_selection(self, selection: dict[str, object], selected: bool) -> int:
         result_ids = self.resolve_selection(selection)
@@ -188,7 +240,7 @@ class ResultRepository:
             return list(dict.fromkeys(selection["ids"]))
 
         filters = selection["query"]
-        where_clause, parameters = self._where(filters)
+        where_clause, parameters = self._where(filters, latest_only=True)
         excluded_ids = selection.get("excluded_ids", [])
         exclusion = ""
         if excluded_ids:
@@ -199,8 +251,9 @@ class ResultRepository:
             return list(
                 connection.execute(
                     text(
-                        f"""
-                        SELECT ar.id FROM analysis_results ar
+                        self._latest_results_cte()
+                        + f"""
+                        SELECT ar.id FROM latest_results ar
                         JOIN library_tracks lt ON lt.id = ar.track_id
                         JOIN tag_drafts td ON td.result_id = ar.id
                         {where_clause}{exclusion}
@@ -237,8 +290,11 @@ class ResultRepository:
         return placeholders, parameters
 
     @staticmethod
-    def _where(filters: dict[str, object]) -> tuple[str, dict[str, object]]:
-        conditions: list[str] = []
+    def _where(
+        filters: dict[str, object],
+        latest_only: bool = False,
+    ) -> tuple[str, dict[str, object]]:
+        conditions: list[str] = ["ar.result_rank = 1"] if latest_only else []
         parameters: dict[str, object] = {}
         simple_columns = {"job_id": "ar.job_id", "status": "td.status", "selected": "td.selected"}
         for name, column in simple_columns.items():
@@ -246,7 +302,12 @@ class ResultRepository:
                 conditions.append(f"{column} = :{name}")
                 parameters[name] = int(filters[name]) if name == "selected" else filters[name]
         if filters.get("search"):
-            conditions.append("LOWER(lt.relative_path) LIKE :search")
+            conditions.append(
+                "(LOWER(lt.relative_path) LIKE :search "
+                "OR LOWER(COALESCE(lt.artist, '')) LIKE :search "
+                "OR LOWER(COALESCE(lt.title, '')) LIKE :search "
+                "OR LOWER(COALESCE(lt.album, '')) LIKE :search)"
+            )
             parameters["search"] = f"%{str(filters['search']).casefold()}%"
         for name in ("genre", "mood"):
             if filters.get(name):
@@ -258,14 +319,28 @@ class ResultRepository:
         return (f"WHERE {' AND '.join(conditions)}" if conditions else ""), parameters
 
     @staticmethod
-    def _result_select() -> str:
-        return """
+    def _result_select(source: str = "analysis_results") -> str:
+        return f"""
             SELECT ar.id, ar.track_id, lt.relative_path, ar.raw_genres, ar.raw_moods,
                    ar.model_ids, ar.analyzed_size, ar.analyzed_mtime_ns,
-                   td.genres, td.moods, td.selected, td.dirty
-            FROM analysis_results ar
+                   td.genres, td.moods, td.selected, td.dirty,
+                   lt.artist, lt.title, lt.album, lt.duration_seconds, lt.metadata_source
+            FROM {source} ar
             JOIN library_tracks lt ON lt.id = ar.track_id
             JOIN tag_drafts td ON td.result_id = ar.id
+        """
+
+    @staticmethod
+    def _latest_results_cte() -> str:
+        return """
+            WITH latest_results AS (
+              SELECT ar.*,
+                     ROW_NUMBER() OVER (
+                       PARTITION BY ar.track_id
+                       ORDER BY ar.created_at DESC, ar.rowid DESC
+                     ) AS result_rank
+              FROM analysis_results ar
+            )
         """
 
     @staticmethod
@@ -281,6 +356,13 @@ class ResultRepository:
             id=row.id,
             track_id=row.track_id,
             relative_path=row.relative_path,
+            metadata=TrackMetadata(
+                artist=row.artist or "Unbekannter Interpret",
+                title=row.title or row.relative_path.rsplit("/", 1)[-1].rsplit(".", 1)[0],
+                album=row.album,
+                duration_seconds=row.duration_seconds,
+                source=row.metadata_source or "fallback",
+            ),
             fingerprint=TrackFingerprint(row.analyzed_size, row.analyzed_mtime_ns),
             result=AnalysisResult(
                 genres=[Prediction(**value) for value in json.loads(row.raw_genres)],

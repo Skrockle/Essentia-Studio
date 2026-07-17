@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from essentia_studio.domain.tracks import TrackFingerprint
-from essentia_studio.domain.writes import WriteOperation
+from essentia_studio.domain.writes import WriteOperation, WriteTrigger
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.path_safety import resolve_track_path
@@ -24,7 +24,7 @@ class TagOperationService:
         self._music_root = music_root
         self._overwrite_existing = overwrite_existing
 
-    def write_one(self, result_id: str) -> WriteOperation:
+    def write_one(self, result_id: str, trigger: WriteTrigger = "manual") -> WriteOperation:
         result = self._results.get(result_id)
         path = resolve_track_path(self._music_root, result.relative_path)
         if self._fingerprint(path) != result.fingerprint:
@@ -34,12 +34,19 @@ class TagOperationService:
                 "conflict",
                 "track_changed_since_analysis",
                 "Die Datei wurde seit der Analyse verändert.",
+                trigger,
             )
 
         adapter = self._registry.for_path(path)
         snapshot = adapter.read(path)
-        operation = self._writes.start(result.id, result.relative_path, snapshot)
         desired = DesiredTags(result.draft.genres, result.draft.moods)
+        operation = self._writes.start(
+            result.id,
+            result.relative_path,
+            snapshot,
+            desired,
+            trigger,
+        )
         try:
             adapter.write(path, desired, self._overwrite_existing)
             written = adapter.read(path)
@@ -50,7 +57,7 @@ class TagOperationService:
                     error_code="write_verification_failed",
                     error_message="Die geschriebenen Tags konnten nicht bestätigt werden.",
                 )
-            return self._writes.finish(operation.id, "verified", self._fingerprint(path))
+            return self._writes.finish_verified(operation.id, self._fingerprint(path))
         except Exception as error:
             return self._writes.finish(
                 operation.id,
@@ -59,8 +66,12 @@ class TagOperationService:
                 error_message=str(error),
             )
 
-    def write_many(self, result_ids: list[str]) -> list[WriteOperation]:
-        return [self.write_one(result_id) for result_id in result_ids]
+    def write_many(
+        self,
+        result_ids: list[str],
+        trigger: WriteTrigger = "manual",
+    ) -> list[WriteOperation]:
+        return [self.write_one(result_id, trigger) for result_id in result_ids]
 
     def undo(self, operation_id: str) -> WriteOperation:
         operation = self._writes.get(operation_id)

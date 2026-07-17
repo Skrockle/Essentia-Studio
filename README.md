@@ -21,6 +21,7 @@ lokales Netz gedacht: Es gibt bewusst **kein Login**.
 - vollständiger Katalog aus dem Navidrome Smart Playlist Generator:
   298 Presets, 111 Felder, 20 „This is“-Methoden und verschachtelte UND/ODER-Regeln
 - persistente Jobs, Historie, Einstellungen und Playlists in SQLite
+- Ressourcen-Benchmark mit RAM-basierter Worker-Empfehlung und CPU-/CUDA-Vergleich
 
 ## Schnellstart mit Docker Compose (CPU)
 
@@ -76,7 +77,38 @@ eigenen, verschachtelten Regeln erzeugt werden. Essentia Studio schreibt die
 
 Die Oberfläche zeigt den aktiven Image-Typ, sichtbare Rechenarten, alle geladenen
 Modelle und den Zustand der Mounts. Analysegrenzen, Worker-Zahl und Schreibverhalten
-werden unter `/data` gespeichert. CPU ist die sichere Standardeinstellung.
+werden in `/data/settings.yaml` gespeichert. CPU ist die sichere Standardeinstellung.
+Für den ersten Start werden **4 GB** Container-RAM empfohlen. Der Ressourcen-Benchmark
+wählt automatisch einen Titel von mindestens 60 Sekunden, misst ohne Tags zu schreiben
+und hält standardmäßig 30 Prozent Reserve frei. Seine Worker-Empfehlung ändert erst
+nach „Übernehmen“ die Einstellung.
+
+Jeder GUI-Wert lässt sich per ENV vorgeben. ENV hat Vorrang vor `settings.yaml` und
+sperrt das entsprechende Feld in der Oberfläche:
+
+| Bereich | Umgebungsvariablen |
+| --- | --- |
+| Analyse | `ESSENTIA_ANALYSIS_WORKERS`, `ESSENTIA_MAX_AUDIO_SECONDS`, `ESSENTIA_GENRE_THRESHOLD`, `ESSENTIA_MOOD_THRESHOLD`, `ESSENTIA_GENRE_COUNT`, `ESSENTIA_WRITE_CONFIDENCE_TAGS`, `ESSENTIA_OVERWRITE_EXISTING`, `ESSENTIA_COMPUTE` |
+| Automatik | `ESSENTIA_AUTOMATION_ENABLED`, `ESSENTIA_AUTOMATION_WATCHER`, `ESSENTIA_AUTOMATION_SCHEDULE`, `ESSENTIA_AUTOMATION_TIMEZONE`, `ESSENTIA_AUTOMATION_WRITE_TAGS`, `ESSENTIA_AUTOMATION_QUIET_SECONDS` |
+| Benchmark | `ESSENTIA_BENCHMARK_MINIMUM_TRACK_SECONDS`, `ESSENTIA_BENCHMARK_SAFETY_MARGIN_PERCENT` |
+
+Ohne ENV schreibt die GUI nur geänderte Werte atomar in die YAML-Datei. Beispiel:
+
+```yaml
+analysis:
+  workers: 2
+automation:
+  enabled: true
+  watcher: true
+  mode: analyze
+benchmark:
+  safety_margin_percent: 30
+```
+
+Bei aktivem Watcher werden neue oder geänderte Titel nach einer Ruhezeit analysiert.
+Wird der Watcher ausgeschaltet oder kann ein Dateisystem keine zuverlässigen Events
+liefern, übernimmt der verständlich konfigurierte Zeitplan. Automatisches Schreiben
+ist eine getrennte Option mit ausdrücklicher Bestätigung; Standard ist nur Analyse.
 
 ## Updates und Rollback
 

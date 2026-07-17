@@ -10,4 +10,4 @@ CREATE TABLE app_settings (
   compute_preference TEXT NOT NULL CHECK (compute_preference IN ('auto', 'cpu', 'cuda'))
 );
 -- migrate:split
-INSERT INTO app_settings VALUES (1, 1, 300, 0.15, 0.005, 3, 1, 0, 'auto');
+INSERT INTO app_settings VALUES (1, 1, 300, 0.25, 0.10, 3, 1, 0, 'auto');
