@@ -549,13 +549,14 @@ PR receives the new commits.
 #### Verification evidence (2026-07-17)
 
 - Focused Playwright: `tag-suggestions.spec.ts` passed in Chromium (1 test).
-- Complete source gate: 182 Python tests passed, 1 skipped; Ruff and ESLint passed;
-  46 Vitest tests passed; TypeScript typecheck and production build passed.
+- Complete source gate: 187 Python tests passed, 1 skipped; Ruff and ESLint passed;
+  47 Vitest tests passed; TypeScript typecheck and production build passed.
 - Apple Container image `essentia-studio:local-cpu` built for `amd64` and replaced on
   port `8090` with 4 CPUs, 4 GB RAM, and the existing `/music` and `/data` mounts.
 - Integrated browser confirmed two independent `Funk / Soul` and `Contemporary R&B`
-  chips without reanalysis, catalog Genre/Mood selection, a free Genre value, and the
-  Escape-then-click popup regression in both themes.
+  chips without reanalysis, unclipped catalog popups, catalog Genre/Mood selection, a
+  free Genre value, Plus-button focus restoration, and both themes. The Playwright
+  workflow additionally verified keyboard acceptance with `ArrowDown` and `Enter`.
 - Temporary manual values were removed. The API contains only the original separated
   genres and moods for `The Waves`; final container logs contain successful requests
   and no application, catalog, reconciliation, or API errors.
