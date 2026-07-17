@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from queue import Empty, Queue
 from threading import Event, Lock, Thread
 from typing import Any
 
-from essentia_studio.domain.jobs import JobRecord, JobStatus, JobType
+from essentia_studio.domain.jobs import JobItem, JobRecord, JobStatus, JobType
 from essentia_studio.errors import AppError
 from essentia_studio.repositories.jobs import JobRepository
 
@@ -103,12 +104,18 @@ class JobCoordinator:
             self._repository.start(job_id)
             job = self._repository.get(job_id)
             handler = self._handlers[job.type]
-            for item in self._repository.pending_items(job_id):
-                if self._repository.is_cancel_requested(job_id):
-                    cancellation.set()
-                if cancellation.is_set():
-                    break
-                self._process_item(job_id, item.id, item.value, handler, cancellation)
+            pending_items = self._repository.pending_items(job_id)
+            worker_count = self._worker_count(job)
+            if worker_count > 1:
+                self._process_parallel(
+                    job_id,
+                    pending_items,
+                    handler,
+                    cancellation,
+                    worker_count,
+                )
+            else:
+                self._process_serial(job_id, pending_items, handler, cancellation)
             self._finish_job(job_id, cancellation)
         except Exception:
             finalized = self._repository.finalize(job_id, JobStatus.FAILED)
@@ -117,6 +124,51 @@ class JobCoordinator:
         finally:
             with self._active_lock:
                 self._active_cancellations.pop(job_id, None)
+
+    def _process_serial(
+        self,
+        job_id: str,
+        items: Sequence[JobItem],
+        handler: JobHandler,
+        cancellation: Event,
+    ) -> None:
+        for item in items:
+            if self._repository.is_cancel_requested(job_id):
+                cancellation.set()
+            if cancellation.is_set():
+                break
+            self._process_item(job_id, item.id, item.value, handler, cancellation)
+
+    def _process_parallel(
+        self,
+        job_id: str,
+        items: Sequence[JobItem],
+        handler: JobHandler,
+        cancellation: Event,
+        worker_count: int,
+    ) -> None:
+        def process(item: JobItem) -> None:
+            if cancellation.is_set():
+                return
+            if self._repository.is_cancel_requested(job_id):
+                cancellation.set()
+                return
+            self._process_item(job_id, item.id, item.value, handler, cancellation)
+
+        with ThreadPoolExecutor(
+            max_workers=worker_count,
+            thread_name_prefix="essentia-analysis",
+        ) as executor:
+            list(executor.map(process, items))
+
+    @staticmethod
+    def _worker_count(job: JobRecord) -> int:
+        if job.type != JobType.ANALYSIS:
+            return 1
+        configured = job.configuration.get("worker_count", 1)
+        if isinstance(configured, bool) or not isinstance(configured, int):
+            return 1
+        return max(1, min(configured, 64))
 
     def _process_item(
         self,

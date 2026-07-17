@@ -4,6 +4,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import asdict
 from threading import Event
 
+from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.benchmark.resources import (
     ResourceLimits,
     detect_resource_limits,
@@ -34,6 +35,7 @@ class BenchmarkService:
         image_variant: str,
         available_compute: Sequence[str],
         model_inventory: list[dict[str, str]],
+        pool_manager: WorkerPoolManager,
         gpu_devices: Sequence[str] = (),
         resource_probe: Callable[[], ResourceLimits] = detect_resource_limits,
     ) -> None:
@@ -50,6 +52,7 @@ class BenchmarkService:
         self._model_inventory = model_inventory
         self._gpu_devices = list(gpu_devices)
         self._resource_probe = resource_probe
+        self._pool_manager = pool_manager
 
     def submit(self) -> JobRecord:
         if self._jobs.has_active():
@@ -124,6 +127,32 @@ class BenchmarkService:
             (run, run.status == "completed" and run.snapshot_hash == current_hash)
             for run in self._repository.list()
         ]
+
+    def apply(self, run_id: str):
+        if self._jobs.has_active() or self._pool_manager.is_busy():
+            raise AppError(
+                "benchmark_system_busy",
+                "Die Empfehlung kann erst nach Abschluss aller Analysejobs übernommen werden.",
+                409,
+            )
+        run = self._repository.get(run_id)
+        if run.status != "completed" or not run.recommended_workers:
+            raise AppError(
+                "benchmark_not_applicable",
+                "Dieser Benchmark enthält keine anwendbare Worker-Empfehlung.",
+                409,
+            )
+        if run.snapshot_hash != snapshot_hash(self.environment_snapshot()):
+            raise AppError(
+                "benchmark_stale",
+                "Die Ressourcen oder Analyseoptionen haben sich seit dem Benchmark geändert.",
+                409,
+            )
+        effective = self._settings.update(
+            {"analysis": {"workers": run.recommended_workers}}
+        )
+        self._pool_manager.reconfigure(effective.values.analysis)
+        return effective
 
     def environment_snapshot(self) -> dict[str, object]:
         limits = self._resource_probe()

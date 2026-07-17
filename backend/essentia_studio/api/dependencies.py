@@ -1,5 +1,6 @@
 from fastapi import Request
 
+from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.playlists.storage import PlaylistStorage
 from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
@@ -29,6 +30,10 @@ def get_automation_service(request: Request) -> AutomationService:
 
 def get_benchmark_service(request: Request) -> BenchmarkService:
     return request.app.state.benchmark_service
+
+
+def get_worker_pool_manager(request: Request) -> WorkerPoolManager:
+    return request.app.state.worker_pool_manager
 
 
 def get_capability_service(request: Request) -> CapabilityService:

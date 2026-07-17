@@ -30,9 +30,11 @@ def create_analysis_job(
     if not selected_tracks:
         raise AppError("empty_selection", "Die Auswahl enthält keine vorhandenen Titel.", 422)
 
-    options = payload.options(settings.load().values.analysis)
+    analysis_settings = settings.load().values.analysis
+    options = payload.options(analysis_settings)
     configuration = {
         "analysis": asdict(options),
+        "worker_count": analysis_settings.workers,
         "selection": payload.model_dump(exclude_none=True),
     }
     job = coordinator.submit(

@@ -2,10 +2,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
+from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.api.dependencies import (
     get_automation_service,
     get_capability_service,
     get_settings_service,
+    get_worker_pool_manager,
 )
 from essentia_studio.errors import AppError
 from essentia_studio.schemas.settings import AppSettingsUpdate, EffectiveSettings
@@ -29,6 +31,7 @@ def put_settings(
     service: Annotated[SettingsService, Depends(get_settings_service)],
     capability_service: Annotated[CapabilityService, Depends(get_capability_service)],
     automation_service: Annotated[AutomationService, Depends(get_automation_service)],
+    pool_manager: Annotated[WorkerPoolManager, Depends(get_worker_pool_manager)],
 ) -> EffectiveSettings:
     compute_preference = payload.analysis.compute if payload.analysis is not None else None
     available_compute = capability_service.inspect().available_compute
@@ -40,6 +43,20 @@ def put_settings(
             409,
         )
 
+    pool_fields = {"workers", "compute"}
+    reconfigure_pool = bool(
+        payload.analysis is not None
+        and payload.analysis.model_fields_set.intersection(pool_fields)
+    )
+    if reconfigure_pool and pool_manager.is_busy():
+        raise AppError(
+            "analysis_pool_busy",
+            "Die Worker können während eines Analysejobs nicht geändert werden.",
+            409,
+        )
+
     effective = service.update(payload)
+    if reconfigure_pool:
+        pool_manager.reconfigure(effective.values.analysis)
     automation_service.reconfigure()
     return effective

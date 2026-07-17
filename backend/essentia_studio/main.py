@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from essentia_studio import __version__
 from essentia_studio.analysis.fake_backend import FakeAnalysisBackend
+from essentia_studio.analysis.pool_manager import BackendFactory, WorkerPoolManager
 from essentia_studio.analysis.process_backend import ProcessAnalysisBackend
 from essentia_studio.analysis.protocol import AnalysisBackend
 from essentia_studio.analysis.tensorflow_devices import (
@@ -32,6 +33,7 @@ from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
+from essentia_studio.schemas.settings import AnalysisSettings
 from essentia_studio.services.analysis_jobs import AnalysisJobService
 from essentia_studio.services.automation import AutomationService
 from essentia_studio.services.automation_status import AutomationStatusStore
@@ -73,28 +75,15 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             runtime_config.music_root,
             application_settings.analysis.overwrite_existing,
         )
-        analysis_backend: AnalysisBackend
         gpu_devices: tuple[str, ...] = ()
-        if runtime_config.analysis_backend == "fake":
-            analysis_backend = FakeAnalysisBackend()
-        else:
+        if runtime_config.analysis_backend != "fake":
             device_report = detect_tensorflow_devices()
             gpu_devices = device_report.gpu_devices
-            compute = select_compute(
-                application_settings.analysis.compute,
-                image_variant=runtime_config.image_variant,
-                gpu_devices=device_report.gpu_devices,
-            )
-            available_compute = ["cpu"]
-            if runtime_config.image_variant == "cuda" and device_report.gpu_devices:
-                available_compute.append("cuda")
-            analysis_backend = ProcessAnalysisBackend(
-                runtime_config.model_dir,
-                compute,
-                application_settings.analysis.workers,
-                runtime_config.image_variant,
-                available_compute,
-            )
+        pool_manager = WorkerPoolManager(
+            _analysis_backend_factory(runtime_config, gpu_devices),
+            application_settings.analysis,
+        )
+        analysis_backend: AnalysisBackend = pool_manager
         analysis_service = AnalysisJobService(
             analysis_backend,
             result_repository,
@@ -138,6 +127,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             image_variant=runtime_config.image_variant,
             available_compute=analysis_backend.available_compute(),
             model_inventory=analysis_backend.model_inventory(),
+            pool_manager=pool_manager,
             gpu_devices=gpu_devices,
         )
 
@@ -188,14 +178,14 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.tag_operation_service = tag_operation_service
         app.state.job_coordinator = job_coordinator
         app.state.analysis_backend = analysis_backend
+        app.state.worker_pool_manager = pool_manager
         app.state.capability_service = CapabilityService(runtime_config, analysis_backend)
         job_coordinator.start()
         automation_service.start()
         yield
         automation_service.stop()
         job_coordinator.stop()
-        if isinstance(analysis_backend, ProcessAnalysisBackend):
-            analysis_backend.close()
+        pool_manager.close()
         engine.dispose()
 
     app = FastAPI(title="Essentia Studio", version=__version__, lifespan=lifespan)
@@ -216,6 +206,32 @@ def _benchmark_runner(config: RuntimeConfig) -> BenchmarkRunner:
             worker=fake_benchmark_worker,
         )
     return BenchmarkRunner(config.music_root, config.model_dir)
+
+
+def _analysis_backend_factory(
+    config: RuntimeConfig,
+    gpu_devices: tuple[str, ...],
+) -> BackendFactory:
+    def create(settings: AnalysisSettings) -> AnalysisBackend:
+        if config.analysis_backend == "fake":
+            return FakeAnalysisBackend()
+        compute = select_compute(
+            settings.compute,
+            image_variant=config.image_variant,
+            gpu_devices=gpu_devices,
+        )
+        available_compute = ["cpu"]
+        if config.image_variant == "cuda" and gpu_devices:
+            available_compute.append("cuda")
+        return ProcessAnalysisBackend(
+            config.model_dir,
+            compute,
+            settings.workers,
+            config.image_variant,
+            available_compute,
+        )
+
+    return create
 
 
 def _mount_frontend(app: FastAPI, config: RuntimeConfig) -> None:

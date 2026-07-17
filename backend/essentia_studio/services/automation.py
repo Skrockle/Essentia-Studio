@@ -136,6 +136,7 @@ class AutomationService:
                     [track.relative_path for track in selected],
                     {
                         "analysis": asdict(options),
+                        "worker_count": analysis.workers,
                         "trigger": reason,
                         "automation_mode": effective.automation.mode,
                     },

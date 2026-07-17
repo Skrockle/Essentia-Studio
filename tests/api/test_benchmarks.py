@@ -61,3 +61,29 @@ def test_benchmark_rejects_other_active_jobs(client) -> None:
 
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "benchmark_system_busy"
+
+
+def test_apply_current_recommendation_updates_workers_explicitly(client) -> None:
+    _add_sample(client)
+    job = client.post("/api/benchmarks").json()
+    assert _wait_for_job(client, job["id"])["status"] == "completed"
+    run = client.get("/api/benchmarks").json()[0]
+
+    response = client.post(f"/api/benchmarks/{run['id']}/apply")
+
+    assert response.status_code == 200
+    assert response.json()["values"]["analysis"]["workers"] == run["recommended_workers"]
+    assert response.json()["sources"]["analysis.workers"] == "file"
+
+
+def test_apply_rejects_stale_benchmark(client) -> None:
+    _add_sample(client)
+    job = client.post("/api/benchmarks").json()
+    assert _wait_for_job(client, job["id"])["status"] == "completed"
+    run = client.get("/api/benchmarks").json()[0]
+    client.put("/api/settings", json={"benchmark": {"safety_margin_percent": 40}})
+
+    response = client.post(f"/api/benchmarks/{run['id']}/apply")
+
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "benchmark_stale"
