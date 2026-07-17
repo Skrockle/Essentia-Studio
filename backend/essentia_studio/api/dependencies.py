@@ -3,17 +3,17 @@ from fastapi import Request
 from essentia_studio.playlists.storage import PlaylistStorage
 from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
-from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
+from essentia_studio.services.settings import SettingsService
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.services.track_state import TrackStateService
 
 
-def get_settings_repository(request: Request) -> SettingsRepository:
-    return request.app.state.settings_repository
+def get_settings_service(request: Request) -> SettingsService:
+    return request.app.state.settings_service
 
 
 def get_capability_service(request: Request) -> CapabilityService:

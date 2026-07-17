@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 import os
+import tempfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
 import yaml
+from pydantic import BaseModel
 
-from essentia_studio.schemas.settings import AppSettings, EffectiveSettings, SettingSource
+from essentia_studio.errors import AppError
+from essentia_studio.schemas.settings import (
+    AnalysisSettings,
+    AppSettings,
+    EffectiveSettings,
+    SettingSource,
+)
 
 Parser = Callable[[str, str], Any]
 
@@ -97,6 +105,47 @@ class SettingsService:
 
         return EffectiveSettings(values=AppSettings.model_validate(merged), sources=sources)
 
+    def update(self, patch: Mapping[str, Any] | BaseModel) -> EffectiveSettings:
+        patch_values = (
+            patch.model_dump(exclude_unset=True, exclude_none=True)
+            if isinstance(patch, BaseModel)
+            else dict(patch)
+        )
+        locked = [
+            path
+            for path in _leaf_paths(patch_values)
+            if self._environment_name_for_path(path) is not None
+        ]
+        if locked:
+            raise AppError(
+                "setting_locked_by_environment",
+                "Diese Einstellung wird durch eine Umgebungsvariable vorgegeben.",
+                409,
+                {"paths": locked},
+            )
+
+        file_values = _deep_merge(self._load_file(), patch_values)
+        AppSettings.model_validate(_deep_merge(AppSettings().model_dump(), file_values))
+        self._write_file(file_values)
+        return self.load()
+
+    def migrate_legacy(
+        self,
+        legacy: AnalysisSettings | Mapping[str, Any],
+    ) -> EffectiveSettings:
+        if self._path.exists():
+            return self.load()
+
+        legacy_values = (
+            legacy.model_dump(mode="python")
+            if isinstance(legacy, AnalysisSettings)
+            else _normalize_legacy(dict(legacy))
+        )
+        file_values = {"analysis": legacy_values}
+        AppSettings.model_validate(_deep_merge(AppSettings().model_dump(), file_values))
+        self._write_file(file_values)
+        return self.load()
+
     def _load_file(self) -> dict[str, Any]:
         if not self._path.exists():
             return {}
@@ -106,6 +155,30 @@ class SettingsService:
         if not isinstance(loaded, dict):
             raise ValueError("settings.yaml root must be a mapping")
         return loaded
+
+    def _write_file(self, values: Mapping[str, Any]) -> None:
+        self._path.parent.mkdir(parents=True, exist_ok=True)
+        file_descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f".{self._path.name}.",
+            suffix=".tmp",
+            dir=self._path.parent,
+        )
+        temporary_path = Path(temporary_name)
+        try:
+            with os.fdopen(file_descriptor, "w", encoding="utf-8") as handle:
+                yaml.safe_dump(dict(values), handle, sort_keys=False, allow_unicode=True)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary_path, self._path)
+        except BaseException:
+            temporary_path.unlink(missing_ok=True)
+            raise
+
+    def _environment_name_for_path(self, path: str) -> str | None:
+        for env_name, (mapped_path, _parser) in ENV_SETTINGS.items():
+            if mapped_path == path and env_name in self._environment:
+                return env_name
+        return None
 
 
 def _deep_merge(base: dict[str, Any], overlay: Mapping[str, Any]) -> dict[str, Any]:
@@ -133,3 +206,11 @@ def _leaf_paths(values: Mapping[str, Any], prefix: str = "") -> list[str]:
 def _set_dotted(values: dict[str, Any], path: str, value: Any) -> None:
     section, key = path.split(".", maxsplit=1)
     values[section][key] = value
+
+
+def _normalize_legacy(values: dict[str, Any]) -> dict[str, Any]:
+    aliases = {
+        "worker_count": "workers",
+        "compute_preference": "compute",
+    }
+    return {aliases.get(key, key): value for key, value in values.items()}

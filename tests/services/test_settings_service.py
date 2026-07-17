@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from essentia_studio.errors import AppError
+from essentia_studio.schemas.settings import AnalysisSettings
 from essentia_studio.services.settings import SettingsService
 
 
@@ -55,3 +57,43 @@ def test_invalid_env_boolean_names_the_variable(tmp_path: Path, value: str) -> N
             tmp_path / "settings.yaml",
             {"ESSENTIA_AUTOMATION_ENABLED": value},
         ).load()
+
+
+def test_update_writes_yaml_and_preserves_unmodified_file_values(tmp_path: Path) -> None:
+    path = tmp_path / "settings.yaml"
+    path.write_text("analysis:\n  workers: 2\n  genre_count: 5\n", encoding="utf-8")
+    service = SettingsService(path, {})
+
+    effective = service.update({"analysis": {"workers": 3}})
+
+    assert effective.values.analysis.workers == 3
+    assert effective.values.analysis.genre_count == 5
+    assert effective.sources["analysis.workers"] == "file"
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_update_rejects_fields_locked_by_environment(tmp_path: Path) -> None:
+    path = tmp_path / "settings.yaml"
+    service = SettingsService(path, {"ESSENTIA_ANALYSIS_WORKERS": "4"})
+
+    with pytest.raises(AppError, match="Umgebungsvariable") as error:
+        service.update({"analysis": {"workers": 2}})
+
+    assert error.value.code == "setting_locked_by_environment"
+    assert not path.exists()
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_migrate_legacy_writes_once_without_overwriting_yaml(tmp_path: Path) -> None:
+    path = tmp_path / "settings.yaml"
+    service = SettingsService(path, {})
+
+    migrated = service.migrate_legacy(AnalysisSettings(workers=3, max_audio_seconds=180))
+
+    assert migrated.values.analysis.workers == 3
+    assert migrated.values.analysis.max_audio_seconds == 180
+    path.write_text("analysis:\n  workers: 6\n", encoding="utf-8")
+
+    preserved = service.migrate_legacy(AnalysisSettings(workers=2))
+
+    assert preserved.values.analysis.workers == 6

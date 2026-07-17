@@ -35,6 +35,7 @@ from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.metadata import MetadataService
 from essentia_studio.services.scanner import scan_music_root
+from essentia_studio.services.settings import SettingsService
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.services.track_state import TrackStateService
 from essentia_studio.tags.registry import TagAdapterRegistry
@@ -48,7 +49,8 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         apply_migrations(engine)
         settings_repository = SettingsRepository(engine)
-        application_settings = settings_repository.get()
+        settings_service = SettingsService(runtime_config.settings_path)
+        application_settings = settings_service.migrate_legacy(settings_repository.get()).values
         track_repository = TrackRepository(engine)
         track_state_service = TrackStateService(engine)
         job_repository = JobRepository(engine)
@@ -63,7 +65,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             write_repository,
             tag_registry,
             runtime_config.music_root,
-            application_settings.overwrite_existing,
+            application_settings.analysis.overwrite_existing,
         )
         analysis_backend: AnalysisBackend
         if runtime_config.analysis_backend == "fake":
@@ -71,7 +73,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         else:
             device_report = detect_tensorflow_devices()
             compute = select_compute(
-                application_settings.compute_preference,
+                application_settings.analysis.compute,
                 image_variant=runtime_config.image_variant,
                 gpu_devices=device_report.gpu_devices,
             )
@@ -81,7 +83,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             analysis_backend = ProcessAnalysisBackend(
                 runtime_config.model_dir,
                 compute,
-                application_settings.worker_count,
+                application_settings.analysis.workers,
                 runtime_config.image_variant,
                 available_compute,
             )
@@ -116,7 +118,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         )
         app.state.config = runtime_config
         app.state.engine = engine
-        app.state.settings_repository = settings_repository
+        app.state.settings_service = settings_service
         app.state.track_repository = track_repository
         app.state.track_state_service = track_state_service
         app.state.job_repository = job_repository
