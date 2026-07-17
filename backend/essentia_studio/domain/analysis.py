@@ -7,6 +7,7 @@ from essentia_studio.domain.tracks import TrackFingerprint, TrackMetadata
 class Prediction:
     label: str
     confidence: float
+    accepted: bool = True
 
 
 @dataclass(frozen=True, slots=True)
