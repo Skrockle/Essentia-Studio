@@ -17,6 +17,7 @@ from essentia_studio.analysis.tensorflow_devices import (
 )
 from essentia_studio.api.router import router as api_router
 from essentia_studio.api.routes.health import router as health_router
+from essentia_studio.benchmark.runner import BenchmarkRunner, fake_benchmark_worker
 from essentia_studio.config import RuntimeConfig
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
@@ -24,6 +25,7 @@ from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.domain.jobs import JobType
 from essentia_studio.errors import AppError, app_error_handler
 from essentia_studio.playlists.storage import PlaylistStorage
+from essentia_studio.repositories.benchmarks import BenchmarkRepository
 from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.playlists import PlaylistRepository
 from essentia_studio.repositories.results import ResultRepository
@@ -33,6 +35,7 @@ from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.analysis_jobs import AnalysisJobService
 from essentia_studio.services.automation import AutomationService
 from essentia_studio.services.automation_status import AutomationStatusStore
+from essentia_studio.services.benchmarks import BenchmarkService
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.metadata import MetadataService
@@ -56,6 +59,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         track_repository = TrackRepository(engine)
         track_state_service = TrackStateService(engine)
         job_repository = JobRepository(engine)
+        benchmark_repository = BenchmarkRepository(engine)
         result_repository = ResultRepository(engine)
         playlist_repository = PlaylistRepository(engine)
         playlist_storage = PlaylistStorage(runtime_config.playlist_dir, playlist_repository)
@@ -70,10 +74,12 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             application_settings.analysis.overwrite_existing,
         )
         analysis_backend: AnalysisBackend
+        gpu_devices: tuple[str, ...] = ()
         if runtime_config.analysis_backend == "fake":
             analysis_backend = FakeAnalysisBackend()
         else:
             device_report = detect_tensorflow_devices()
+            gpu_devices = device_report.gpu_devices
             compute = select_compute(
                 application_settings.analysis.compute,
                 image_variant=runtime_config.image_variant,
@@ -121,6 +127,36 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
                 JobType.ANALYSIS: analysis_handler,
             },
         )
+        benchmark_runner = _benchmark_runner(runtime_config)
+        benchmark_service = BenchmarkService(
+            settings=settings_service,
+            tracks=track_repository,
+            jobs=job_repository,
+            coordinator=job_coordinator,
+            repository=benchmark_repository,
+            runner=benchmark_runner,
+            image_variant=runtime_config.image_variant,
+            available_compute=analysis_backend.available_compute(),
+            model_inventory=analysis_backend.model_inventory(),
+            gpu_devices=gpu_devices,
+        )
+
+        def benchmark_handler(
+            job_id: str,
+            relative_path: str,
+            cancelled: Event,
+        ) -> dict[str, str]:
+            job = job_repository.get(job_id)
+            run = benchmark_service.execute(
+                job.configuration["run_id"],
+                relative_path,
+                AnalysisOptions(**job.configuration["analysis"]),
+                job.configuration["compute_modes"],
+                cancelled,
+            )
+            return {"run_id": run.id, "relative_path": relative_path}
+
+        job_coordinator.register_handler(JobType.BENCHMARK, benchmark_handler)
         automation_status_store = AutomationStatusStore(settings_service)
         automation_service = AutomationService(
             settings=settings_service,
@@ -139,6 +175,8 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.settings_service = settings_service
         app.state.automation_status_store = automation_status_store
         app.state.automation_service = automation_service
+        app.state.benchmark_service = benchmark_service
+        app.state.benchmark_repository = benchmark_repository
         app.state.track_repository = track_repository
         app.state.track_state_service = track_state_service
         app.state.job_repository = job_repository
@@ -165,11 +203,25 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
     app.include_router(health_router)
     app.include_router(api_router)
 
-    if (runtime_config.frontend_dir / "index.html").is_file():
-        app.mount(
-            "/",
-            StaticFiles(directory=runtime_config.frontend_dir, html=True),
-            name="frontend",
-        )
+    _mount_frontend(app, runtime_config)
 
     return app
+
+
+def _benchmark_runner(config: RuntimeConfig) -> BenchmarkRunner:
+    if config.analysis_backend == "fake":
+        return BenchmarkRunner(
+            config.music_root,
+            config.model_dir,
+            worker=fake_benchmark_worker,
+        )
+    return BenchmarkRunner(config.music_root, config.model_dir)
+
+
+def _mount_frontend(app: FastAPI, config: RuntimeConfig) -> None:
+    if (config.frontend_dir / "index.html").is_file():
+        app.mount(
+            "/",
+            StaticFiles(directory=config.frontend_dir, html=True),
+            name="frontend",
+        )

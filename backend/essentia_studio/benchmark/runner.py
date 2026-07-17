@@ -18,6 +18,26 @@ BenchmarkWorker = Callable[
 ]
 
 
+def fake_benchmark_worker(
+    _path: Path,
+    _options: AnalysisOptions,
+    _model_dir: Path,
+    compute: ComputeMode,
+    cancel: Event,
+) -> ComputeMeasurement:
+    if cancel.is_set():
+        raise AppError("benchmark_cancelled", "Benchmark wurde abgebrochen.", 409)
+    return ComputeMeasurement(
+        compute=compute,
+        initialization_seconds=0.01,
+        warmup_seconds=0.02,
+        measured_seconds=[0.01, 0.01],
+        baseline_peak_bytes=128 * 1024 * 1024,
+        worker_peak_bytes=256 * 1024 * 1024,
+        model_ids=["fake-genre", "fake-mood"],
+    )
+
+
 def select_sample(
     tracks: Sequence[LibraryTrack],
     minimum_seconds: int = 60,

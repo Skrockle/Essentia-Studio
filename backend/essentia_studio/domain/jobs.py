@@ -9,6 +9,7 @@ class JobType(str, Enum):
     WRITE = "write"
     UNDO = "undo"
     PLAYLIST_WRITE = "playlist_write"
+    BENCHMARK = "benchmark"
 
 
 class JobStatus(str, Enum):

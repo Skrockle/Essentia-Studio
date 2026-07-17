@@ -83,6 +83,17 @@ class JobRepository:
             ).all()
         return [self._job_from_row(row) for row in rows]
 
+    def has_active(self) -> bool:
+        with self._engine.connect() as connection:
+            return bool(
+                connection.execute(
+                    text(
+                        "SELECT EXISTS(SELECT 1 FROM jobs "
+                        "WHERE status IN ('queued', 'running'))"
+                    )
+                ).scalar_one()
+            )
+
     def start(self, job_id: str) -> None:
         with self._engine.begin() as connection:
             connection.execute(
