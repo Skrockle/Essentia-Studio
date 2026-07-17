@@ -5,7 +5,8 @@ test('scan, analyze, edit, selectively write, and undo', async ({ page }) => {
   await page.getByRole('button', { name: 'Bibliothek scannen' }).click()
   await expect(page.getByText('Scan abgeschlossen')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Auswahl analysieren' }).click()
+  await page.getByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }).check()
+  await page.getByRole('button', { name: '1 Titel analysieren' }).click()
   await expect(page.getByText('Analyse abgeschlossen')).toBeVisible()
   await expect(page.getByText('Electronic; House')).toBeVisible()
 
