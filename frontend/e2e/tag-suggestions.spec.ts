@@ -79,7 +79,7 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
   await page.getByRole('button', { name: 'Bibliothek scannen' }).click()
   await expect(page.getByText('Scan abgeschlossen')).toBeVisible()
 
-  await page.getByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }).check()
+  await page.getByRole('checkbox', { name: 'song-one.wav analysieren' }).check()
   await page.getByRole('button', { name: '1 Titel analysieren' }).click()
   await expect(page.getByText('Analyse abgeschlossen')).toBeVisible()
 

@@ -37,6 +37,7 @@ def main() -> None:
     data_dir.mkdir()
     model_dir.mkdir()
     create_wave_fixture(music_root / "song-one.wav")
+    create_wave_fixture(music_root / "uncertain.wav")
     create_tag_catalogs(model_dir)
     config = RuntimeConfig.from_env(
         {
