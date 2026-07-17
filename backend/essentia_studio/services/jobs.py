@@ -182,6 +182,13 @@ class JobCoordinator:
             result = handler(job_id, value, cancellation)
             self._repository.complete_item(job_id, item_id, result)
         except AppError as error:
+            logger.exception(
+                "Job item failed: job_id=%s item_id=%s value=%s error_code=%s",
+                job_id,
+                item_id,
+                value,
+                error.code,
+            )
             self._repository.fail_item(
                 job_id,
                 item_id,

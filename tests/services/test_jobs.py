@@ -1,3 +1,4 @@
+import logging
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 from threading import Event, Lock, Thread
@@ -114,6 +115,43 @@ def test_app_error_code_and_message_are_persisted_per_item(tmp_path) -> None:
     failed = repository.list_items(job.id)[0]
     assert failed.error_code == "analysis_worker_crashed"
     assert failed.error == "Analyseprozess beendet"
+
+
+def test_app_error_logs_relative_item_and_original_cause(tmp_path, caplog) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+
+    def handler(_job_id: str, _item: str, _cancelled: Event) -> dict[str, str]:
+        try:
+            raise BrokenProcessPool("worker exited")
+        except BrokenProcessPool as cause:
+            raise AppError(
+                "analysis_worker_crashed",
+                "Analyseprozess beendet",
+                500,
+            ) from cause
+
+    coordinator = JobCoordinator(repository, {JobType.ANALYSIS: handler})
+    job = coordinator.submit(JobType.ANALYSIS, ["albums/bad.flac"], {})
+    item_id = repository.pending_items(job.id)[0].id
+    caplog.set_level(logging.ERROR, logger="essentia_studio.services.jobs")
+
+    coordinator.run_next_for_test()
+
+    record = next(
+        record
+        for record in caplog.records
+        if record.name == "essentia_studio.services.jobs"
+        and record.exc_info is not None
+    )
+    assert job.id in record.getMessage()
+    assert str(item_id) in record.getMessage()
+    assert "albums/bad.flac" in record.getMessage()
+    assert "analysis_worker_crashed" in record.getMessage()
+    logged_error = record.exc_info[1]
+    assert isinstance(logged_error, AppError)
+    assert isinstance(logged_error.__cause__, BrokenProcessPool)
 
 
 def test_analysis_job_uses_configured_parallel_workers(tmp_path) -> None:

@@ -45,6 +45,11 @@ class CrashingBackend(FakeBackend):
         raise BrokenProcessPool("worker exited")
 
 
+class ValueErrorBackend(FakeBackend):
+    def analyze(self, _path: Path, _options: AnalysisOptions) -> AnalysisResult:
+        raise ValueError("invalid audio")
+
+
 def test_reconfigure_closes_old_pool_only_when_idle() -> None:
     created = []
 
@@ -119,6 +124,23 @@ def test_analyze_reports_stable_error_after_second_broken_pool() -> None:
     assert created[0].closed is True
     assert created[1].closed is True
     assert created[2].closed is False
+
+
+def test_analyze_does_not_retry_ordinary_backend_error() -> None:
+    created: list[FakeBackend] = []
+
+    def factory(settings: AnalysisSettings) -> FakeBackend:
+        backend = ValueErrorBackend(settings.workers)
+        created.append(backend)
+        return backend
+
+    manager = WorkerPoolManager(factory, AnalysisSettings(workers=1))
+
+    with pytest.raises(ValueError, match="invalid audio"):
+        manager.analyze(Path("song.flac"), AnalysisOptions())
+
+    assert len(created) == 1
+    assert created[0].closed is False
 
 
 def test_concurrent_callers_share_one_replacement_for_a_broken_pool() -> None:

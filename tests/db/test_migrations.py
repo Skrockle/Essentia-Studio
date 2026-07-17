@@ -1,7 +1,47 @@
+from importlib.resources import files
+
+import pytest
 from sqlalchemy import text
 
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
+
+
+@pytest.fixture
+def version_10_job_item(tmp_path):
+    engine = create_sqlite_engine(tmp_path / "version-10.db")
+    migration_dir = files("essentia_studio.db.migrations")
+    scripts = sorted(
+        script
+        for script in migration_dir.iterdir()
+        if script.name.endswith(".sql") and int(script.name.split("_", 1)[0]) <= 10
+    )
+    with engine.begin() as connection:
+        connection.exec_driver_sql(
+            "CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY)"
+        )
+        for script in scripts:
+            statements = script.read_text(encoding="utf-8").split("-- migrate:split")
+            for statement in statements:
+                if statement.strip():
+                    connection.exec_driver_sql(statement)
+            connection.exec_driver_sql(
+                "INSERT INTO schema_migrations(version) VALUES (?)",
+                (int(script.name.split("_", 1)[0]),),
+            )
+        connection.execute(
+            text(
+                "INSERT INTO jobs (id, type, status, configuration, total_items) "
+                "VALUES ('job-1', 'analysis', 'queued', '{}', 1)"
+            )
+        )
+        connection.execute(
+            text(
+                "INSERT INTO job_items (id, job_id, position, value) "
+                "VALUES (42, 'job-1', 0, 'albums/existing.flac')"
+            )
+        )
+    return engine
 
 
 def test_migrations_are_idempotent(tmp_path) -> None:
@@ -20,6 +60,25 @@ def test_migrations_are_idempotent(tmp_path) -> None:
             row[1] for row in connection.execute(text("PRAGMA table_info(job_items)"))
         }
     assert "error_code" in columns
+
+
+def test_migration_11_preserves_existing_job_item(version_10_job_item) -> None:
+    apply_migrations(version_10_job_item)
+    apply_migrations(version_10_job_item)
+
+    with version_10_job_item.connect() as connection:
+        row = connection.execute(
+            text(
+                "SELECT id, job_id, value, status, error_code "
+                "FROM job_items WHERE id = 42"
+            )
+        ).one()
+
+    assert row.id == 42
+    assert row.job_id == "job-1"
+    assert row.value == "albums/existing.flac"
+    assert row.status == "queued"
+    assert row.error_code is None
 
 
 def test_upgrade_deselects_legacy_verified_drafts_that_match_written_tags(tmp_path) -> None:
