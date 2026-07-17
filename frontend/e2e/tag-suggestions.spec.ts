@@ -139,4 +139,18 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
 
   await page.getByLabel('Farbschema').selectOption('light')
   await expectActiveOptionContrast(page)
+
+  await genreInput.press('Escape')
+  await page.setViewportSize({ width: 700, height: 720 })
+  await moodInput.evaluate((element) => {
+    const scroller = element.closest('.result-table-wrap')
+    if (scroller) {
+      scroller.scrollLeft += element.getBoundingClientRect().right - (window.innerWidth - 2)
+    }
+  })
+  await moodInput.focus()
+  await expect(listbox).toBeVisible()
+  const rightEdgeBounds = await popupBounds(listbox)
+  expect(rightEdgeBounds.exposedHeight).toBeCloseTo(rightEdgeBounds.height, 1)
+  expect(rightEdgeBounds.exposedWidth).toBeCloseTo(rightEdgeBounds.width, 1)
 })

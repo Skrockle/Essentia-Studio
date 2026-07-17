@@ -29,12 +29,16 @@ function popupPosition(anchor: HTMLFormElement): CSSProperties {
   const spaceAbove = anchorBounds.top - popupGap - viewportPadding
   const openAbove = spaceBelow < maximumPopupHeight && spaceAbove > spaceBelow
   const availableHeight = Math.max(0, openAbove ? spaceAbove : spaceBelow)
+  const width = Math.min(anchorBounds.width, window.innerWidth - viewportPadding * 2)
   return {
     bottom: openAbove ? window.innerHeight - anchorBounds.top + popupGap : undefined,
-    left: Math.max(viewportPadding, anchorBounds.left),
+    left: Math.min(
+      Math.max(viewportPadding, anchorBounds.left),
+      window.innerWidth - viewportPadding - width,
+    ),
     maxHeight: Math.min(maximumPopupHeight, availableHeight),
     top: openAbove ? undefined : anchorBounds.bottom + popupGap,
-    width: Math.min(anchorBounds.width, window.innerWidth - viewportPadding * 2),
+    width,
   }
 }
 
