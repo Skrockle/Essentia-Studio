@@ -46,9 +46,10 @@ class AnalysisJobService:
             [
                 genre
                 for prediction in result.genres
+                if prediction.accepted
                 for genre in split_genre_label(prediction.label)
             ]
-        )
+        )[: options.genre_count]
         moods = normalize_tags([format_mood_label(value.label) for value in result.moods])
         return self._results.save(
             replace(track, fingerprint=fingerprint),

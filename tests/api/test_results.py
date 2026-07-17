@@ -106,3 +106,31 @@ def test_results_return_only_latest_analysis_per_track(client, seeded_results) -
     assert matching[0]["artist"] == "Artist"
     assert matching[0]["title"] == "Song 00"
     assert matching[0]["processing_state"] == "current"
+
+
+def test_results_expose_rejected_prediction_explicitly(client, seeded_results) -> None:
+    tracks = client.app.state.track_repository
+    results = client.app.state.result_repository
+    rejected = results.save(
+        tracks.get_by_path("Artist/song-00.flac"),
+        AnalysisResult(
+            genres=[
+                Prediction("Rock---Alternative Rock", 0.116, accepted=False),
+            ],
+            moods=[],
+        ),
+        [],
+        [],
+    )
+
+    page = client.get("/api/results", params={"page_size": 100}).json()
+    response = next(result for result in page["items"] if result["id"] == rejected.id)
+
+    assert response["genres"] == [
+        {
+            "label": "Rock---Alternative Rock",
+            "confidence": 0.116,
+            "accepted": False,
+        }
+    ]
+    assert response["draft"]["genres"] == []

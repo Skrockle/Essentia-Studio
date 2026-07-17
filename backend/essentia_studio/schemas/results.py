@@ -44,6 +44,7 @@ class DraftResponse(BaseModel):
 class PredictionResponse(BaseModel):
     label: str
     confidence: float
+    accepted: bool
 
 
 class ResultResponse(BaseModel):
