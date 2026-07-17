@@ -63,6 +63,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         job_repository = JobRepository(engine)
         benchmark_repository = BenchmarkRepository(engine)
         result_repository = ResultRepository(engine)
+        result_repository.reconcile_hierarchical_genres()
         playlist_repository = PlaylistRepository(engine)
         playlist_storage = PlaylistStorage(runtime_config.playlist_dir, playlist_repository)
         write_repository = WriteRepository(engine)

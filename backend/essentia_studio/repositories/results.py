@@ -10,6 +10,7 @@ from essentia_studio.domain.analysis import (
     StoredAnalysis,
     TagDraft,
 )
+from essentia_studio.domain.tag_labels import rewrite_legacy_genres
 from essentia_studio.domain.tracks import LibraryTrack, TrackFingerprint, TrackMetadata
 
 
@@ -151,6 +152,41 @@ class ResultRepository:
                 },
             )
         return self.get(result_id)
+
+    def reconcile_hierarchical_genres(self) -> int:
+        with self._engine.begin() as connection:
+            rows = connection.execute(
+                text(
+                    """
+                    SELECT ar.id AS result_id, ar.raw_genres, td.genres
+                    FROM analysis_results ar
+                    JOIN tag_drafts td ON td.result_id = ar.id
+                    """
+                )
+            ).all()
+            updates = []
+            for row in rows:
+                raw_labels = [prediction["label"] for prediction in json.loads(row.raw_genres)]
+                genres = json.loads(row.genres)
+                reconciled_genres = rewrite_legacy_genres(genres, raw_labels)
+                if reconciled_genres != genres:
+                    updates.append(
+                        {
+                            "result_id": row.result_id,
+                            "genres": json.dumps(reconciled_genres),
+                        }
+                    )
+            if updates:
+                connection.execute(
+                    text(
+                        """
+                        UPDATE tag_drafts SET genres = :genres
+                        WHERE result_id = :result_id
+                        """
+                    ),
+                    updates,
+                )
+        return len(updates)
 
     def update_selection(self, selection: dict[str, object], selected: bool) -> int:
         result_ids = self.resolve_selection(selection)
