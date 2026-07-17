@@ -623,6 +623,7 @@ code,
 }
 
 .tag-editor__form {
+  position: relative;
   display: flex;
   gap: 5px;
 }
@@ -634,6 +635,52 @@ code,
 
 .tag-editor__form button {
   flex: 0 0 32px;
+}
+
+.tag-editor__suggestions {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 212px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.tag-editor__suggestion {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  background: transparent;
+  overflow-wrap: anywhere;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tag-editor__suggestion:last-child {
+  border-bottom: 0;
+}
+
+.tag-editor__suggestion[aria-selected="true"] {
+  background: var(--selection-surface);
+  box-shadow: inset 3px 0 0 var(--selection-line);
+}
+
+.tag-editor[data-kind="genre"] .tag-editor__suggestion[aria-selected="true"] {
+  color: var(--genre);
+}
+
+.tag-editor[data-kind="mood"] .tag-editor__suggestion[aria-selected="true"] {
+  color: var(--mood);
 }
 
 .draft-state {
