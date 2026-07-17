@@ -16,5 +16,9 @@ def test_readme_covers_required_deployments_and_licenses() -> None:
         "nichtkommerziell",
         "Navidrome Smart Playlists",
         "Tags wiederherstellen",
+        "settings.yaml",
+        "ESSENTIA_ANALYSIS_WORKERS",
+        "Ressourcen-Benchmark",
+        "4 GB",
     ]:
         assert phrase in text

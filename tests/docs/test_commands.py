@@ -25,3 +25,16 @@ def test_windows_docs_include_wsl_and_powershell_paths() -> None:
     assert "wsl --update" in text
     assert "$env:MUSIC_DIR" in text
     assert "--gpus all" in text
+
+
+def test_deployment_docs_explain_benchmark_memory_and_watcher_fallback() -> None:
+    for path in [
+        "docs/deployment/apple-container.md",
+        "docs/deployment/linux-docker.md",
+        "docs/deployment/windows.md",
+    ]:
+        text = Path(path).read_text(encoding="utf-8")
+        assert "4 GB" in text, path
+        assert "30" in text and "Reserve" in text, path
+        assert "Benchmark" in text, path
+        assert "Zeitplan" in text, path
