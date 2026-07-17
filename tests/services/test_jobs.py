@@ -7,6 +7,7 @@ from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 from essentia_studio.domain.jobs import JobStatus, JobType
+from essentia_studio.errors import AppError
 from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.schemas.settings import AnalysisSettings
 from essentia_studio.services.jobs import JobCoordinator
@@ -98,6 +99,23 @@ def test_item_failure_does_not_stop_remaining_items(tmp_path) -> None:
     assert items[1].error == "broken fixture"
 
 
+def test_app_error_code_and_message_are_persisted_per_item(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+
+    def handler(_job_id: str, _item: str, _cancelled: Event) -> dict[str, str]:
+        raise AppError("analysis_worker_crashed", "Analyseprozess beendet", 500)
+
+    coordinator = JobCoordinator(repository, {JobType.ANALYSIS: handler})
+    job = coordinator.submit(JobType.ANALYSIS, ["bad.flac"], {})
+    coordinator.run_next_for_test()
+
+    failed = repository.list_items(job.id)[0]
+    assert failed.error_code == "analysis_worker_crashed"
+    assert failed.error == "Analyseprozess beendet"
+
+
 def test_analysis_job_uses_configured_parallel_workers(tmp_path) -> None:
     engine = create_sqlite_engine(tmp_path / "app.db")
     apply_migrations(engine)
@@ -162,4 +180,5 @@ def test_repeated_worker_crash_does_not_stop_later_job_items(tmp_path) -> None:
     items = repository.list_items(job.id)
     assert saved.status == JobStatus.COMPLETED_WITH_ERRORS
     assert [item.status for item in items] == ["failed", "completed"]
+    assert items[0].error_code == "analysis_worker_crashed"
     assert items[1].result == {"models": ["generation-3"]}

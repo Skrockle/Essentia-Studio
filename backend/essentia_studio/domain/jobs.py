@@ -59,6 +59,7 @@ class JobItemRecord:
     status: str
     result: dict[str, Any] | None
     error: str | None
+    error_code: str | None
 
 
 @dataclass(frozen=True, slots=True)

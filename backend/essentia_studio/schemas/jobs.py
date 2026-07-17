@@ -46,6 +46,7 @@ class JobItemResponse(BaseModel):
     status: str
     result: dict[str, Any] | None
     error: str | None
+    error_code: str | None
 
     @classmethod
     def from_record(cls, item: JobItemRecord) -> "JobItemResponse":

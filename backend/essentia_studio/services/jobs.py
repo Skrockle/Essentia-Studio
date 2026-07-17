@@ -181,6 +181,13 @@ class JobCoordinator:
         try:
             result = handler(job_id, value, cancellation)
             self._repository.complete_item(job_id, item_id, result)
+        except AppError as error:
+            self._repository.fail_item(
+                job_id,
+                item_id,
+                error.message,
+                error_code=error.code,
+            )
         except Exception as error:
             self._repository.fail_item(job_id, item_id, str(error))
 

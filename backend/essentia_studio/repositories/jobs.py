@@ -133,7 +133,7 @@ class JobRepository:
             rows = connection.execute(
                 text(
                     """
-                    SELECT id, job_id, position, value, status, result, error
+                    SELECT id, job_id, position, value, status, result, error, error_code
                     FROM job_items WHERE job_id = :job_id ORDER BY position
                     """
                 ),
@@ -148,6 +148,7 @@ class JobRepository:
                 status=row.status,
                 result=json.loads(row.result) if row.result is not None else None,
                 error=row.error,
+                error_code=row.error_code,
             )
             for row in rows
         ]
@@ -164,11 +165,20 @@ class JobRepository:
             )
             self._insert_event(connection, job_id, "progress", self._progress(connection, job_id))
 
-    def fail_item(self, job_id: str, item_id: int, error: str) -> None:
+    def fail_item(
+        self,
+        job_id: str,
+        item_id: int,
+        error: str,
+        error_code: str | None = None,
+    ) -> None:
         with self._engine.begin() as connection:
             connection.execute(
-                text("UPDATE job_items SET status = 'failed', error = :error WHERE id = :id"),
-                {"id": item_id, "error": error},
+                text(
+                    "UPDATE job_items SET status = 'failed', error = :error, "
+                    "error_code = :error_code WHERE id = :id"
+                ),
+                {"id": item_id, "error": error, "error_code": error_code},
             )
             connection.execute(
                 text(

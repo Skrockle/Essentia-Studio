@@ -26,5 +26,6 @@ def test_job_items_expose_results_and_errors(client, music_root) -> None:
             "status": "completed",
             "result": {"scanned": 1, "present": 1, "missing": 0},
             "error": None,
+            "error_code": None,
         }
     ]

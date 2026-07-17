@@ -15,6 +15,7 @@ export interface JobItemRecord {
   status: string
   result: Record<string, unknown> | null
   error: string | null
+  error_code: string | null
 }
 
 export interface WriteOperation {

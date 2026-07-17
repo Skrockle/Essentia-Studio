@@ -14,7 +14,12 @@ def test_migrations_are_idempotent(tmp_path) -> None:
             text("SELECT version FROM schema_migrations ORDER BY version")
         ).scalars().all()
 
-    assert versions == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    assert versions == list(range(1, 12))
+    with engine.connect() as connection:
+        columns = {
+            row[1] for row in connection.execute(text("PRAGMA table_info(job_items)"))
+        }
+    assert "error_code" in columns
 
 
 def test_upgrade_deselects_legacy_verified_drafts_that_match_written_tags(tmp_path) -> None:
