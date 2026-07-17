@@ -38,7 +38,7 @@ def test_analysis_persists_draft_without_changing_audio(tmp_path) -> None:
 
     stored = service.process("Artist/song.flac", AnalysisOptions())
 
-    assert stored.draft.genres == ["Electronic; House"]
+    assert stored.draft.genres == ["Electronic", "House"]
     assert stored.draft.moods == ["Happy"]
     assert track_path.read_bytes() == b"unchanged-audio"
     assert results.get_by_path("Artist/song.flac") == stored

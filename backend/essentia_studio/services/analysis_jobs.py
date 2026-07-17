@@ -7,7 +7,7 @@ from essentia_studio.domain.tracks import TrackFingerprint
 from essentia_studio.errors import AppError
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.tracks import TrackRepository
-from essentia_studio.services.labels import format_genre, format_mood, normalize_tags
+from essentia_studio.services.labels import format_mood_label, normalize_tags, split_genre_label
 from essentia_studio.services.path_safety import resolve_track_path
 
 
@@ -42,8 +42,14 @@ class AnalysisJobService:
                 "Der Titel wurde während der Analyse geändert und nicht übernommen.",
                 409,
             )
-        genres = normalize_tags([format_genre(value.label) for value in result.genres])
-        moods = normalize_tags([format_mood(value.label) for value in result.moods])
+        genres = normalize_tags(
+            [
+                genre
+                for prediction in result.genres
+                for genre in split_genre_label(prediction.label)
+            ]
+        )
+        moods = normalize_tags([format_mood_label(value.label) for value in result.moods])
         return self._results.save(
             replace(track, fingerprint=fingerprint),
             result,
