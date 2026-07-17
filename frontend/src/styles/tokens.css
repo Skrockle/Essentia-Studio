@@ -10,6 +10,9 @@
   --signal: #ed7b2f;
   --success: #197a55;
   --danger: #b33a3a;
+  --button-on-primary: #ffffff;
+  --button-primary-hover: #255bc5;
+  --overlay: rgb(18 36 58 / 58%);
   --radius-sm: 8px;
   --radius-md: 14px;
   --shadow-panel: 0 18px 50px rgb(18 36 58 / 8%);
@@ -17,6 +20,24 @@
   background: var(--paper);
   font-family: Manrope, "Avenir Next", system-ui, sans-serif;
   font-synthesis: none;
+}
+
+:root[data-theme="dark"] {
+  --paper: #0c1521;
+  --surface: #142131;
+  --surface-subtle: #1b2a3d;
+  --ink: #edf4fb;
+  --ink-muted: #a9b8c9;
+  --line: #324257;
+  --genre: #78a5ff;
+  --mood: #ad8cff;
+  --signal: #ff9a57;
+  --success: #66d1ad;
+  --danger: #ff8b8b;
+  --button-on-primary: #07111f;
+  --button-primary-hover: #94b8ff;
+  --overlay: rgb(2 8 16 / 76%);
+  --shadow-panel: 0 18px 50px rgb(0 0 0 / 30%);
 }
 
 :focus-visible {

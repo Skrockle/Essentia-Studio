@@ -80,3 +80,12 @@ test('opens settings and explains the active CPU image', async () => {
   expect(screen.getByLabelText('Worker')).toBeDisabled()
   expect(screen.getByText('Durch Umgebungsvariable festgelegt')).toBeVisible()
 })
+
+test('persists a dark theme selection and applies it to the document', async () => {
+  render(<App />)
+
+  await userEvent.selectOptions(screen.getByLabelText('Farbschema'), 'dark')
+
+  expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+  expect(localStorage.getItem('essentia-studio.theme.v1')).toBe('dark')
+})
