@@ -372,7 +372,8 @@ code,
 }
 
 .selection-toolbar button,
-.tag-editor button {
+.tag-editor__form > button,
+.tag-chip button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -633,7 +634,7 @@ code,
   font-size: 11px;
 }
 
-.tag-editor__form button {
+.tag-editor__form > button {
   flex: 0 0 32px;
 }
 

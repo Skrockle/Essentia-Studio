@@ -21,6 +21,7 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
   const [open, setOpen] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [activeSuggestionSignature, setActiveSuggestionSignature] = useState('')
   const suggestions = useMemo(() => {
     const query = inputValue.trim().toLocaleLowerCase()
     const unselectedOptions = options.filter((option) => !includesValue(selectedValues, option))
@@ -32,12 +33,20 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
     )
     return [...prefixMatches, ...substringMatches].slice(0, maximumSuggestions)
   }, [inputValue, options, selectedValues])
-  const visibleActiveIndex = activeIndex >= 0 && activeIndex < suggestions.length ? activeIndex : -1
+  const suggestionSignature = suggestions.join('\u0000')
+  const visibleActiveIndex = activeSuggestionSignature === suggestionSignature && activeIndex >= 0 && activeIndex < suggestions.length
+    ? activeIndex
+    : -1
   const activeOptionId = visibleActiveIndex >= 0 ? `${listboxId}-option-${visibleActiveIndex}` : undefined
+
+  function updateActiveIndex(nextIndex: number) {
+    setActiveIndex(nextIndex)
+    setActiveSuggestionSignature(suggestionSignature)
+  }
 
   function resetInput() {
     setInputValue('')
-    setActiveIndex(-1)
+    updateActiveIndex(-1)
     setOpen(false)
   }
 
@@ -58,17 +67,17 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
     if (event.key === 'ArrowDown') {
       event.preventDefault()
       setOpen(true)
-      setActiveIndex((currentIndex) => Math.min(currentIndex + 1, suggestions.length - 1))
+      updateActiveIndex(Math.min(visibleActiveIndex + 1, suggestions.length - 1))
       return
     }
     if (event.key === 'ArrowUp') {
       event.preventDefault()
-      setActiveIndex((currentIndex) => (currentIndex > 0 ? currentIndex - 1 : -1))
+      updateActiveIndex(visibleActiveIndex > 0 ? visibleActiveIndex - 1 : -1)
       return
     }
     if (event.key === 'Escape') {
       event.preventDefault()
-      setActiveIndex(-1)
+      updateActiveIndex(-1)
       setOpen(false)
     }
   }
@@ -88,7 +97,7 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
         onBlur={() => setOpen(false)}
         onChange={(event) => {
           setInputValue(event.target.value)
-          setActiveIndex(-1)
+          updateActiveIndex(-1)
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}

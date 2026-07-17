@@ -85,6 +85,23 @@ describe('TagCombobox', () => {
     expect(input).not.toHaveAttribute('aria-activedescendant')
   })
 
+  test('does not select a replacement suggestion at the same active index', async () => {
+    const user = userEvent.setup()
+    const onAdd = vi.fn()
+    const { rerender } = render(
+      <TagCombobox kind="Genre" onAdd={onAdd} options={['Rock', 'Rockabilly']} selectedValues={[]} />,
+    )
+    const input = screen.getByRole('combobox', { name: 'Genre hinzufügen' })
+
+    await user.click(input)
+    await user.keyboard('{ArrowDown}')
+    rerender(<TagCombobox kind="Genre" onAdd={onAdd} options={['Jazz', 'Rockabilly']} selectedValues={[]} />)
+    await user.keyboard('{Enter}')
+
+    expect(input).not.toHaveAttribute('aria-activedescendant')
+    expect(onAdd).not.toHaveBeenCalled()
+  })
+
   test('adds the active option and clears the input on Enter', async () => {
     const user = userEvent.setup()
     const { input, onAdd } = renderCombobox({ options: ['Rock'] })
