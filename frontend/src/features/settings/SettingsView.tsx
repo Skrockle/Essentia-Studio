@@ -13,6 +13,7 @@ import { AutomationSettings } from './AutomationSettings'
 import { BenchmarkPanel } from './BenchmarkPanel'
 import { SettingField } from './SettingField'
 import { presentModels } from './modelPresentation'
+import { percentageToThreshold, thresholdToPercentage } from './percentageThreshold'
 
 const statusLabels = { ready: 'Bereit', read_only: 'Nur lesen', missing: 'Fehlt' }
 
@@ -134,6 +135,13 @@ export function SettingsView() {
   const isCudaImage = capabilities.image_variant === 'cuda'
   const updateAnalysis = (patch: Partial<AppSettings['analysis']>) =>
     setDraft({ ...draft, analysis: { ...analysis, ...patch } })
+  const updateThreshold = (
+    key: 'genre_threshold' | 'mood_threshold',
+    percentage: number,
+  ) => {
+    const threshold = percentageToThreshold(percentage)
+    if (threshold !== null) updateAnalysis({ [key]: threshold })
+  }
 
   return (
     <div className="view-stack">
@@ -192,10 +200,10 @@ export function SettingsView() {
               <input id="genre-count" min="1" max="20" type="number" value={analysis.genre_count} disabled={sources['analysis.genre_count'] === 'env'} onChange={(event) => updateAnalysis({ genre_count: Number(event.target.value) })} />
             </SettingField>
             <SettingField id="genre-threshold" label="Genre-Schwelle" explanation="Mindest-Vertrauenswert für ein Genre. Ein höherer Wert liefert weniger, dafür sicherere Vorschläge." source={sources['analysis.genre_threshold']}>
-              <input id="genre-threshold" min="0" max="1" step="0.001" type="number" value={analysis.genre_threshold} disabled={sources['analysis.genre_threshold'] === 'env'} onChange={(event) => updateAnalysis({ genre_threshold: Number(event.target.value) })} />
+              <span className="input-with-unit"><input id="genre-threshold" min="0" max="100" step="1" type="number" value={thresholdToPercentage(analysis.genre_threshold)} disabled={sources['analysis.genre_threshold'] === 'env'} onChange={(event) => updateThreshold('genre_threshold', event.currentTarget.valueAsNumber)} /><span>%</span></span>
             </SettingField>
             <SettingField id="mood-threshold" label="Mood-Schwelle" explanation="Mindest-Vertrauenswert für eine Stimmung. Mood-Werte sind anders skaliert als Genres und deshalb meist deutlich niedriger." source={sources['analysis.mood_threshold']}>
-              <input id="mood-threshold" min="0" max="1" step="0.001" type="number" value={analysis.mood_threshold} disabled={sources['analysis.mood_threshold'] === 'env'} onChange={(event) => updateAnalysis({ mood_threshold: Number(event.target.value) })} />
+              <span className="input-with-unit"><input id="mood-threshold" min="0" max="100" step="1" type="number" value={thresholdToPercentage(analysis.mood_threshold)} disabled={sources['analysis.mood_threshold'] === 'env'} onChange={(event) => updateThreshold('mood_threshold', event.currentTarget.valueAsNumber)} /><span>%</span></span>
             </SettingField>
           </div>
           <label className="check-row"><input type="checkbox" checked={analysis.write_confidence_tags} disabled={sources['analysis.write_confidence_tags'] === 'env'} onChange={(event) => updateAnalysis({ write_confidence_tags: event.target.checked })} />Konfidenzwerte in verwaltete Tags schreiben</label>

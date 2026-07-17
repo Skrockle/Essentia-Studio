@@ -13,8 +13,8 @@ class Prediction:
 class AnalysisOptions:
     enable_genres: bool = True
     enable_moods: bool = True
-    genre_threshold: float = 0.15
-    mood_threshold: float = 0.005
+    genre_threshold: float = 0.25
+    mood_threshold: float = 0.10
     genre_count: int = 3
     max_audio_seconds: int = 300
 

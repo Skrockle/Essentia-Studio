@@ -1594,6 +1594,11 @@ code,
   gap: 5px;
 }
 
+.setting-field__help {
+  position: relative;
+  display: inline-grid;
+}
+
 .setting-field__info {
   display: inline-grid;
   place-items: center;
@@ -1608,14 +1613,22 @@ code,
 }
 
 .setting-field__explanation {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 20;
+  width: min(270px, 70vw);
   padding: 9px 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   color: var(--ink);
   background: var(--surface-subtle);
+  box-shadow: var(--shadow-panel);
   font-size: 11px;
   font-weight: 500;
   line-height: 1.5;
+  pointer-events: none;
+  transform: translateX(-50%);
 }
 
 .model-details {

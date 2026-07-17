@@ -45,8 +45,8 @@ beforeEach(() => {
           analysis: {
             workers: 1,
             max_audio_seconds: 300,
-            genre_threshold: 0.15,
-            mood_threshold: 0.005,
+            genre_threshold: 0.25,
+            mood_threshold: 0.1,
             genre_count: 3,
             write_confidence_tags: true,
             overwrite_existing: false,
@@ -79,6 +79,8 @@ test('opens settings and explains the active CPU image', async () => {
   expect(screen.getByText('/music')).toBeInTheDocument()
   expect(screen.getByLabelText('Worker')).toBeDisabled()
   expect(screen.getByText('Durch Umgebungsvariable festgelegt')).toBeVisible()
+  expect(screen.getByLabelText('Genre-Schwelle')).toHaveValue(25)
+  expect(screen.getByLabelText('Mood-Schwelle')).toHaveValue(10)
 })
 
 test('persists a dark theme selection and applies it to the document', async () => {

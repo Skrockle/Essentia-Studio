@@ -4,7 +4,7 @@ import { expect, test } from 'vitest'
 
 import { SettingField } from './SettingField'
 
-test('reveals an accessible explanation next to the setting name', async () => {
+test('shows an accessible overlay by hover, focus and click', async () => {
   render(
     <SettingField
       explanation="Nur Ergebnisse oberhalb dieses Vertrauenswerts werden übernommen."
@@ -17,6 +17,18 @@ test('reveals an accessible explanation next to the setting name', async () => {
 
   const help = screen.getByRole('button', { name: 'Erklärung zu Genre-Schwelle' })
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  await userEvent.hover(help)
+  expect(screen.getByRole('tooltip')).toHaveTextContent('Vertrauenswerts')
+  expect(help).toHaveAttribute('aria-describedby', 'threshold-explanation')
+  await userEvent.unhover(help)
+  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
+  await userEvent.tab()
+  expect(help).toHaveFocus()
+  expect(screen.getByRole('tooltip')).toBeVisible()
+  await userEvent.keyboard('{Escape}')
+  expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
   await userEvent.click(help)
   expect(screen.getByRole('tooltip')).toHaveTextContent('Vertrauenswerts')
   expect(help).toHaveAttribute('aria-expanded', 'true')

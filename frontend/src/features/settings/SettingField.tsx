@@ -20,7 +20,8 @@ export function SettingField({
   explanation,
   children,
 }: SettingFieldProps) {
-  const [showExplanation, setShowExplanation] = useState(false)
+  const [openReason, setOpenReason] = useState<'hover' | 'focus' | 'click' | null>(null)
+  const showExplanation = openReason !== null
   const explanationId = `${id}-explanation`
 
   return (
@@ -28,24 +29,38 @@ export function SettingField({
       <span className="setting-field__heading">
         <label className="setting-field__label" htmlFor={id}>{label}</label>
         {explanation && (
-          <button
-            aria-controls={explanationId}
-            aria-expanded={showExplanation}
-            aria-label={`Erklärung zu ${label}`}
-            className="setting-field__info"
-            onClick={() => setShowExplanation((current) => !current)}
-            type="button"
+          <span
+            className="setting-field__help"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setOpenReason(null)
+            }}
+            onFocus={() => setOpenReason((current) => current === 'click' ? current : 'focus')}
+            onMouseEnter={() => setOpenReason((current) => current ?? 'hover')}
+            onMouseLeave={() => setOpenReason(null)}
           >
-            <Info aria-hidden="true" size={13} />
-          </button>
+            <button
+              aria-controls={explanationId}
+              aria-describedby={showExplanation ? explanationId : undefined}
+              aria-expanded={showExplanation}
+              aria-label={`Erklärung zu ${label}`}
+              className="setting-field__info"
+              onClick={() => setOpenReason((current) => current === 'click' ? null : 'click')}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setOpenReason(null)
+              }}
+              type="button"
+            >
+              <Info aria-hidden="true" size={13} />
+            </button>
+            {showExplanation && (
+              <span className="setting-field__explanation" id={explanationId} role="tooltip">
+                {explanation}
+              </span>
+            )}
+          </span>
         )}
       </span>
       {children}
-      {explanation && showExplanation && (
-        <span className="setting-field__explanation" id={explanationId} role="tooltip">
-          {explanation}
-        </span>
-      )}
       {source === 'env' ? (
         <span className="setting-field__source" data-source="env">
           Durch Umgebungsvariable festgelegt

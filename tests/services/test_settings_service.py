@@ -12,6 +12,8 @@ def test_load_uses_nested_defaults_and_reports_sources(tmp_path: Path) -> None:
 
     assert effective.values.analysis.workers == 1
     assert effective.values.analysis.compute == "auto"
+    assert effective.values.analysis.genre_threshold == 0.25
+    assert effective.values.analysis.mood_threshold == 0.10
     assert effective.values.automation.enabled is False
     assert effective.values.automation.watcher is False
     assert effective.values.benchmark.minimum_track_seconds == 60
