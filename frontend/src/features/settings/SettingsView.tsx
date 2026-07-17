@@ -10,6 +10,7 @@ import type {
   PathCapability,
 } from '../../api/types'
 import { AutomationSettings } from './AutomationSettings'
+import { BenchmarkPanel } from './BenchmarkPanel'
 import { SettingField } from './SettingField'
 
 const statusLabels = { ready: 'Bereit', read_only: 'Nur lesen', missing: 'Fehlt' }
@@ -184,6 +185,14 @@ export function SettingsView() {
           <label className="check-row"><input type="checkbox" checked={analysis.overwrite_existing} disabled={sources['analysis.overwrite_existing'] === 'env'} onChange={(event) => updateAnalysis({ overwrite_existing: event.target.checked })} />Bestehende verwaltete Tags standardmäßig ersetzen</label>
         </section>
       </div>
+
+      <BenchmarkPanel
+        workerLocked={sources['analysis.workers'] === 'env'}
+        onApplied={(saved) => {
+          setEffective(saved)
+          setDraft(saved.values)
+        }}
+      />
 
       <AutomationSettings
         value={draft.automation}

@@ -66,3 +66,40 @@ export interface AutomationStatus {
   last_run: string | null
   last_error: string | null
 }
+
+export interface BenchmarkMeasurement {
+  compute: 'cpu' | 'cuda'
+  initialization_seconds: number
+  warmup_seconds: number
+  measured_seconds: number[]
+  average_seconds: number
+  seconds_per_audio_minute: number
+  baseline_peak_bytes: number
+  worker_peak_bytes: number
+  model_ids: string[]
+}
+
+export interface BenchmarkRun {
+  id: string
+  status: 'running' | 'completed' | 'failed' | 'cancelled'
+  sample_track_id: number | null
+  sample_relative_path: string | null
+  sample_seconds: number
+  snapshot: Record<string, unknown>
+  recommended_workers: number | null
+  error: string | null
+  created_at: string | null
+  finished_at: string | null
+  measurements: BenchmarkMeasurement[]
+  current: boolean
+}
+
+export interface JobResponse {
+  id: string
+  type: string
+  status: string
+  configuration: Record<string, unknown>
+  total_items: number
+  completed_items: number
+  failed_items: number
+}
