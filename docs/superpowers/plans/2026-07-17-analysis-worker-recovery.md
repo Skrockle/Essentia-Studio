@@ -567,7 +567,7 @@ git log --oneline origin/feat/metadata-automation-benchmark..HEAD
 
 Expected: only planned documentation and implementation commits; no whitespace errors or private media paths.
 
-- [ ] **Step 2: Push and observe all PR checks**
+- [x] **Step 2: Push and observe all PR checks**
 
 Push `feat/metadata-automation-benchmark`, then observe PR #2 until these checks reach a terminal state:
 
@@ -580,6 +580,6 @@ Push `feat/metadata-automation-benchmark`, then observe PR #2 until these checks
 
 Expected: all six checks PASS. CUDA success proves only build and CPU fallback; it does not prove NVIDIA inference.
 
-- [ ] **Step 3: Report evidence and remaining scope**
+- [x] **Step 3: Report evidence and remaining scope**
 
 Report the focused test counts, full source gate, local recovery smoke, real CPU inference, and GitHub check conclusions. Keep the separate open work explicit: write-preview merge semantics, finished-results table, remaining dark-mode/table styling, percentage thresholds/tooltips, full-format live writes, and real NVIDIA CUDA inference.
