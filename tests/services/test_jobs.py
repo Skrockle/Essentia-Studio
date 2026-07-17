@@ -1,10 +1,34 @@
+from concurrent.futures.process import BrokenProcessPool
+from pathlib import Path
 from threading import Event, Lock, Thread
 
+from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
+from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 from essentia_studio.domain.jobs import JobStatus, JobType
 from essentia_studio.repositories.jobs import JobRepository
+from essentia_studio.schemas.settings import AnalysisSettings
 from essentia_studio.services.jobs import JobCoordinator
+
+
+class PathAwareRecoveryBackend:
+    def __init__(self, generation: int):
+        self.generation = generation
+
+    def analyze(self, path: Path, _options: AnalysisOptions) -> AnalysisResult:
+        if path.name == "bad.flac":
+            raise BrokenProcessPool("worker exited")
+        return AnalysisResult(model_ids=[f"generation-{self.generation}"])
+
+    def close(self) -> None:
+        pass
+
+    def model_inventory(self) -> list[dict[str, str]]:
+        return []
+
+    def available_compute(self) -> list[str]:
+        return ["cpu"]
 
 
 def test_cancelled_job_keeps_completed_items(tmp_path) -> None:
@@ -111,3 +135,31 @@ def test_analysis_job_uses_configured_parallel_workers(tmp_path) -> None:
 
     assert maximum_active == 2
     assert repository.get(job.id).status == JobStatus.COMPLETED
+
+
+def test_repeated_worker_crash_does_not_stop_later_job_items(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+    generation = 0
+
+    def factory(_settings: AnalysisSettings) -> PathAwareRecoveryBackend:
+        nonlocal generation
+        generation += 1
+        return PathAwareRecoveryBackend(generation)
+
+    pool = WorkerPoolManager(factory, AnalysisSettings(workers=1))
+
+    def handler(_job_id: str, item: str, _cancelled: Event) -> dict[str, object]:
+        result = pool.analyze(Path(item), AnalysisOptions())
+        return {"models": result.model_ids}
+
+    coordinator = JobCoordinator(repository, {JobType.ANALYSIS: handler})
+    job = coordinator.submit(JobType.ANALYSIS, ["bad.flac", "good.flac"], {})
+    coordinator.run_next_for_test()
+
+    saved = repository.get(job.id)
+    items = repository.list_items(job.id)
+    assert saved.status == JobStatus.COMPLETED_WITH_ERRORS
+    assert [item.status for item in items] == ["failed", "completed"]
+    assert items[1].result == {"models": ["generation-3"]}

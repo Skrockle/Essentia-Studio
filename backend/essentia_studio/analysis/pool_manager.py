@@ -24,17 +24,34 @@ class WorkerPoolManager:
 
     def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
         with self._lock:
-            backend = self._backend
             self._active += 1
         try:
-            return backend.analyze(path, options)
-        except BrokenProcessPool:
-            self._discard_broken(backend)
-            raise
+            return self._analyze_with_recovery(path, options)
         finally:
             with self._idle:
                 self._active -= 1
                 self._idle.notify_all()
+
+    def _analyze_with_recovery(
+        self,
+        path: Path,
+        options: AnalysisOptions,
+    ) -> AnalysisResult:
+        for attempt in range(2):
+            with self._lock:
+                backend = self._backend
+            try:
+                return backend.analyze(path, options)
+            except BrokenProcessPool as error:
+                self._discard_broken(backend)
+                if attempt == 1:
+                    raise AppError(
+                        "analysis_worker_crashed",
+                        "Der Analyseprozess wurde unerwartet beendet. "
+                        "Dieser Titel wurde übersprungen; die übrige Analyse wird fortgesetzt.",
+                        500,
+                    ) from error
+        raise AssertionError("unreachable")
 
     def reconfigure(self, settings: AnalysisSettings) -> None:
         with self._lock:

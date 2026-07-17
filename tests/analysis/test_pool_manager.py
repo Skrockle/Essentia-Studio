@@ -1,5 +1,6 @@
+from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
-from threading import Event, Thread
+from threading import Barrier, Event, Thread
 
 import pytest
 
@@ -33,6 +34,17 @@ class FakeBackend:
         return ["cpu"]
 
 
+class CrashingBackend(FakeBackend):
+    def __init__(self, workers: int, barrier: Barrier | None = None):
+        super().__init__(workers)
+        self.barrier = barrier
+
+    def analyze(self, _path: Path, _options: AnalysisOptions) -> AnalysisResult:
+        if self.barrier is not None:
+            self.barrier.wait(timeout=2)
+        raise BrokenProcessPool("worker exited")
+
+
 def test_reconfigure_closes_old_pool_only_when_idle() -> None:
     created = []
 
@@ -64,3 +76,81 @@ def test_reconfigure_rejects_active_analysis() -> None:
     release.set()
     thread.join(timeout=2)
     assert manager.is_busy() is False
+
+
+def test_analyze_retries_once_with_replacement_after_broken_pool() -> None:
+    created: list[FakeBackend] = []
+
+    def factory(settings: AnalysisSettings) -> FakeBackend:
+        backend = (
+            CrashingBackend(settings.workers)
+            if not created
+            else FakeBackend(settings.workers)
+        )
+        created.append(backend)
+        return backend
+
+    manager = WorkerPoolManager(factory, AnalysisSettings(workers=1))
+
+    result = manager.analyze(Path("song.flac"), AnalysisOptions())
+
+    assert result == AnalysisResult()
+    assert len(created) == 2
+    assert created[0].closed is True
+    assert created[1].closed is False
+
+
+def test_analyze_reports_stable_error_after_second_broken_pool() -> None:
+    created: list[FakeBackend] = []
+
+    def factory(settings: AnalysisSettings) -> FakeBackend:
+        backend = CrashingBackend(settings.workers)
+        created.append(backend)
+        return backend
+
+    manager = WorkerPoolManager(factory, AnalysisSettings(workers=1))
+
+    with pytest.raises(AppError) as raised:
+        manager.analyze(Path("song.flac"), AnalysisOptions())
+
+    assert raised.value.code == "analysis_worker_crashed"
+    assert "übrige Analyse wird fortgesetzt" in raised.value.message
+    assert len(created) == 3
+    assert created[0].closed is True
+    assert created[1].closed is True
+    assert created[2].closed is False
+
+
+def test_concurrent_callers_share_one_replacement_for_a_broken_pool() -> None:
+    barrier = Barrier(2)
+    created: list[FakeBackend] = []
+
+    def factory(settings: AnalysisSettings) -> FakeBackend:
+        backend = (
+            CrashingBackend(settings.workers, barrier)
+            if not created
+            else FakeBackend(settings.workers)
+        )
+        created.append(backend)
+        return backend
+
+    manager = WorkerPoolManager(factory, AnalysisSettings(workers=2))
+    results: list[AnalysisResult] = []
+    threads = [
+        Thread(
+            target=lambda path=Path(f"song-{index}.flac"): results.append(
+                manager.analyze(path, AnalysisOptions())
+            )
+        )
+        for index in range(2)
+    ]
+
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=2)
+
+    assert len(results) == 2
+    assert len(created) == 2
+    assert created[0].closed is True
+    assert created[1].closed is False
