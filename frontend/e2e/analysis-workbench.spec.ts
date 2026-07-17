@@ -8,7 +8,9 @@ test('scan, analyze, edit, selectively write, and undo', async ({ page }) => {
   await page.getByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }).check()
   await page.getByRole('button', { name: '1 Titel analysieren' }).click()
   await expect(page.getByText('Analyse abgeschlossen')).toBeVisible()
-  await expect(page.getByText('Electronic; House')).toBeVisible()
+  const resultRow = page.locator('.result-table tbody tr').first()
+  await expect(resultRow.getByText('Electronic', { exact: true })).toBeVisible()
+  await expect(resultRow.getByText('House', { exact: true })).toBeVisible()
 
   await page.getByPlaceholder('Genre ergänzen').fill('Ambient')
   await page.getByPlaceholder('Genre ergänzen').press('Enter')

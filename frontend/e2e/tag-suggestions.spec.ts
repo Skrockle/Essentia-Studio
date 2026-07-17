@@ -141,12 +141,14 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
   await genreInput.focus()
   await expect(listbox).toBeVisible()
   await page.getByLabel('Farbschema').selectOption('dark')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   const darkBackground = await listbox.evaluate((element) => getComputedStyle(element).backgroundColor)
   expect(Math.max(...rgbChannels(darkBackground))).toBeLessThan(100)
   await genreInput.press('ArrowDown')
   await expectActiveOptionContrast(page)
 
   await page.getByLabel('Farbschema').selectOption('light')
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await expectActiveOptionContrast(page)
 
   await genreInput.press('Escape')
