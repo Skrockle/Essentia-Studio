@@ -4,6 +4,12 @@ import { describe, expect, test, vi } from 'vitest'
 import { ResultTable } from './ResultTable'
 import type { ResultRow } from './types'
 
+vi.mock('./TagEditor', () => ({
+  TagEditor: ({ kind, options = [] }: { kind: string; options?: string[] }) => (
+    <span data-options={options.join(',')}>{kind}</span>
+  ),
+}))
+
 function resultRow(overrides: Partial<ResultRow> = {}): ResultRow {
   return {
     id: 'result-1',
@@ -35,6 +41,7 @@ function renderTable(row: ResultRow) {
       onSelectAll={vi.fn()}
       onSelectRow={vi.fn()}
       rows={[row]}
+      tagOptions={{ genres: ['Ambient', 'Electronic'], moods: ['Calm'] }}
       visibleColumns={['artist', 'title', 'file', 'genres', 'moods', 'status']}
     />,
   )
@@ -42,6 +49,13 @@ function renderTable(row: ResultRow) {
 }
 
 describe('ResultTable status', () => {
+  test('passes genre and mood options to their editors', () => {
+    renderTable(resultRow())
+
+    expect(screen.getByText('Genre')).toHaveAttribute('data-options', 'Ambient,Electronic')
+    expect(screen.getByText('Mood')).toHaveAttribute('data-options', 'Calm')
+  })
+
   test('shows one canonical written status without a contradictory proposal', () => {
     const row = renderTable(resultRow({ processing_state: 'written' }))
 

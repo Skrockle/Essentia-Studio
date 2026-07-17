@@ -44,6 +44,9 @@ beforeEach(() => {
     // eslint-disable-next-line complexity
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
+      if (url.includes('/api/tag-options')) {
+        return Response.json({ genres: ['Ambient'], moods: ['Calm'] })
+      }
       if (url.includes('/api/library/tracks')) {
         return Response.json({
           items: [

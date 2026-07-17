@@ -10,8 +10,10 @@ import { ResultTable } from './ResultTable'
 import { SelectionToolbar } from './SelectionToolbar'
 import { WorkbenchViewControls } from './WorkbenchViewControls'
 import { useResults } from './useResults'
+import { useTagOptions } from './useTagOptions'
 import { WritePreviewDialog, type WriteJobSummary } from './WritePreviewDialog'
 import type { ResultRow } from './types'
+import type { TagOptions } from '../../api/types'
 import { useLibraryTracks } from './useLibraryTracks'
 import {
   loadWorkbenchPreferences,
@@ -59,6 +61,7 @@ interface ResultsProps {
   onSelectAll: (selected: boolean) => void
   onSelectRow: (row: ResultRow, selected: boolean) => void
   onSaveDraft: (row: ResultRow, genres: string[], moods: string[]) => void
+  tagOptions: TagOptions
   visibleColumns: ResultColumn[]
 }
 
@@ -95,6 +98,7 @@ export function WorkbenchView() {
     error: libraryError,
     refresh: refreshLibrary,
   } = useLibraryTracks(search)
+  const { options: tagOptions, error: tagOptionsError } = useTagOptions()
   const [analysisSelection, setAnalysisSelection] = useState<Set<number>>(new Set())
   const [activeJob, setActiveJob] = useState<JobRecord | null>(null)
   const [showPreview, setShowPreview] = useState(false)
@@ -240,6 +244,7 @@ export function WorkbenchView() {
       </section>
 
       {libraryError && <p className="notice notice--error">{libraryError}</p>}
+      {tagOptionsError && <p className="notice notice--error">{tagOptionsError}</p>}
       <WorkbenchViewControls
         availableFormats={availableFormats}
         onChange={setViewPreferences}
@@ -270,6 +275,7 @@ export function WorkbenchView() {
         onSelectAll={selectAll}
         onSelectRow={selectRow}
         rows={page.items}
+        tagOptions={tagOptions}
         visibleColumns={viewPreferences.resultColumns}
       />
       {showPreview && (

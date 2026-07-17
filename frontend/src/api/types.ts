@@ -28,6 +28,11 @@ export interface HealthResponse {
   version: string
 }
 
+export interface TagOptions {
+  genres: string[]
+  moods: string[]
+}
+
 export interface AppSettings {
   analysis: {
     workers: number

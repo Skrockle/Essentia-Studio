@@ -3,6 +3,7 @@ import { Plus, X } from 'lucide-react'
 
 interface TagEditorProps {
   kind: 'Genre' | 'Mood'
+  options: string[]
   values: string[]
   onChange: (values: string[]) => void
 }

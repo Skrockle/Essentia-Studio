@@ -1,3 +1,4 @@
+import type { TagOptions } from '../../api/types'
 import type { ResultRow } from './types'
 import { TagEditor } from './TagEditor'
 import type { ResultColumn } from './viewPreferences'
@@ -8,6 +9,7 @@ interface ResultTableProps {
   onSelectAll: (selected: boolean) => void
   onSelectRow: (row: ResultRow, selected: boolean) => void
   onSaveDraft: (row: ResultRow, genres: string[], moods: string[]) => void
+  tagOptions: TagOptions
   visibleColumns: ResultColumn[]
 }
 
@@ -40,6 +42,7 @@ export function ResultTable({
   onSelectAll,
   onSelectRow,
   onSaveDraft,
+  tagOptions,
   visibleColumns,
 }: ResultTableProps) {
   return (
@@ -80,6 +83,7 @@ export function ResultTable({
               {visibleColumns.includes('genres') && <td>
                 <TagEditor
                   kind="Genre"
+                  options={tagOptions.genres}
                   values={row.draft.genres}
                   onChange={(genres) => onSaveDraft(row, genres, row.draft.moods)}
                 />
@@ -87,6 +91,7 @@ export function ResultTable({
               {visibleColumns.includes('moods') && <td>
                 <TagEditor
                   kind="Mood"
+                  options={tagOptions.moods}
                   values={row.draft.moods}
                   onChange={(moods) => onSaveDraft(row, row.draft.genres, moods)}
                 />
