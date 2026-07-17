@@ -95,6 +95,7 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
         id={inputId}
         maxLength={120}
         onBlur={() => setOpen(false)}
+        onClick={() => setOpen(true)}
         onChange={(event) => {
           setInputValue(event.target.value)
           updateActiveIndex(-1)

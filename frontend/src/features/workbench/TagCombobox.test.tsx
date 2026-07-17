@@ -135,6 +135,20 @@ describe('TagCombobox', () => {
     expect(input).toHaveValue('contemp')
   })
 
+  test('reopens suggestions when the focused input is clicked after Escape', async () => {
+    const user = userEvent.setup()
+    const { input } = renderCombobox()
+
+    await user.click(input)
+    await user.keyboard('{Escape}')
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(input)
+
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('listbox')).toBeVisible()
+  })
+
   test('adds a clicked option', async () => {
     const user = userEvent.setup()
     const { input, onAdd } = renderCombobox()
