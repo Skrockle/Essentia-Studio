@@ -1,5 +1,19 @@
 import { expect, test } from '@playwright/test'
 
+async function expectDarkBackgrounds(
+  page: import('@playwright/test').Page,
+  selectors: string[],
+) {
+  for (const selector of selectors) {
+    const surface = page.locator(selector).first()
+    await expect(surface, `${selector} should exist`).toBeVisible()
+    const channels = await surface.evaluate((element) => {
+      return getComputedStyle(element).backgroundColor.match(/\d+/g)?.slice(0, 3).map(Number) ?? [255]
+    })
+    expect(Math.max(...channels), `${selector} should use a dark background`).toBeLessThan(100)
+  }
+}
+
 test('persists theme and configurable library columns', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Bibliothek scannen' }).click()
@@ -41,23 +55,37 @@ test('uses dark surfaces throughout the workbench', async ({ page }) => {
 
   await page.getByLabel('Farbschema').selectOption('dark')
   await page.waitForTimeout(180)
-  const surfaces = await page.evaluate(() => {
-    const selectors = {
-      navigation: '.app-nav',
-      libraryHeader: '.library-table th',
-      selectionToolbar: '.selection-toolbar',
-      resultHeader: '.result-table th',
-      tagInput: '.tag-editor input',
-    }
-    return Object.fromEntries(Object.entries(selectors).map(([name, selector]) => {
-      const element = document.querySelector(selector)
-      return [name, element ? getComputedStyle(element).backgroundColor : null]
-    }))
-  })
+  await expectDarkBackgrounds(page, [
+    '.app-nav',
+    '.library-table th',
+    '.selection-toolbar',
+    '.result-table th',
+    '.tag-editor input',
+    '.format-badge',
+    '.tag-chip',
+  ])
 
-  for (const [name, color] of Object.entries(surfaces)) {
-    expect(color, `${name} should exist`).not.toBeNull()
-    const channels = color?.match(/\d+/g)?.slice(0, 3).map(Number) ?? [255]
-    expect(Math.max(...channels), `${name} should use a dark surface`).toBeLessThan(100)
-  }
+  const libraryDivider = await page.locator('.library-table tbody tr').first().evaluate((row) => ({
+    rowShadow: getComputedStyle(row).boxShadow,
+    cellBorder: getComputedStyle(row.querySelector('td')!).borderBottomWidth,
+  }))
+  expect(libraryDivider.rowShadow).not.toBe('none')
+  expect(libraryDivider.cellBorder).toBe('0px')
+
+  const resultDivider = await page.locator('.result-table tbody tr').first().evaluate((row) => ({
+    rowShadow: getComputedStyle(row).boxShadow,
+    cellBorder: getComputedStyle(row.querySelector('td')!).borderBottomWidth,
+  }))
+  expect(resultDivider.rowShadow).not.toBe('none')
+  expect(resultDivider.cellBorder).toBe('0px')
+
+  await page.getByRole('button', { name: 'Playlists' }).click()
+  await expectDarkBackgrounds(page, ['.preset-grid article button'])
+
+  await page.getByRole('button', { name: 'Einstellungen' }).click()
+  await expectDarkBackgrounds(page, [
+    '.path-status',
+    '.status-label',
+    '.model-status',
+  ])
 })

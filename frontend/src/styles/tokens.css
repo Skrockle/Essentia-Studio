@@ -2,7 +2,13 @@
   --paper: #f2f4f7;
   --surface: #ffffff;
   --surface-subtle: #e9edf2;
+  --genre-surface: #e9f0ff;
+  --mood-surface: #f0eaff;
+  --success-surface: #e8f5ef;
+  --danger-surface: #fbeaea;
+  --warning-surface: #fff4e8;
   --control-surface: #ffffff;
+  --control-disabled: #f0f3f6;
   --table-head-surface: #fafbfc;
   --selection-surface: #eef3ff;
   --selection-line: #cbd8f8;
@@ -15,6 +21,7 @@
   --signal: #ed7b2f;
   --success: #197a55;
   --danger: #b33a3a;
+  --warning: #8c5b28;
   --button-on-primary: #ffffff;
   --button-primary-hover: #255bc5;
   --overlay: rgb(18 36 58 / 58%);
@@ -31,7 +38,13 @@
   --paper: #0c1521;
   --surface: #142131;
   --surface-subtle: #1b2a3d;
+  --genre-surface: #203859;
+  --mood-surface: #33264f;
+  --success-surface: #173b34;
+  --danger-surface: #44282d;
+  --warning-surface: #493421;
   --control-surface: #1b2a3d;
+  --control-disabled: #202b39;
   --table-head-surface: #1b2a3d;
   --selection-surface: #172844;
   --selection-line: #35527d;
@@ -44,6 +57,7 @@
   --signal: #ff9a57;
   --success: #66d1ad;
   --danger: #ff8b8b;
+  --warning: #ffc282;
   --button-on-primary: #07111f;
   --button-primary-hover: #94b8ff;
   --overlay: rgb(2 8 16 / 76%);
