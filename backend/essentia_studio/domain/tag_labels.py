@@ -1,5 +1,12 @@
+import unicodedata
+
+
+def normalize_label(value: str) -> str:
+    return unicodedata.normalize("NFKC", value).strip()
+
+
 def split_genre_label(raw_label: str) -> list[str]:
-    return [segment.strip() for segment in raw_label.split("---") if segment.strip()]
+    return [label for segment in raw_label.split("---") if (label := normalize_label(segment))]
 
 
 def legacy_genre_label(raw_label: str) -> str:
@@ -32,4 +39,4 @@ def rewrite_legacy_genres(draft_values: list[str], raw_labels: list[str]) -> lis
 
 
 def format_mood_label(raw_label: str) -> str:
-    return raw_label.rsplit("---", maxsplit=1)[-1].strip().title()
+    return normalize_label(raw_label.rsplit("---", maxsplit=1)[-1]).title()

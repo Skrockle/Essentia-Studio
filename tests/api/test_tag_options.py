@@ -65,3 +65,25 @@ def test_tag_options_uses_the_standard_error_envelope_for_missing_metadata(tmp_p
             "details": {},
         }
     }
+
+
+def test_tag_options_uses_the_standard_error_envelope_for_invalid_utf8(tmp_path) -> None:
+    model_dir = tmp_path / "models"
+    model_dir.mkdir()
+    (model_dir / GENRE_CATALOG).write_bytes(b'{"classes": ["\xff"]}')
+    write_catalog(model_dir, MOOD_CATALOG, ["moodtheme---happy"])
+
+    with TestClient(create_app(create_test_config(tmp_path, model_dir))) as client:
+        response = client.get("/api/tag-options")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "error": {
+            "code": "tag_catalog_unavailable",
+            "message": (
+                "Der Tag-Katalog „genre_discogs400-discogs-effnet-1.json“ "
+                "ist nicht verfügbar."
+            ),
+            "details": {},
+        }
+    }

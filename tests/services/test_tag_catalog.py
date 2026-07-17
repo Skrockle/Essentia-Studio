@@ -42,6 +42,16 @@ def test_load_expands_sorts_and_deduplicates_bundled_model_labels(tmp_path) -> N
     assert options.moods == ["Happy", "Sad"]
 
 
+def test_load_nfkc_normalizes_labels_before_deduplication(tmp_path) -> None:
+    write_catalog(tmp_path, GENRE_CATALOG, ["Ａｍｂｉｅｎｔ", "Ambient"])
+    write_catalog(tmp_path, MOOD_CATALOG, ["moodtheme---ｈａｐｐｙ", "moodtheme---happy"])
+
+    options = TagCatalogService(tmp_path).load()
+
+    assert options.genres == ["Ambient"]
+    assert options.moods == ["Happy"]
+
+
 def test_load_reports_missing_catalog_without_exposing_its_path(tmp_path) -> None:
     write_catalog(tmp_path, MOOD_CATALOG, ["moodtheme---happy"])
 
@@ -64,6 +74,21 @@ def test_load_reports_invalid_json_without_exposing_its_path(tmp_path) -> None:
         TagCatalogService(tmp_path).load()
 
     assert raised.value.code == "tag_catalog_unavailable"
+    assert raised.value.message == (
+        "Der Tag-Katalog „genre_discogs400-discogs-effnet-1.json“ ist nicht verfügbar."
+    )
+    assert str(tmp_path) not in raised.value.message
+
+
+def test_load_reports_invalid_utf8_without_exposing_its_path(tmp_path) -> None:
+    (tmp_path / GENRE_CATALOG).write_bytes(b'{"classes": ["\xff"]}')
+    write_catalog(tmp_path, MOOD_CATALOG, ["moodtheme---happy"])
+
+    with pytest.raises(AppError) as raised:
+        TagCatalogService(tmp_path).load()
+
+    assert raised.value.code == "tag_catalog_unavailable"
+    assert raised.value.status_code == 503
     assert raised.value.message == (
         "Der Tag-Katalog „genre_discogs400-discogs-effnet-1.json“ ist nicht verfügbar."
     )

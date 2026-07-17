@@ -1,8 +1,7 @@
-import unicodedata
-
 from essentia_studio.domain.tag_labels import (
     format_mood_label,
     legacy_genre_label,
+    normalize_label,
     split_genre_label,
 )
 from essentia_studio.errors import AppError
@@ -29,7 +28,7 @@ def normalize_tags(values: list[str]) -> list[str]:
     seen: set[str] = set()
 
     for value in values:
-        label = unicodedata.normalize("NFKC", value).strip()
+        label = normalize_label(value)
         if not label:
             continue
         if len(label) > MAX_TAG_LENGTH:

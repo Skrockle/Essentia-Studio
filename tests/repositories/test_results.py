@@ -25,6 +25,20 @@ def test_rewrite_deduplicates_hierarchical_values_case_insensitively() -> None:
     ) == ["Electronic", "House", "Manual"]
 
 
+def test_rewrite_matches_the_historical_nfkc_normalized_legacy_value() -> None:
+    assert rewrite_legacy_genres(
+        ["Electronic; House", "Manual; Value"],
+        ["Ｅｌｅｃｔｒｏｎｉｃ---Ｈｏｕｓｅ"],
+    ) == ["Electronic", "House", "Manual; Value"]
+
+
+def test_rewrite_does_not_split_normalized_text_without_a_raw_derived_match() -> None:
+    assert rewrite_legacy_genres(
+        ["Electronic; House"],
+        ["Ｒｏｃｋ---Ａｌｔｅｒｎａｔｉｖｅ"],
+    ) == ["Electronic; House"]
+
+
 def test_reconcile_hierarchical_genres_is_idempotent_and_preserves_draft_state(tmp_path) -> None:
     engine = create_sqlite_engine(tmp_path / "app.db")
     apply_migrations(engine)

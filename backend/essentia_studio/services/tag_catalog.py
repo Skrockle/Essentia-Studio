@@ -33,7 +33,7 @@ class TagCatalogService:
         try:
             with (self._model_dir / catalog_name).open(encoding="utf-8") as catalog_file:
                 catalog = json.load(catalog_file)
-        except (OSError, json.JSONDecodeError) as error:
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
             raise _catalog_unavailable(catalog_name) from error
         if not _has_classes(catalog):
             raise _catalog_unavailable(catalog_name)
