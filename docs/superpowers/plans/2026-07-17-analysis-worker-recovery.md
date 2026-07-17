@@ -32,7 +32,7 @@
 - Consumes: `AnalysisBackend.analyze(path, options)`, `BackendFactory`, `BrokenProcessPool`.
 - Produces: unchanged `WorkerPoolManager.analyze(path: Path, options: AnalysisOptions) -> AnalysisResult`, now with one bounded recovery attempt.
 
-- [ ] **Step 1: Add deterministic crash backends and all recovery tests**
+- [x] **Step 1: Add deterministic crash backends and all recovery tests**
 
 Add these imports and test support to `tests/analysis/test_pool_manager.py`:
 
@@ -194,7 +194,7 @@ def test_repeated_worker_crash_does_not_stop_later_job_items(tmp_path) -> None:
     assert items[1].result == {"models": ["generation-3"]}
 ```
 
-- [ ] **Step 2: Run the test and verify RED**
+- [x] **Step 2: Run the test and verify RED**
 
 Run:
 
@@ -204,7 +204,7 @@ python -m pytest tests/analysis/test_pool_manager.py tests/services/test_jobs.py
 
 Expected: both tests FAIL because `BrokenProcessPool` escapes instead of retrying; the multi-item job records the later healthy item as failed.
 
-- [ ] **Step 3: Implement one bounded retry in the pool manager**
+- [x] **Step 3: Implement one bounded retry in the pool manager**
 
 Replace `WorkerPoolManager.analyze` and add `_analyze_with_recovery` in `backend/essentia_studio/analysis/pool_manager.py`:
 
@@ -243,7 +243,7 @@ Replace `WorkerPoolManager.analyze` and add `_analyze_with_recovery` in `backend
 
 Do not change `_discard_broken`: its identity check already ensures that only the thread holding the current broken backend replaces and closes it.
 
-- [ ] **Step 4: Run the focused test and verify GREEN**
+- [x] **Step 4: Run the focused test and verify GREEN**
 
 Run:
 
@@ -253,7 +253,7 @@ python -m pytest tests/analysis/test_pool_manager.py tests/services/test_jobs.py
 
 Expected: PASS.
 
-- [ ] **Step 5: Run all pool-manager tests and review readability**
+- [x] **Step 5: Run all pool-manager tests and review readability**
 
 Run:
 
@@ -264,7 +264,7 @@ python -m ruff check backend/essentia_studio/analysis/pool_manager.py tests/anal
 
 Expected: all pool tests PASS and Ruff reports no issues. Confirm retry control flow is direct, the approved message appears once, and no arbitrary exceptions are caught.
 
-- [ ] **Step 6: Commit the isolated pool recovery**
+- [x] **Step 6: Commit the isolated pool recovery**
 
 ```text
 git add backend/essentia_studio/analysis/pool_manager.py tests/analysis/test_pool_manager.py tests/services/test_jobs.py
@@ -288,7 +288,7 @@ git commit -m "fix: recover terminated analysis workers"
 - Consumes: `AppError.code`, `AppError.message`, generic job handler exceptions.
 - Produces: `JobItemRecord.error_code: str | None`, `JobRepository.fail_item(..., error: str, error_code: str | None = None)`, and API field `error_code`.
 
-- [ ] **Step 1: Write failing service and migration assertions**
+- [x] **Step 1: Write failing service and migration assertions**
 
 In `tests/services/test_jobs.py`, import `AppError` and add:
 
@@ -321,7 +321,7 @@ Update `tests/db/test_migrations.py` to expect versions 1 through 11 and assert 
     assert "error_code" in columns
 ```
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run:
 
@@ -331,7 +331,7 @@ python -m pytest tests/services/test_jobs.py::test_app_error_code_and_message_ar
 
 Expected: FAIL because `JobItemRecord` has no `error_code` and migration 11 does not exist.
 
-- [ ] **Step 3: Add the migration and structured repository field**
+- [x] **Step 3: Add the migration and structured repository field**
 
 Create `backend/essentia_studio/db/migrations/0011_job_item_error_code.sql`:
 
@@ -372,7 +372,7 @@ Change `JobRepository.fail_item` to:
             self._insert_event(connection, job_id, "progress", self._progress(connection, job_id))
 ```
 
-- [ ] **Step 4: Persist `AppError` without Essentia-specific coordinator logic**
+- [x] **Step 4: Persist `AppError` without Essentia-specific coordinator logic**
 
 Import `AppError` in `backend/essentia_studio/services/jobs.py` and replace its item exception block with:
 
@@ -390,7 +390,7 @@ Import `AppError` in `backend/essentia_studio/services/jobs.py` and replace its 
 
 This remains generic: any service-layer `AppError` receives structured persistence, while unexpected exceptions retain their existing text-only behavior.
 
-- [ ] **Step 5: Expose the stable code through API and TypeScript contracts**
+- [x] **Step 5: Expose the stable code through API and TypeScript contracts**
 
 Add `error_code: str | None` to `JobItemResponse` in `backend/essentia_studio/schemas/jobs.py` and `JobItemRecord` in `frontend/src/features/jobs/types.ts`.
 
@@ -407,7 +407,7 @@ Update the expected object in `tests/api/test_jobs.py::test_job_items_expose_res
             "error_code": None,
 ```
 
-- [ ] **Step 6: Run structured-error tests and verify GREEN**
+- [x] **Step 6: Run structured-error tests and verify GREEN**
 
 Run:
 
@@ -418,7 +418,7 @@ npm --prefix frontend run typecheck
 
 Expected: all selected tests PASS and TypeScript reports no errors.
 
-- [ ] **Step 7: Commit structured job errors**
+- [x] **Step 7: Commit structured job errors**
 
 ```text
 git add backend/essentia_studio/db/migrations/0011_job_item_error_code.sql backend/essentia_studio/domain/jobs.py backend/essentia_studio/repositories/jobs.py backend/essentia_studio/services/jobs.py backend/essentia_studio/schemas/jobs.py tests/db/test_migrations.py tests/services/test_jobs.py tests/api/test_jobs.py frontend/src/features/jobs/types.ts
@@ -436,7 +436,7 @@ git commit -m "feat: persist structured job item errors"
 - Consumes: `WorkerPoolManager`, `JobCoordinator`, the stable `analysis_worker_crashed` error contract.
 - Produces: a deterministic CPU-image smoke command for the recovery path; source integration evidence comes from Task 1 and its structured error assertion from Task 2.
 
-- [ ] **Step 1: Create a deterministic container smoke script**
+- [x] **Step 1: Create a deterministic container smoke script**
 
 Create `scripts/worker_recovery_smoke.py`:
 
@@ -490,7 +490,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 2: Package and execute the smoke in CPU image CI**
+- [x] **Step 2: Package and execute the smoke in CPU image CI**
 
 Add to `Dockerfile` beside the existing CPU smoke copy:
 
@@ -505,7 +505,7 @@ Add to the CPU-image workflow after real CPU inference:
             python /app/scripts/worker_recovery_smoke.py
 ```
 
-- [ ] **Step 3: Run focused source verification**
+- [x] **Step 3: Run focused source verification**
 
 Run:
 
@@ -517,7 +517,7 @@ python -m pytest tests/ci/test_workflows.py tests/docs/test_commands.py -q
 
 Expected: all selected tests PASS and Ruff reports no issues.
 
-- [ ] **Step 4: Rebuild and verify the local CPU image**
+- [x] **Step 4: Rebuild and verify the local CPU image**
 
 Run the repository's Apple Container-compatible image build and replace script, then execute:
 
@@ -527,7 +527,7 @@ container exec essentia-studio python /app/scripts/worker_recovery_smoke.py
 
 Expected: recovery smoke prints `Analysis worker recovery smoke passed`. The CPU-image CI separately runs real inference against its generated `/music/tone.wav` fixture and must emit non-empty genres, moods, and model identifiers.
 
-- [ ] **Step 5: Run the full source gate**
+- [x] **Step 5: Run the full source gate**
 
 Run:
 
@@ -537,7 +537,7 @@ python scripts/verify.py
 
 Expected: Python tests, Ruff, frontend lint, Vitest, TypeScript, and frontend build all PASS.
 
-- [ ] **Step 6: Review scope and commit container evidence**
+- [x] **Step 6: Review scope and commit container evidence**
 
 Confirm no arbitrary exceptions are retried, no host paths or audio files are committed, and no CUDA claim is made. Then commit:
 
@@ -555,7 +555,7 @@ git commit -m "test: verify analysis recovery in cpu image"
 - Consumes: all completed tasks and the private GitHub CI workflow.
 - Produces: pushed reviewable commits and direct evidence that the regression is fixed across source and CPU-image gates.
 
-- [ ] **Step 1: Inspect the final branch delta**
+- [x] **Step 1: Inspect the final branch delta**
 
 Run:
 
