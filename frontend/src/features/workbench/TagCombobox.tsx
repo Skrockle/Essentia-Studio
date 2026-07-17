@@ -51,6 +51,7 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
   const inputId = useId()
   const listboxId = useId()
   const formRef = useRef<HTMLFormElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [listboxPosition, setListboxPosition] = useState<CSSProperties>({})
   const [inputValue, setInputValue] = useState('')
@@ -100,9 +101,14 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
 
   function addValue(value: string) {
     const normalizedValue = value.trim()
-    if (!normalizedValue || includesValue(selectedValues, normalizedValue)) return
+    if (!normalizedValue || includesValue(selectedValues, normalizedValue)) return false
     onAdd(normalizedValue)
     resetInput()
+    return true
+  }
+
+  function addTypedValue() {
+    if (addValue(inputValue)) inputRef.current?.focus()
   }
 
   function submitValue(event: FormEvent) {
@@ -152,13 +158,14 @@ export function TagCombobox({ kind, options, selectedValues, onAdd }: TagCombobo
         onFocus={() => setOpen(true)}
         onKeyDown={handleKeyDown}
         placeholder={`${kind} ergänzen`}
+        ref={inputRef}
         role="combobox"
         value={inputValue}
       />
       <button
         aria-label={`${kind} hinzufügen`}
         disabled={!inputValue.trim()}
-        onClick={() => addValue(inputValue)}
+        onClick={addTypedValue}
         type="button"
       >
         <Plus aria-hidden="true" size={13} />

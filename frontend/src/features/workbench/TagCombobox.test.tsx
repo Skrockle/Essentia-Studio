@@ -123,6 +123,7 @@ describe('TagCombobox', () => {
 
     expect(onAdd).toHaveBeenCalledWith('Amb')
     expect(input).toHaveValue('')
+    expect(input).toHaveFocus()
   })
 
   test('adds a free-form value when Enter has no active option', async () => {

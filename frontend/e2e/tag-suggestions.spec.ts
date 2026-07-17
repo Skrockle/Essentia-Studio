@@ -109,6 +109,15 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
   await expectActiveOptionContrast(page)
   await resultRow.getByRole('button', { name: 'Genre hinzufügen' }).click()
   await expect(resultRow.getByText('Amb', { exact: true })).toBeVisible()
+  await expect(genreInput).toBeFocused()
+  await expect(genreInput).toHaveValue('')
+
+  await genreInput.fill('Roc')
+  await genreInput.press('ArrowDown')
+  await genreInput.press('Enter')
+  await expect(resultRow.getByText('Rock', { exact: true })).toBeVisible()
+  await expect(genreInput).toBeFocused()
+  await expect(genreInput).toHaveValue('')
 
   await genreInput.fill('Eigener Stil')
   await genreInput.press('Enter')
@@ -125,7 +134,7 @@ test('splits hierarchical tags and edits drafts with catalog suggestions', async
     return results.items[0].draft
   })
   expect(draft).toMatchObject({
-    genres: ['Electronic', 'House', 'Amb', 'Eigener Stil'],
+    genres: ['Electronic', 'House', 'Amb', 'Rock', 'Eigener Stil'],
     moods: ['Happy', 'Sad'],
   })
 
