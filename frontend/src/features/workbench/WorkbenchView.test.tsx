@@ -302,6 +302,22 @@ test('hides written tracks by default and keeps file paths in a configurable col
   expect(within(libraryTable as HTMLTableElement).queryByRole('columnheader', { name: 'Datei' })).not.toBeInTheDocument()
 })
 
+test('keeps only one table settings menu open at a time', async () => {
+  render(<WorkbenchView />)
+  await screen.findByRole('checkbox', { name: 'Library/one.flac analysieren' })
+
+  const filterSummary = screen.getByText('Filter')
+  const columnSummary = screen.getByText('Spalten')
+  const filterDetails = filterSummary.closest('details')
+  const columnDetails = columnSummary.closest('details')
+
+  await userEvent.click(filterSummary)
+  expect(filterDetails).toHaveAttribute('open')
+  await userEvent.click(columnSummary)
+  expect(filterDetails).not.toHaveAttribute('open')
+  expect(columnDetails).toHaveAttribute('open')
+})
+
 test('reports the number of tracks after a completed scan', async () => {
   render(<WorkbenchView />)
 

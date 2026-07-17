@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Columns3, ListFilter, RotateCcw } from 'lucide-react'
 
 import type { ProcessingState } from './types'
@@ -29,9 +30,17 @@ function toggled<T extends string>(values: T[], value: T, enabled: boolean): T[]
 }
 
 export function WorkbenchViewControls({ availableFormats, value, onChange }: Props) {
+  const [openMenu, setOpenMenu] = useState<'filters' | 'columns' | null>(null)
+
   return (
     <section className="table-controls panel" aria-label="Tabellenansicht">
-      <details>
+      <details
+        onToggle={(event) => {
+          if (event.currentTarget.open) setOpenMenu('filters')
+          else setOpenMenu((current) => current === 'filters' ? null : current)
+        }}
+        open={openMenu === 'filters'}
+      >
         <summary><ListFilter aria-hidden="true" size={16} /> Filter</summary>
         <div className="table-controls__menu">
           <strong>Status</strong>
@@ -73,7 +82,13 @@ export function WorkbenchViewControls({ availableFormats, value, onChange }: Pro
           </label>
         </div>
       </details>
-      <details>
+      <details
+        onToggle={(event) => {
+          if (event.currentTarget.open) setOpenMenu('columns')
+          else setOpenMenu((current) => current === 'columns' ? null : current)
+        }}
+        open={openMenu === 'columns'}
+      >
         <summary><Columns3 aria-hidden="true" size={16} /> Spalten</summary>
         <div className="table-controls__menu table-controls__columns">
           <strong>Bibliothek</strong>

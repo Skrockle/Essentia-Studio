@@ -1670,6 +1670,15 @@ select {
   background: white;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+  flex: 0 0 18px;
+  width: 18px;
+  min-height: 18px;
+  padding: 0;
+  accent-color: var(--genre);
+}
+
 input:hover,
 select:hover {
   border-color: #aeb9c7;
