@@ -37,6 +37,8 @@ beforeEach(() => {
   vi.stubGlobal('EventSource', FakeEventSource)
   vi.stubGlobal(
     'fetch',
+    // The centralized test fixture intentionally covers every Workbench endpoint.
+    // eslint-disable-next-line complexity
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
       if (url.includes('/api/library/tracks')) {
@@ -58,6 +60,44 @@ beforeEach(() => {
           status: 'queued',
           total_items: 1,
           completed_items: 0,
+          failed_items: 0,
+        })
+      }
+      if (url.includes('/api/writes/jobs')) {
+        writeCalls += 1
+        return Response.json({
+          id: 'write-1',
+          type: 'write',
+          status: 'queued',
+          total_items: 1,
+          completed_items: 0,
+          failed_items: 0,
+        })
+      }
+      if (url.includes('/api/jobs/write-1/items')) {
+        return Response.json([
+          {
+            id: 1,
+            job_id: 'write-1',
+            position: 0,
+            value: 'Artist/one.flac',
+            status: 'completed',
+            result: {
+              operation_id: 'write-1-operation',
+              relative_path: 'Artist/one.flac',
+              status: 'verified',
+            },
+            error: null,
+          },
+        ])
+      }
+      if (url.includes('/api/jobs/analysis-1')) {
+        return Response.json({
+          id: 'analysis-1',
+          type: 'analysis',
+          status: 'completed',
+          total_items: 2,
+          completed_items: 2,
           failed_items: 0,
         })
       }
@@ -175,6 +215,40 @@ test('reports a partially failed analysis instead of success', async () => {
   expect(await screen.findByText('Analyse beendet – 1 Titel fehlgeschlagen')).toBeVisible()
 })
 
+test('shows live progress for the active analysis', async () => {
+  render(<WorkbenchView />)
+
+  await userEvent.click(
+    await screen.findByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }),
+  )
+  await userEvent.click(screen.getByRole('button', { name: '2 Titel analysieren' }))
+  await waitFor(() => expect(FakeEventSource.latest).not.toBeNull())
+  FakeEventSource.latest?.emit('progress', {
+    sequence: 1,
+    kind: 'progress',
+    payload: { total_items: 2, completed_items: 1, failed_items: 0 },
+  })
+
+  expect(await screen.findByText('1 von 2 verarbeitet')).toBeVisible()
+  expect(screen.getByRole('progressbar', { name: 'Analysefortschritt' })).toHaveAttribute(
+    'aria-valuenow',
+    '50',
+  )
+})
+
+test('recovers terminal analysis state after the event stream disconnects', async () => {
+  render(<WorkbenchView />)
+
+  await userEvent.click(
+    await screen.findByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }),
+  )
+  await userEvent.click(screen.getByRole('button', { name: '2 Titel analysieren' }))
+  await waitFor(() => expect(FakeEventSource.latest).not.toBeNull())
+  FakeEventSource.latest?.emit('error', {})
+
+  expect(await screen.findByText('Analyse abgeschlossen')).toBeVisible()
+})
+
 test('select all analyzes every scanned track', async () => {
   render(<WorkbenchView />)
 
@@ -204,7 +278,7 @@ test('reports the number of tracks after a completed scan', async () => {
   expect(await screen.findByText('Scan abgeschlossen – 2 Titel gefunden')).toBeVisible()
 })
 
-test('write preview never writes before explicit confirmation', async () => {
+test('write preview starts an observable job only after explicit confirmation', async () => {
   render(<WorkbenchView />)
 
   await userEvent.click(
@@ -215,6 +289,18 @@ test('write preview never writes before explicit confirmation', async () => {
   expect(await screen.findByRole('dialog', { name: 'Tag-Änderungen schreiben' })).toBeVisible()
   expect(writeCalls).toBe(0)
   await userEvent.click(screen.getByRole('button', { name: 'Schreiben bestätigen' }))
+  await waitFor(() => expect(FakeEventSource.latest).not.toBeNull())
+  FakeEventSource.latest?.emit('progress', {
+    sequence: 1,
+    kind: 'progress',
+    payload: { total_items: 1, completed_items: 1, failed_items: 0 },
+  })
+  expect(await screen.findByText('1 von 1 verarbeitet')).toBeVisible()
+  FakeEventSource.latest?.emit('terminal', {
+    sequence: 2,
+    kind: 'terminal',
+    payload: { total_items: 1, completed_items: 1, failed_items: 0, status: 'completed' },
+  })
   expect(await screen.findByText('1 verifiziert')).toBeVisible()
   expect(writeCalls).toBe(1)
 })

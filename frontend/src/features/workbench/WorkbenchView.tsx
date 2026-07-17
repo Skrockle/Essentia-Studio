@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { AudioWaveform, FolderSearch, PenLine, Search, Sparkles } from 'lucide-react'
 
 import { apiRequest } from '../../api/client'
-import type { JobRecord, WriteOperation } from '../jobs/types'
+import type { JobRecord } from '../jobs/types'
 import { useJobEvents } from '../jobs/useJobEvents'
 import { LibraryTable } from './LibraryTable'
+import { JobProgress } from './JobProgress'
 import { ResultTable } from './ResultTable'
 import { SelectionToolbar } from './SelectionToolbar'
 import { useResults } from './useResults'
-import { WritePreviewDialog } from './WritePreviewDialog'
+import { WritePreviewDialog, type WriteJobSummary } from './WritePreviewDialog'
 import type { ResultRow } from './types'
 import { useLibraryTracks } from './useLibraryTracks'
 
@@ -67,10 +68,6 @@ function WorkbenchResults({ error, rows, ...tableProps }: ResultsProps) {
       </div>
     </section>
   )
-}
-
-function jobMessage(job: JobRecord): string {
-  return job.type === 'scan' ? 'Scan läuft …' : 'Analyse läuft …'
 }
 
 export function WorkbenchView() {
@@ -167,10 +164,10 @@ export function WorkbenchView() {
     })
   }
 
-  function finishWrite(operations: WriteOperation[]) {
-    const verified = operations.filter((operation) => operation.status === 'verified').length
+  function finishWrite(summary: WriteJobSummary) {
     setShowPreview(false)
-    setStatusMessage(`${verified} verifiziert`)
+    setStatusMessage(`${summary.verified} verifiziert`)
+    refresh()
   }
 
   return (
@@ -231,7 +228,11 @@ export function WorkbenchView() {
       <SelectionToolbar selectedCount={page.selected_count} onBulkUpdate={bulkUpdate} />
 
       {activeJob && (
-        <p className="notice">{jobMessage(activeJob)}</p>
+        <JobProgress
+          event={event}
+          job={activeJob}
+          label={activeJob.type === 'scan' ? 'Scan' : 'Analyse'}
+        />
       )}
       {statusMessage && <p className="notice notice--success">{statusMessage}</p>}
       <WorkbenchResults
@@ -245,7 +246,7 @@ export function WorkbenchView() {
       {showPreview && (
         <WritePreviewDialog
           onClose={() => setShowPreview(false)}
-          onWritten={finishWrite}
+          onCompleted={finishWrite}
           selection={selection}
         />
       )}
