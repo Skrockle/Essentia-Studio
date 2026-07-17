@@ -12,6 +12,7 @@ import type {
 import { AutomationSettings } from './AutomationSettings'
 import { BenchmarkPanel } from './BenchmarkPanel'
 import { SettingField } from './SettingField'
+import { presentModels } from './modelPresentation'
 
 const statusLabels = { ready: 'Bereit', read_only: 'Nur lesen', missing: 'Fehlt' }
 
@@ -28,6 +29,25 @@ function PathStatus({ icon: Icon, label, capability }: PathStatusProps) {
       <div><span>{label}</span><code>{capability.path}</code></div>
       <span className="status-label" data-status={capability.status}>{statusLabels[capability.status]}</span>
     </article>
+  )
+}
+
+function ModelStatus({ models }: Pick<Capabilities, 'models'>) {
+  const presentedModels = presentModels(models)
+  return (
+    <div className="model-status">
+      {models.length ? <Check size={17} /> : <AlertTriangle size={17} />}
+      <span>
+        <strong>Aktive Analysemodelle</strong>
+        {presentedModels.length ? presentedModels.join(' · ') : 'Werden mit dem Analysemodul erkannt.'}
+        {models.length > 0 && (
+          <details className="model-details">
+            <summary>Technische Modelldetails</summary>
+            <code>{models.map((model) => model.name).join('\n')}</code>
+          </details>
+        )}
+      </span>
+    </div>
   )
 }
 
@@ -156,28 +176,25 @@ export function SettingsView() {
               <option value="cuda" disabled={!capabilities.available_compute.includes('cuda')}>NVIDIA CUDA</option>
             </select>
           </SettingField>
-          <div className="model-status">
-            {capabilities.models.length ? <Check size={17} /> : <AlertTriangle size={17} />}
-            <span><strong>Geladene Modelle</strong>{capabilities.models.length ? capabilities.models.map((model) => model.name).join(', ') : 'Werden mit dem Analysemodul erkannt.'}</span>
-          </div>
+          <ModelStatus models={capabilities.models} />
         </section>
 
         <section className="panel settings-section" aria-labelledby="analysis-heading">
           <div className="section-heading"><div><p className="eyebrow">Standardwerte</p><h2 id="analysis-heading">Analyse</h2></div></div>
           <div className="form-grid">
-            <SettingField id="analysis-workers" label="Worker" source={sources['analysis.workers']}>
+            <SettingField id="analysis-workers" label="Worker" explanation="Anzahl der Titel, die gleichzeitig analysiert werden. Mehr Worker benötigen entsprechend mehr Arbeitsspeicher." source={sources['analysis.workers']}>
               <input id="analysis-workers" aria-label="Worker" min="1" max="64" type="number" value={analysis.workers} disabled={sources['analysis.workers'] === 'env'} onChange={(event) => updateAnalysis({ workers: Number(event.target.value) })} />
             </SettingField>
-            <SettingField id="max-audio-seconds" label="Maximale Audiolänge" source={sources['analysis.max_audio_seconds']}>
+            <SettingField id="max-audio-seconds" label="Maximale Audiolänge" explanation="Begrenzt den pro Titel ausgewerteten Audioausschnitt. Kürzere Werte sparen Zeit, können aber weniger repräsentativ sein." source={sources['analysis.max_audio_seconds']}>
               <span className="input-with-unit"><input id="max-audio-seconds" min="1" max="3600" type="number" value={analysis.max_audio_seconds} disabled={sources['analysis.max_audio_seconds'] === 'env'} onChange={(event) => updateAnalysis({ max_audio_seconds: Number(event.target.value) })} /><span>Sek.</span></span>
             </SettingField>
-            <SettingField id="genre-count" label="Anzahl Genres" source={sources['analysis.genre_count']}>
+            <SettingField id="genre-count" label="Anzahl Genres" explanation="Maximale Zahl der Genre-Vorschläge, die pro Titel übernommen werden." source={sources['analysis.genre_count']}>
               <input id="genre-count" min="1" max="20" type="number" value={analysis.genre_count} disabled={sources['analysis.genre_count'] === 'env'} onChange={(event) => updateAnalysis({ genre_count: Number(event.target.value) })} />
             </SettingField>
-            <SettingField id="genre-threshold" label="Genre-Schwelle" source={sources['analysis.genre_threshold']}>
+            <SettingField id="genre-threshold" label="Genre-Schwelle" explanation="Mindest-Vertrauenswert für ein Genre. Ein höherer Wert liefert weniger, dafür sicherere Vorschläge." source={sources['analysis.genre_threshold']}>
               <input id="genre-threshold" min="0" max="1" step="0.001" type="number" value={analysis.genre_threshold} disabled={sources['analysis.genre_threshold'] === 'env'} onChange={(event) => updateAnalysis({ genre_threshold: Number(event.target.value) })} />
             </SettingField>
-            <SettingField id="mood-threshold" label="Mood-Schwelle" source={sources['analysis.mood_threshold']}>
+            <SettingField id="mood-threshold" label="Mood-Schwelle" explanation="Mindest-Vertrauenswert für eine Stimmung. Mood-Werte sind anders skaliert als Genres und deshalb meist deutlich niedriger." source={sources['analysis.mood_threshold']}>
               <input id="mood-threshold" min="0" max="1" step="0.001" type="number" value={analysis.mood_threshold} disabled={sources['analysis.mood_threshold'] === 'env'} onChange={(event) => updateAnalysis({ mood_threshold: Number(event.target.value) })} />
             </SettingField>
           </div>

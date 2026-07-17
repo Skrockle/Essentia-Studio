@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { Info } from 'lucide-react'
 
 import type { SettingSource } from '../../api/types'
 
@@ -7,14 +8,44 @@ interface SettingFieldProps {
   label: string
   source?: SettingSource
   hint?: string
+  explanation?: string
   children: ReactNode
 }
 
-export function SettingField({ id, label, source = 'default', hint, children }: SettingFieldProps) {
+export function SettingField({
+  id,
+  label,
+  source = 'default',
+  hint,
+  explanation,
+  children,
+}: SettingFieldProps) {
+  const [showExplanation, setShowExplanation] = useState(false)
+  const explanationId = `${id}-explanation`
+
   return (
-    <label className="setting-field" htmlFor={id}>
-      <span className="setting-field__label">{label}</span>
+    <div className="setting-field">
+      <span className="setting-field__heading">
+        <label className="setting-field__label" htmlFor={id}>{label}</label>
+        {explanation && (
+          <button
+            aria-controls={explanationId}
+            aria-expanded={showExplanation}
+            aria-label={`Erklärung zu ${label}`}
+            className="setting-field__info"
+            onClick={() => setShowExplanation((current) => !current)}
+            type="button"
+          >
+            <Info aria-hidden="true" size={13} />
+          </button>
+        )}
+      </span>
       {children}
+      {explanation && showExplanation && (
+        <span className="setting-field__explanation" id={explanationId} role="tooltip">
+          {explanation}
+        </span>
+      )}
       {source === 'env' ? (
         <span className="setting-field__source" data-source="env">
           Durch Umgebungsvariable festgelegt
@@ -22,6 +53,6 @@ export function SettingField({ id, label, source = 'default', hint, children }: 
       ) : (
         hint && <span className="setting-field__hint">{hint}</span>
       )}
-    </label>
+    </div>
   )
 }
