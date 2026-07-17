@@ -534,7 +534,7 @@ draft is now two chips without reanalysis, exercise Genre and Mood suggestions p
 free value, remove the temporary manual changes before leaving the page, and inspect
 container logs for API or reconciliation errors. Capture light/dark screenshots.
 
-- [ ] **Step 7: Update evidence, commit, and push**
+- [x] **Step 7: Update evidence, commit, and push**
 
 Check every completed plan item, record exact test counts and container/browser
 evidence, run `git diff --check`, then commit:
