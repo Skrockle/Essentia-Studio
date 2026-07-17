@@ -5,6 +5,7 @@ from essentia_studio.domain.tracks import TrackFingerprint
 from essentia_studio.tags.protocol import ManagedTagSnapshot
 
 WriteStatus = Literal["started", "verified", "conflict", "failed", "undone"]
+WriteTrigger = Literal["manual", "automation"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,6 +18,7 @@ class WriteOperation:
     post_write_fingerprint: TrackFingerprint | None = None
     error_code: str | None = None
     error_message: str | None = None
+    trigger: WriteTrigger = "manual"
 
     @property
     def undo_available(self) -> bool:

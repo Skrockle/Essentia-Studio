@@ -16,6 +16,7 @@ from essentia_studio.schemas.settings import (
     EffectiveSettings,
     SettingSource,
 )
+from essentia_studio.services.schedule import CronSchedule
 
 Parser = Callable[[str, str], Any]
 
@@ -103,7 +104,8 @@ class SettingsService:
             _set_dotted(merged, path, parser(self._environment[env_name], env_name))
             sources[path] = "env"
 
-        return EffectiveSettings(values=AppSettings.model_validate(merged), sources=sources)
+        values = _validated_settings(merged)
+        return EffectiveSettings(values=values, sources=sources)
 
     def update(self, patch: Mapping[str, Any] | BaseModel) -> EffectiveSettings:
         patch_values = (
@@ -125,7 +127,7 @@ class SettingsService:
             )
 
         file_values = _deep_merge(self._load_file(), patch_values)
-        AppSettings.model_validate(_deep_merge(AppSettings().model_dump(), file_values))
+        _validated_settings(_deep_merge(AppSettings().model_dump(), file_values))
         self._write_file(file_values)
         return self.load()
 
@@ -142,7 +144,7 @@ class SettingsService:
             else _normalize_legacy(dict(legacy))
         )
         file_values = {"analysis": legacy_values}
-        AppSettings.model_validate(_deep_merge(AppSettings().model_dump(), file_values))
+        _validated_settings(_deep_merge(AppSettings().model_dump(), file_values))
         self._write_file(file_values)
         return self.load()
 
@@ -214,3 +216,9 @@ def _normalize_legacy(values: dict[str, Any]) -> dict[str, Any]:
         "compute_preference": "compute",
     }
     return {aliases.get(key, key): value for key, value in values.items()}
+
+
+def _validated_settings(values: Mapping[str, Any]) -> AppSettings:
+    settings = AppSettings.model_validate(values)
+    CronSchedule(settings.automation.schedule, settings.automation.timezone)
+    return settings

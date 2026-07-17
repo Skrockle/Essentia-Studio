@@ -11,6 +11,7 @@ from essentia_studio.errors import AppError
 from essentia_studio.repositories.jobs import JobRepository
 
 JobHandler = Callable[[str, str, Event], dict[str, Any]]
+TerminalListener = Callable[[JobRecord], None]
 logger = logging.getLogger(__name__)
 
 
@@ -23,6 +24,7 @@ class JobCoordinator:
         self._active_cancellations: dict[str, Event] = {}
         self._active_lock = Lock()
         self._thread: Thread | None = None
+        self._terminal_listeners: list[TerminalListener] = []
 
     def start(self) -> None:
         if self._thread is not None:
@@ -34,6 +36,9 @@ class JobCoordinator:
         if self._thread is not None:
             raise RuntimeError("Job handlers must be registered before the coordinator starts")
         self._handlers[job_type] = handler
+
+    def add_terminal_listener(self, listener: TerminalListener) -> None:
+        self._terminal_listeners.append(listener)
 
     def stop(self) -> None:
         self._shutdown.set()
@@ -106,7 +111,8 @@ class JobCoordinator:
                 self._process_item(job_id, item.id, item.value, handler, cancellation)
             self._finish_job(job_id, cancellation)
         except Exception:
-            self._repository.finalize(job_id, JobStatus.FAILED)
+            finalized = self._repository.finalize(job_id, JobStatus.FAILED)
+            self._notify_terminal(finalized)
             logger.exception("Job %s failed before item-level recovery", job_id)
         finally:
             with self._active_lock:
@@ -134,4 +140,12 @@ class JobCoordinator:
             status = JobStatus.COMPLETED_WITH_ERRORS
         else:
             status = JobStatus.COMPLETED
-        self._repository.finalize(job_id, status)
+        finalized = self._repository.finalize(job_id, status)
+        self._notify_terminal(finalized)
+
+    def _notify_terminal(self, job: JobRecord) -> None:
+        for listener in self._terminal_listeners:
+            try:
+                listener(job)
+            except Exception:
+                logger.exception("Terminal listener failed for job %s", job.id)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from threading import Lock
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 from essentia_studio.schemas.automation import AutomationStatus
@@ -17,6 +18,22 @@ class AutomationStatusStore:
         self._watcher_failed = False
         self._last_run: datetime | None = None
         self._last_error: str | None = None
+
+    def set_watcher_health(
+        self,
+        health: Literal["disabled", "starting", "ready", "failed"],
+        reason: str | None = None,
+    ) -> None:
+        with self._lock:
+            self._watcher_health = health
+            self._watcher_failed = health == "failed"
+            if reason is not None:
+                self._last_error = reason
+
+    def record_run(self, error: str | None = None) -> None:
+        with self._lock:
+            self._last_run = datetime.now(timezone.utc)
+            self._last_error = error
 
     def snapshot(self) -> AutomationStatus:
         automation = self._settings.load().values.automation

@@ -97,3 +97,13 @@ def test_migrate_legacy_writes_once_without_overwriting_yaml(tmp_path: Path) -> 
     preserved = service.migrate_legacy(AnalysisSettings(workers=2))
 
     assert preserved.values.analysis.workers == 6
+
+
+def test_update_rejects_invalid_schedule_before_writing(tmp_path: Path) -> None:
+    path = tmp_path / "settings.yaml"
+    service = SettingsService(path, {})
+
+    with pytest.raises(AppError, match="Cron"):
+        service.update({"automation": {"schedule": "0 0 31 2 *"}})
+
+    assert not path.exists()

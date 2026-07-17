@@ -5,6 +5,7 @@ from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
+from essentia_studio.services.automation import AutomationService
 from essentia_studio.services.automation_status import AutomationStatusStore
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
@@ -19,6 +20,10 @@ def get_settings_service(request: Request) -> SettingsService:
 
 def get_automation_status_store(request: Request) -> AutomationStatusStore:
     return request.app.state.automation_status_store
+
+
+def get_automation_service(request: Request) -> AutomationService:
+    return request.app.state.automation_service
 
 
 def get_capability_service(request: Request) -> CapabilityService:

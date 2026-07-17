@@ -4,7 +4,7 @@ from uuid import uuid4
 from sqlalchemy import Engine, text
 
 from essentia_studio.domain.tracks import TrackFingerprint
-from essentia_studio.domain.writes import WriteOperation, WriteStatus
+from essentia_studio.domain.writes import WriteOperation, WriteStatus, WriteTrigger
 from essentia_studio.tags.protocol import ManagedTagSnapshot
 
 
@@ -17,6 +17,7 @@ class WriteRepository:
         result_id: str,
         relative_path: str,
         snapshot: ManagedTagSnapshot,
+        trigger: WriteTrigger = "manual",
     ) -> WriteOperation:
         operation_id = str(uuid4())
         with self._engine.begin() as connection:
@@ -24,8 +25,8 @@ class WriteRepository:
                 text(
                     """
                     INSERT INTO write_operations (
-                      id, result_id, relative_path, status, original_snapshot
-                    ) VALUES (:id, :result_id, :relative_path, 'started', :snapshot)
+                      id, result_id, relative_path, status, original_snapshot, trigger
+                    ) VALUES (:id, :result_id, :relative_path, 'started', :snapshot, :trigger)
                     """
                 ),
                 {
@@ -35,6 +36,7 @@ class WriteRepository:
                     "snapshot": json.dumps(
                         {"format": snapshot.format, "fields": snapshot.fields}
                     ),
+                    "trigger": trigger,
                 },
             )
         return self.get(operation_id)
@@ -46,6 +48,7 @@ class WriteRepository:
         status: WriteStatus,
         error_code: str,
         error_message: str,
+        trigger: WriteTrigger = "manual",
     ) -> WriteOperation:
         operation_id = str(uuid4())
         with self._engine.begin() as connection:
@@ -53,8 +56,10 @@ class WriteRepository:
                 text(
                     """
                     INSERT INTO write_operations (
-                      id, result_id, relative_path, status, error_code, error_message
-                    ) VALUES (:id, :result_id, :relative_path, :status, :code, :message)
+                      id, result_id, relative_path, status, error_code, error_message, trigger
+                    ) VALUES (
+                      :id, :result_id, :relative_path, :status, :code, :message, :trigger
+                    )
                     """
                 ),
                 {
@@ -64,6 +69,7 @@ class WriteRepository:
                     "status": status,
                     "code": error_code,
                     "message": error_message,
+                    "trigger": trigger,
                 },
             )
         return self.get(operation_id)
@@ -144,4 +150,5 @@ class WriteRepository:
             post_write_fingerprint=fingerprint,
             error_code=row.error_code,
             error_message=row.error_message,
+            trigger=row.trigger,
         )

@@ -80,6 +80,17 @@ class ResultRepository:
             ).one()
         return self._from_row(row)
 
+    def for_job(self, job_id: str) -> list[StoredAnalysis]:
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                text(
+                    self._result_select("analysis_results")
+                    + " WHERE ar.job_id = :job_id ORDER BY lt.relative_path, ar.id"
+                ),
+                {"job_id": job_id},
+            ).all()
+        return [self._from_row(row) for row in rows]
+
     def query(
         self,
         filters: dict[str, object],

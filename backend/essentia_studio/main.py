@@ -31,6 +31,7 @@ from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.analysis_jobs import AnalysisJobService
+from essentia_studio.services.automation import AutomationService
 from essentia_studio.services.automation_status import AutomationStatusStore
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
@@ -95,13 +96,16 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             runtime_config.music_root,
         )
 
-        def scan_handler(_job_id: str, _value: str, cancelled: Event) -> dict[str, int]:
-            if cancelled.is_set():
-                return {"scanned": 0, "present": 0, "missing": 0}
-            summary = track_repository.replace_scan(
+        def refresh_library():
+            return track_repository.replace_scan(
                 scan_music_root(runtime_config.music_root, metadata_service),
                 datetime.now(timezone.utc),
             )
+
+        def scan_handler(_job_id: str, _value: str, cancelled: Event) -> dict[str, int]:
+            if cancelled.is_set():
+                return {"scanned": 0, "present": 0, "missing": 0}
+            summary = refresh_library()
             return asdict(summary)
 
         def analysis_handler(job_id: str, relative_path: str, _cancelled: Event) -> dict[str, str]:
@@ -117,10 +121,24 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
                 JobType.ANALYSIS: analysis_handler,
             },
         )
+        automation_status_store = AutomationStatusStore(settings_service)
+        automation_service = AutomationService(
+            settings=settings_service,
+            tracks=track_repository,
+            states=track_state_service,
+            coordinator=job_coordinator,
+            results=result_repository,
+            tag_operations=tag_operation_service,
+            refresh_library=refresh_library,
+            music_root=runtime_config.music_root,
+            playlist_dir=runtime_config.playlist_dir,
+            status_store=automation_status_store,
+        )
         app.state.config = runtime_config
         app.state.engine = engine
         app.state.settings_service = settings_service
-        app.state.automation_status_store = AutomationStatusStore(settings_service)
+        app.state.automation_status_store = automation_status_store
+        app.state.automation_service = automation_service
         app.state.track_repository = track_repository
         app.state.track_state_service = track_state_service
         app.state.job_repository = job_repository
@@ -134,7 +152,9 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.analysis_backend = analysis_backend
         app.state.capability_service = CapabilityService(runtime_config, analysis_backend)
         job_coordinator.start()
+        automation_service.start()
         yield
+        automation_service.stop()
         job_coordinator.stop()
         if isinstance(analysis_backend, ProcessAnalysisBackend):
             analysis_backend.close()
