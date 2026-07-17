@@ -186,10 +186,10 @@ export function WorkbenchView() {
     })
   }
 
-  function finishWrite(summary: WriteJobSummary) {
+  async function finishWrite(summary: WriteJobSummary) {
     setShowPreview(false)
     setStatusMessage(`${summary.verified} verifiziert`)
-    refresh()
+    await Promise.all([refresh(), refreshLibrary()])
   }
 
   return (

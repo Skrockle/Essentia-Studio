@@ -17,8 +17,19 @@ test('scan, analyze, edit, selectively write, and undo', async ({ page }) => {
   await page.getByRole('checkbox', { name: 'song-one.wav auswählen' }).check()
   await page.getByRole('button', { name: '1 Titel schreiben' }).click()
   await expect(page.getByRole('dialog', { name: 'Tag-Änderungen schreiben' })).toBeVisible()
-  await page.getByRole('button', { name: 'Schreiben bestätigen' }).click()
+  const confirmButton = page.getByRole('button', { name: 'Schreiben bestätigen' })
+  const colors = await confirmButton.evaluate((button) => {
+    const style = getComputedStyle(button)
+    return { background: style.backgroundColor, foreground: style.color }
+  })
+  expect(colors.foreground).not.toBe(colors.background)
+  await confirmButton.click()
   await expect(page.getByText('1 verifiziert')).toBeVisible()
+
+  await expect(page.getByRole('checkbox', { name: 'song-one.wav analysieren' })).toHaveCount(0)
+  await page.getByText('Filter', { exact: true }).click()
+  await page.getByLabel('Vollständig geschriebene anzeigen').check()
+  await expect(page.getByRole('checkbox', { name: 'song-one.wav analysieren' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Jobs & Verlauf' }).click()
   await page.getByRole('button', { name: 'Tags wiederherstellen' }).click()

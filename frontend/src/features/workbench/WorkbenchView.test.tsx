@@ -47,7 +47,10 @@ beforeEach(() => {
       if (url.includes('/api/library/tracks')) {
         return Response.json({
           items: [
-            libraryTrack(11, 'Library/one.flac'),
+            {
+              ...libraryTrack(11, 'Library/one.flac'),
+              processing_state: writeCalls > 0 ? 'written' : 'new',
+            },
             libraryTrack(12, 'Library/two.mp3'),
             ...(includeWrittenTrack
               ? [{
@@ -337,6 +340,9 @@ test('write preview starts an observable job only after explicit confirmation', 
     payload: { total_items: 1, completed_items: 1, failed_items: 0, status: 'completed' },
   })
   expect(await screen.findByText('1 verifiziert')).toBeVisible()
+  await waitFor(() => expect(
+    screen.queryByRole('checkbox', { name: 'Library/one.flac analysieren' }),
+  ).not.toBeInTheDocument())
   expect(writeCalls).toBe(1)
 })
 
