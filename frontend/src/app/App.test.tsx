@@ -30,18 +30,42 @@ beforeEach(() => {
           selected_count: 0,
         })
       }
-      return new Response(
-        JSON.stringify({
-          worker_count: 1,
-          max_audio_seconds: 300,
-          genre_threshold: 0.15,
-          mood_threshold: 0.005,
-          genre_count: 3,
-          write_confidence_tags: true,
-          overwrite_existing: false,
-          compute_preference: 'auto',
-        }),
-      )
+      if (url.endsWith('/api/automation/status')) {
+        return Response.json({
+          enabled: false,
+          trigger_mode: 'disabled',
+          watcher_health: 'disabled',
+          next_runs: [],
+          last_run: null,
+          last_error: null,
+        })
+      }
+      return Response.json({
+        values: {
+          analysis: {
+            workers: 1,
+            max_audio_seconds: 300,
+            genre_threshold: 0.15,
+            mood_threshold: 0.005,
+            genre_count: 3,
+            write_confidence_tags: true,
+            overwrite_existing: false,
+            compute: 'auto',
+          },
+          automation: {
+            enabled: false,
+            watcher: false,
+            schedule: '0 * * * *',
+            timezone: 'UTC',
+            mode: 'analyze',
+            quiet_seconds: 30,
+          },
+          benchmark: { minimum_track_seconds: 60, safety_margin_percent: 30 },
+        },
+        sources: {
+          'analysis.workers': 'env',
+        },
+      })
     }),
   )
 })
@@ -53,4 +77,6 @@ test('opens settings and explains the active CPU image', async () => {
 
   expect(await screen.findByText('CPU-Image')).toBeInTheDocument()
   expect(screen.getByText('/music')).toBeInTheDocument()
+  expect(screen.getByLabelText('Worker')).toBeDisabled()
+  expect(screen.getByText('Durch Umgebungsvariable festgelegt')).toBeVisible()
 })
