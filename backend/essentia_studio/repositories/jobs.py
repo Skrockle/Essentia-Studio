@@ -7,7 +7,14 @@ from uuid import uuid4
 
 from sqlalchemy import Engine, text
 
-from essentia_studio.domain.jobs import JobEvent, JobItem, JobRecord, JobStatus, JobType
+from essentia_studio.domain.jobs import (
+    JobEvent,
+    JobItem,
+    JobItemRecord,
+    JobRecord,
+    JobStatus,
+    JobType,
+)
 
 
 class JobRepository:
@@ -120,6 +127,30 @@ class JobRepository:
                 {"job_id": job_id},
             ).all()
         return [JobItem(row.id, row.value, row.position, row.status) for row in rows]
+
+    def list_items(self, job_id: str) -> list[JobItemRecord]:
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                text(
+                    """
+                    SELECT id, job_id, position, value, status, result, error
+                    FROM job_items WHERE job_id = :job_id ORDER BY position
+                    """
+                ),
+                {"job_id": job_id},
+            ).all()
+        return [
+            JobItemRecord(
+                id=row.id,
+                job_id=row.job_id,
+                position=row.position,
+                value=row.value,
+                status=row.status,
+                result=json.loads(row.result) if row.result is not None else None,
+                error=row.error,
+            )
+            for row in rows
+        ]
 
     def complete_item(self, job_id: str, item_id: int, result: dict[str, Any]) -> None:
         with self._engine.begin() as connection:

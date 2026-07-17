@@ -109,11 +109,26 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             stored = analysis_service.process(relative_path, options, job_id)
             return {"result_id": stored.id, "relative_path": relative_path}
 
+        def write_handler(_job_id: str, result_id: str, _cancelled: Event) -> dict[str, str]:
+            operation = tag_operation_service.write_one(result_id, "manual")
+            if operation.status != "verified":
+                raise AppError(
+                    operation.error_code or "write_not_verified",
+                    operation.error_message or "Die Tags konnten nicht verifiziert werden.",
+                    409,
+                )
+            return {
+                "operation_id": operation.id,
+                "relative_path": operation.relative_path,
+                "status": operation.status,
+            }
+
         job_coordinator = JobCoordinator(
             job_repository,
             {
                 JobType.SCAN: scan_handler,
                 JobType.ANALYSIS: analysis_handler,
+                JobType.WRITE: write_handler,
             },
         )
         benchmark_runner = _benchmark_runner(runtime_config)

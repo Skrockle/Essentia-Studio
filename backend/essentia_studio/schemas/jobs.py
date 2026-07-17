@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from essentia_studio.domain.jobs import JobEvent, JobRecord, JobStatus, JobType
+from essentia_studio.domain.jobs import JobEvent, JobItemRecord, JobRecord, JobStatus, JobType
 
 
 class JobResponse(BaseModel):
@@ -34,3 +34,19 @@ class JobEventResponse(BaseModel):
     @classmethod
     def from_record(cls, event: JobEvent) -> "JobEventResponse":
         return cls.model_validate(event)
+
+
+class JobItemResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    job_id: str
+    position: int
+    value: str
+    status: str
+    result: dict[str, Any] | None
+    error: str | None
+
+    @classmethod
+    def from_record(cls, item: JobItemRecord) -> "JobItemResponse":
+        return cls.model_validate(item)

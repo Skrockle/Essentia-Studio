@@ -68,6 +68,10 @@ def test_item_failure_does_not_stop_remaining_items(tmp_path) -> None:
     assert saved.status == JobStatus.COMPLETED_WITH_ERRORS
     assert saved.completed_items == 3
     assert saved.failed_items == 1
+    items = repository.list_items(job.id)
+    assert [item.status for item in items] == ["completed", "failed", "completed"]
+    assert items[0].result == {"path": "one.flac"}
+    assert items[1].error == "broken fixture"
 
 
 def test_analysis_job_uses_configured_parallel_workers(tmp_path) -> None:

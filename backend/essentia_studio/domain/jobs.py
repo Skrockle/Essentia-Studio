@@ -51,6 +51,17 @@ class JobItem:
 
 
 @dataclass(frozen=True, slots=True)
+class JobItemRecord:
+    id: int
+    job_id: str
+    position: int
+    value: str
+    status: str
+    result: dict[str, Any] | None
+    error: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class JobEvent:
     sequence: int
     job_id: str
