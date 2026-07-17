@@ -1,6 +1,7 @@
 import type { TagOptions } from '../../api/types'
 import type { ResultRow } from './types'
 import { TagEditor } from './TagEditor'
+import { UncertainGenreSuggestion } from './UncertainGenreSuggestion'
 import type { ResultColumn } from './viewPreferences'
 
 interface ResultTableProps {
@@ -19,6 +20,52 @@ const stateLabels = {
   changed: 'Verändert',
   written: 'Geschrieben',
   failed: 'Fehler',
+}
+
+function mergeGenres(current: string[], additions: string[]) {
+  const merged = [...current]
+  const identities = new Set(current.map((genre) => genre.toLocaleLowerCase()))
+  for (const genre of additions) {
+    const identity = genre.toLocaleLowerCase()
+    if (!identities.has(identity)) {
+      identities.add(identity)
+      merged.push(genre)
+    }
+  }
+  return merged
+}
+
+function ResultGenreEditor({
+  row,
+  options,
+  onSaveDraft,
+}: {
+  row: ResultRow
+  options: string[]
+  onSaveDraft: ResultTableProps['onSaveDraft']
+}) {
+  const uncertainPrediction = row.genres.find((prediction) => !prediction.accepted)
+
+  return (
+    <>
+      {uncertainPrediction && (
+        <UncertainGenreSuggestion
+          prediction={uncertainPrediction}
+          onAccept={(genres) => onSaveDraft(
+            row,
+            mergeGenres(row.draft.genres, genres),
+            row.draft.moods,
+          )}
+        />
+      )}
+      <TagEditor
+        kind="Genre"
+        options={options}
+        values={row.draft.genres}
+        onChange={(genres) => onSaveDraft(row, genres, row.draft.moods)}
+      />
+    </>
+  )
 }
 
 function ResultStatus({ row }: { row: ResultRow }) {
@@ -81,11 +128,10 @@ export function ResultTable({
               {visibleColumns.includes('title') && <td><strong className="track-title">{row.title}</strong></td>}
               {visibleColumns.includes('file') && <td><code className="track-path">{row.relative_path}</code></td>}
               {visibleColumns.includes('genres') && <td>
-                <TagEditor
-                  kind="Genre"
+                <ResultGenreEditor
+                  row={row}
                   options={tagOptions.genres}
-                  values={row.draft.genres}
-                  onChange={(genres) => onSaveDraft(row, genres, row.draft.moods)}
+                  onSaveDraft={onSaveDraft}
                 />
               </td>}
               {visibleColumns.includes('moods') && <td>

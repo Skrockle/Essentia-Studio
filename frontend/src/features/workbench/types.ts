@@ -1,6 +1,7 @@
 export interface Prediction {
   label: string
   confidence: number
+  accepted: boolean
 }
 
 export interface Draft {

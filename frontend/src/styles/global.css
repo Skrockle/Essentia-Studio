@@ -591,6 +591,54 @@ code,
   min-width: 190px;
 }
 
+.uncertain-genre {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--warning) 38%, var(--line));
+  border-radius: var(--radius-sm);
+  color: var(--warning);
+  background: var(--warning-surface);
+  font-size: 10px;
+}
+
+.uncertain-genre__heading,
+.uncertain-genre__tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.uncertain-genre__heading {
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  font-weight: 800;
+}
+
+.uncertain-genre__tags span {
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--warning) 13%, var(--surface));
+  font-weight: 700;
+}
+
+.uncertain-genre > button {
+  align-self: end;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid currentcolor;
+  border-radius: 7px;
+  color: var(--warning);
+  background: var(--control-surface);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .tag-editor__chips {
   display: flex;
   flex-wrap: wrap;

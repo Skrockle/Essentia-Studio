@@ -196,7 +196,7 @@ export function SettingsView() {
             <SettingField id="max-audio-seconds" label="Maximale Audiolänge" explanation="Begrenzt den pro Titel ausgewerteten Audioausschnitt. Kürzere Werte sparen Zeit, können aber weniger repräsentativ sein." source={sources['analysis.max_audio_seconds']}>
               <span className="input-with-unit"><input id="max-audio-seconds" min="1" max="3600" type="number" value={analysis.max_audio_seconds} disabled={sources['analysis.max_audio_seconds'] === 'env'} onChange={(event) => updateAnalysis({ max_audio_seconds: Number(event.target.value) })} /><span>Sek.</span></span>
             </SettingField>
-            <SettingField id="genre-count" label="Anzahl Genres" explanation="Maximale Zahl der Genre-Vorschläge, die pro Titel übernommen werden." source={sources['analysis.genre_count']}>
+            <SettingField id="genre-count" label="Maximale Genres" explanation="Obergrenze für die sichtbaren Genres nach der Aufteilung. Die Schwelle kann zu weniger Vorschlägen führen." source={sources['analysis.genre_count']}>
               <input id="genre-count" min="1" max="20" type="number" value={analysis.genre_count} disabled={sources['analysis.genre_count'] === 'env'} onChange={(event) => updateAnalysis({ genre_count: Number(event.target.value) })} />
             </SettingField>
             <SettingField id="genre-threshold" label="Genre-Schwelle" explanation="Mindest-Vertrauenswert für ein Genre. Ein höherer Wert liefert weniger, dafür sicherere Vorschläge." source={sources['analysis.genre_threshold']}>

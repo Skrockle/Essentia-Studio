@@ -81,6 +81,13 @@ test('opens settings and explains the active CPU image', async () => {
   expect(screen.getByText('Durch Umgebungsvariable festgelegt')).toBeVisible()
   expect(screen.getByLabelText('Genre-Schwelle')).toHaveValue(25)
   expect(screen.getByLabelText('Mood-Schwelle')).toHaveValue(10)
+  expect(screen.getByLabelText('Maximale Genres')).toHaveValue(3)
+  await userEvent.hover(
+    screen.getByRole('button', { name: 'Erklärung zu Maximale Genres' }),
+  )
+  expect(screen.getByRole('tooltip')).toHaveTextContent(
+    'Die Schwelle kann zu weniger Vorschlägen führen',
+  )
 })
 
 test('persists a dark theme selection and applies it to the document', async () => {

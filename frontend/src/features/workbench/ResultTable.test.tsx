@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi } from 'vitest'
 
 import { ResultTable } from './ResultTable'
@@ -77,5 +78,44 @@ describe('ResultTable status', () => {
     expect(row).not.toBeNull()
     expect(within(row as HTMLTableRowElement).getByText('Bearbeitet')).toBeVisible()
     expect(within(row as HTMLTableRowElement).queryByText('Aktuell')).not.toBeInTheDocument()
+  })
+
+  test('shows rejected genre evidence separately and accepts it into the draft', async () => {
+    const onSaveDraft = vi.fn()
+    const row = resultRow({
+      genres: [
+        {
+          label: 'Rock---Alternative Rock',
+          confidence: 0.116,
+          accepted: false,
+        },
+      ],
+      draft: {
+        genres: [],
+        moods: ['Calm'],
+        selected: false,
+        dirty: false,
+      },
+    })
+    render(
+      <ResultTable
+        allSelected={false}
+        onSaveDraft={onSaveDraft}
+        onSelectAll={vi.fn()}
+        onSelectRow={vi.fn()}
+        rows={[row]}
+        tagOptions={{ genres: ['Rock', 'Alternative Rock'], moods: ['Calm'] }}
+        visibleColumns={['artist', 'title', 'file', 'genres', 'moods', 'status']}
+      />,
+    )
+
+    expect(screen.getByText('Unter der Schwelle')).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: 'Unsichere Genres übernehmen' }))
+
+    expect(onSaveDraft).toHaveBeenCalledWith(
+      row,
+      ['Rock', 'Alternative Rock'],
+      ['Calm'],
+    )
   })
 })

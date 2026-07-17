@@ -376,8 +376,8 @@ function resultRow(name: string) {
     duration_seconds: 180,
     metadata_source: 'embedded',
     processing_state: 'current',
-    genres: [{ label: 'Electronic---House', confidence: 0.9 }],
-    moods: [{ label: 'moodtheme---happy', confidence: 0.8 }],
+    genres: [{ label: 'Electronic---House', confidence: 0.9, accepted: true }],
+    moods: [{ label: 'moodtheme---happy', confidence: 0.8, accepted: true }],
     draft: {
       genres: ['Electronic; House', ...(ambientAdded ? ['Ambient'] : [])],
       moods: ['Happy'],
