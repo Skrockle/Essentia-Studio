@@ -5,7 +5,7 @@ from sqlalchemy import Engine, text
 
 from essentia_studio.domain.tracks import TrackFingerprint
 from essentia_studio.domain.writes import WriteOperation, WriteStatus, WriteTrigger
-from essentia_studio.tags.protocol import ManagedTagSnapshot
+from essentia_studio.tags.protocol import DesiredTags, ManagedTagSnapshot
 
 
 class WriteRepository:
@@ -17,6 +17,7 @@ class WriteRepository:
         result_id: str,
         relative_path: str,
         snapshot: ManagedTagSnapshot,
+        requested_tags: DesiredTags,
         trigger: WriteTrigger = "manual",
     ) -> WriteOperation:
         operation_id = str(uuid4())
@@ -25,8 +26,12 @@ class WriteRepository:
                 text(
                     """
                     INSERT INTO write_operations (
-                      id, result_id, relative_path, status, original_snapshot, trigger
-                    ) VALUES (:id, :result_id, :relative_path, 'started', :snapshot, :trigger)
+                      id, result_id, relative_path, status, original_snapshot,
+                      requested_tags, trigger
+                    ) VALUES (
+                      :id, :result_id, :relative_path, 'started', :snapshot,
+                      :requested_tags, :trigger
+                    )
                     """
                 ),
                 {
@@ -36,7 +41,70 @@ class WriteRepository:
                     "snapshot": json.dumps(
                         {"format": snapshot.format, "fields": snapshot.fields}
                     ),
+                    "requested_tags": json.dumps(
+                        {"genres": requested_tags.genres, "moods": requested_tags.moods}
+                    ),
                     "trigger": trigger,
+                },
+            )
+        return self.get(operation_id)
+
+    def finish_verified(
+        self,
+        operation_id: str,
+        fingerprint: TrackFingerprint,
+    ) -> WriteOperation:
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE write_operations SET
+                      status = 'verified',
+                      post_write_size = :size,
+                      post_write_mtime_ns = :mtime_ns,
+                      error_code = NULL,
+                      error_message = NULL,
+                      updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id
+                    """
+                ),
+                {
+                    "id": operation_id,
+                    "size": fingerprint.size,
+                    "mtime_ns": fingerprint.mtime_ns,
+                },
+            )
+            connection.execute(
+                text(
+                    """
+                    UPDATE tag_drafts
+                    SET selected = 0, updated_at = CURRENT_TIMESTAMP
+                    WHERE result_id = (
+                      SELECT result_id FROM write_operations WHERE id = :id
+                    )
+                    """
+                ),
+                {"id": operation_id},
+            )
+            connection.execute(
+                text(
+                    """
+                    UPDATE library_tracks
+                    SET size = :size, mtime_ns = :mtime_ns,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = (
+                      SELECT analysis_results.track_id
+                      FROM analysis_results
+                      JOIN write_operations
+                        ON write_operations.result_id = analysis_results.id
+                      WHERE write_operations.id = :id
+                    )
+                    """
+                ),
+                {
+                    "id": operation_id,
+                    "size": fingerprint.size,
+                    "mtime_ns": fingerprint.mtime_ns,
                 },
             )
         return self.get(operation_id)
@@ -136,6 +204,12 @@ class WriteRepository:
             if snapshot_data
             else None
         )
+        requested_data = json.loads(row.requested_tags) if row.requested_tags else None
+        requested_tags = (
+            DesiredTags(requested_data["genres"], requested_data["moods"])
+            if requested_data
+            else None
+        )
         fingerprint = (
             TrackFingerprint(row.post_write_size, row.post_write_mtime_ns)
             if row.post_write_size is not None
@@ -147,6 +221,7 @@ class WriteRepository:
             relative_path=row.relative_path,
             status=row.status,
             original_snapshot=snapshot,
+            requested_tags=requested_tags,
             post_write_fingerprint=fingerprint,
             error_code=row.error_code,
             error_message=row.error_message,

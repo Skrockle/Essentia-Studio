@@ -19,6 +19,21 @@ const stateLabels = {
   failed: 'Fehler',
 }
 
+function ResultStatus({ row }: { row: ResultRow }) {
+  if (row.processing_state === 'current') {
+    return (
+      <span className="draft-state" data-dirty={row.draft.dirty}>
+        {row.draft.dirty ? 'Bearbeitet' : 'Vorschlag'}
+      </span>
+    )
+  }
+  return (
+    <span className="processing-state" data-state={row.processing_state}>
+      {stateLabels[row.processing_state]}
+    </span>
+  )
+}
+
 export function ResultTable({
   rows,
   allSelected,
@@ -77,12 +92,7 @@ export function ResultTable({
                 />
               </td>}
               {visibleColumns.includes('status') && <td>
-                <span className="draft-state" data-dirty={row.draft.dirty}>
-                  {row.draft.dirty ? 'Bearbeitet' : 'Vorschlag'}
-                </span>
-                <span className="processing-state" data-state={row.processing_state}>
-                  {stateLabels[row.processing_state]}
-                </span>
+                <ResultStatus row={row} />
               </td>}
             </tr>
           ))}

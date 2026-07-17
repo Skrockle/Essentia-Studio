@@ -39,8 +39,14 @@ class TagOperationService:
 
         adapter = self._registry.for_path(path)
         snapshot = adapter.read(path)
-        operation = self._writes.start(result.id, result.relative_path, snapshot, trigger)
         desired = DesiredTags(result.draft.genres, result.draft.moods)
+        operation = self._writes.start(
+            result.id,
+            result.relative_path,
+            snapshot,
+            desired,
+            trigger,
+        )
         try:
             adapter.write(path, desired, self._overwrite_existing)
             written = adapter.read(path)
@@ -51,7 +57,7 @@ class TagOperationService:
                     error_code="write_verification_failed",
                     error_message="Die geschriebenen Tags konnten nicht bestätigt werden.",
                 )
-            return self._writes.finish(operation.id, "verified", self._fingerprint(path))
+            return self._writes.finish_verified(operation.id, self._fingerprint(path))
         except Exception as error:
             return self._writes.finish(
                 operation.id,

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from essentia_studio.domain.tracks import TrackFingerprint
-from essentia_studio.tags.protocol import ManagedTagSnapshot
+from essentia_studio.tags.protocol import DesiredTags, ManagedTagSnapshot
 
 WriteStatus = Literal["started", "verified", "conflict", "failed", "undone"]
 WriteTrigger = Literal["manual", "automation"]
@@ -15,6 +15,7 @@ class WriteOperation:
     relative_path: str
     status: WriteStatus
     original_snapshot: ManagedTagSnapshot | None = None
+    requested_tags: DesiredTags | None = None
     post_write_fingerprint: TrackFingerprint | None = None
     error_code: str | None = None
     error_message: str | None = None
