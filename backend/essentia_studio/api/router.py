@@ -9,6 +9,7 @@ from essentia_studio.api.routes import (
     playlists,
     results,
     settings,
+    tag_options,
     writes,
 )
 
@@ -22,3 +23,4 @@ router.include_router(analysis.router)
 router.include_router(results.router)
 router.include_router(writes.router)
 router.include_router(playlists.router)
+router.include_router(tag_options.router)

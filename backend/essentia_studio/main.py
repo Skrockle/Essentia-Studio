@@ -43,6 +43,7 @@ from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.metadata import MetadataService
 from essentia_studio.services.scanner import scan_music_root
 from essentia_studio.services.settings import SettingsService
+from essentia_studio.services.tag_catalog import TagCatalogService
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.services.track_state import TrackStateService
 from essentia_studio.tags.registry import TagAdapterRegistry
@@ -56,6 +57,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         apply_migrations(engine)
         settings_repository = SettingsRepository(engine)
+        tag_catalog_service = TagCatalogService(runtime_config.model_dir)
         settings_service = SettingsService(runtime_config.settings_path)
         application_settings = settings_service.migrate_legacy(settings_repository.get()).values
         track_repository = TrackRepository(engine)
@@ -179,6 +181,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.config = runtime_config
         app.state.engine = engine
         app.state.settings_service = settings_service
+        app.state.tag_catalog_service = tag_catalog_service
         app.state.automation_status_store = automation_status_store
         app.state.automation_service = automation_service
         app.state.benchmark_service = benchmark_service

@@ -12,6 +12,7 @@ from essentia_studio.services.benchmarks import BenchmarkService
 from essentia_studio.services.capabilities import CapabilityService
 from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.settings import SettingsService
+from essentia_studio.services.tag_catalog import TagCatalogService
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.services.track_state import TrackStateService
 
@@ -70,3 +71,7 @@ def get_tag_operation_service(request: Request) -> TagOperationService:
 
 def get_playlist_storage(request: Request) -> PlaylistStorage:
     return request.app.state.playlist_storage
+
+
+def get_tag_catalog_service(request: Request) -> TagCatalogService:
+    return request.app.state.tag_catalog_service
