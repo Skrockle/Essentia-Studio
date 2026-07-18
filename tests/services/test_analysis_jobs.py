@@ -17,7 +17,7 @@ class FakeAnalysisBackend:
             model_ids=["fake-genre", "fake-mood"],
         )
 
-    def analyze(self, _path, _options) -> AnalysisResult:
+    def analyze(self, _path, _options, _cancellation=None) -> AnalysisResult:
         return self._result
 
 

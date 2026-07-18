@@ -1,4 +1,5 @@
 from pathlib import Path
+from threading import Event
 
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult, Prediction
 
@@ -15,7 +16,12 @@ class FakeAnalysisBackend:
     def available_compute(self) -> list[str]:
         return ["cpu"]
 
-    def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
+    def analyze(
+        self,
+        path: Path,
+        options: AnalysisOptions,
+        cancellation: Event | None = None,
+    ) -> AnalysisResult:
         genres = self._genres(path) if options.enable_genres else []
         moods = [Prediction("moodtheme---happy", 0.84)] if options.enable_moods else []
         return AnalysisResult(

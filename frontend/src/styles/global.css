@@ -2076,13 +2076,14 @@ select:hover {
 .job-status {
   position: fixed;
   z-index: 25;
-  right: 20px;
   bottom: 18px;
-  left: max(20px, calc(236px + (100vw - 236px - 1440px) / 2 + 24px));
-  border: 1px solid #b8c9f4;
+  left: calc(236px + (100vw - 236px) / 2);
+  width: min(calc(100vw - 276px), 1440px);
+  transform: translateX(-50%);
+  border: 1px solid var(--selection-line);
   border-radius: var(--radius-md);
-  background: rgb(255 255 255 / 96%);
-  box-shadow: 0 18px 46px rgb(18 36 58 / 18%);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow-panel);
   backdrop-filter: blur(12px);
 }
 
@@ -2132,7 +2133,8 @@ select:hover {
 }
 
 .job-status__cancel,
-.job-status__toggle {
+.job-status__toggle,
+.job-status__detail-cancel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2140,7 +2142,8 @@ select:hover {
   min-height: 34px;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: white;
+  color: var(--ink);
+  background: var(--control-surface);
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
@@ -2164,11 +2167,23 @@ select:hover {
   color: var(--ink-muted);
 }
 
+.job-status__detail-cancel {
+  min-height: 27px;
+  padding: 0 8px;
+  color: var(--danger);
+  font-size: 11px;
+}
+
+.job-status__detail-cancel:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
 .job-status__track {
   height: 3px;
   overflow: hidden;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
-  background: #e4ebfb;
+  background: var(--surface-subtle);
 }
 
 .job-status__track > span {
@@ -2188,8 +2203,9 @@ select:hover {
 }
 
 .job-status__details div {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) auto auto;
+  align-items: center;
   gap: 16px;
 }
 
@@ -2320,9 +2336,9 @@ select:hover {
   }
 
   .job-status {
-    right: 10px;
     bottom: 10px;
-    left: 10px;
+    left: 50%;
+    width: calc(100vw - 20px);
   }
 
   .job-status__bar {
@@ -2339,6 +2355,20 @@ select:hover {
 
   .job-status__cancel {
     padding: 0 8px;
+  }
+
+  .job-status__details div {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .job-status__details div > span:nth-child(2) {
+    grid-column: 1;
+  }
+
+  .job-status__detail-cancel {
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
 
   .workbench-hero,

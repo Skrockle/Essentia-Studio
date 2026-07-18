@@ -106,10 +106,10 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             summary = refresh_library()
             return asdict(summary)
 
-        def analysis_handler(job_id: str, relative_path: str, _cancelled: Event) -> dict[str, str]:
+        def analysis_handler(job_id: str, relative_path: str, cancelled: Event) -> dict[str, str]:
             job = job_repository.get(job_id)
             options = AnalysisOptions(**job.configuration["analysis"])
-            stored = analysis_service.process(relative_path, options, job_id)
+            stored = analysis_service.process(relative_path, options, job_id, cancelled)
             return {"result_id": stored.id, "relative_path": relative_path}
 
         def write_handler(_job_id: str, result_id: str, _cancelled: Event) -> dict[str, str]:
@@ -134,6 +134,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
                 JobType.WRITE: write_handler,
             },
         )
+        job_coordinator.register_cancellation_handler(JobType.ANALYSIS, pool_manager.cancel)
         benchmark_runner = _benchmark_runner(runtime_config)
         benchmark_service = BenchmarkService(
             settings=settings_service,

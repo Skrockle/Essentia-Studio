@@ -18,7 +18,7 @@ class PathAwareRecoveryBackend:
     def __init__(self, generation: int):
         self.generation = generation
 
-    def analyze(self, path: Path, _options: AnalysisOptions) -> AnalysisResult:
+    def analyze(self, path: Path, _options: AnalysisOptions, _cancellation=None) -> AnalysisResult:
         if path.name == "bad.flac":
             raise BrokenProcessPool("worker exited")
         return AnalysisResult(model_ids=[f"generation-{self.generation}"])
@@ -191,6 +191,36 @@ def test_analysis_job_uses_configured_parallel_workers(tmp_path) -> None:
 
     assert maximum_active == 2
     assert repository.get(job.id).status == JobStatus.COMPLETED
+
+
+def test_cancel_running_job_invokes_registered_cancellation_hook(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+    started = Event()
+    release = Event()
+    hook_called = Event()
+
+    def handler(_job_id: str, _item: str, cancelled: Event) -> dict[str, str]:
+        started.set()
+        release.wait(timeout=2)
+        assert cancelled.is_set()
+        return {"status": "cancelled"}
+
+    coordinator = JobCoordinator(repository, {JobType.ANALYSIS: handler})
+    coordinator.register_cancellation_handler(JobType.ANALYSIS, hook_called.set)
+    job = coordinator.submit(JobType.ANALYSIS, ["song.flac"], {})
+    thread = Thread(target=coordinator.run_next_for_test)
+    thread.start()
+
+    assert started.wait(timeout=1)
+    cancelled = coordinator.cancel(job.id)
+    release.set()
+    thread.join(timeout=2)
+
+    assert hook_called.wait(timeout=1)
+    assert cancelled.cancel_requested is True
+    assert repository.get(job.id).status == JobStatus.CANCELLED
 
 
 def test_repeated_worker_crash_does_not_stop_later_job_items(tmp_path) -> None:

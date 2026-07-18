@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from dataclasses import asdict
-from threading import Event
+from threading import Event, Lock
 
 from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.benchmark.resources import (
@@ -53,34 +53,36 @@ class BenchmarkService:
         self._gpu_devices = list(gpu_devices)
         self._resource_probe = resource_probe
         self._pool_manager = pool_manager
+        self._submit_lock = Lock()
 
     def submit(self) -> JobRecord:
-        if self._jobs.has_active():
-            raise AppError(
-                "benchmark_system_busy",
-                "Der Benchmark kann erst starten, wenn alle Jobs beendet sind.",
-                409,
+        with self._submit_lock:
+            if self._jobs.has_active():
+                raise AppError(
+                    "benchmark_system_busy",
+                    "Der Benchmark kann erst starten, wenn alle Jobs beendet sind.",
+                    409,
+                )
+            settings = self._settings.load().values
+            tracks, _total = self._tracks.query(present=True, page=1, page_size=1_000_000)
+            sample = select_sample(tracks, settings.benchmark.minimum_track_seconds)
+            snapshot = self.environment_snapshot()
+            run = self._repository.create(
+                snapshot=snapshot,
+                sample_track_id=sample.id,
+                sample_relative_path=sample.relative_path,
+                sample_seconds=60,
             )
-        settings = self._settings.load().values
-        tracks, _total = self._tracks.query(present=True, page=1, page_size=1_000_000)
-        sample = select_sample(tracks, settings.benchmark.minimum_track_seconds)
-        snapshot = self.environment_snapshot()
-        run = self._repository.create(
-            snapshot=snapshot,
-            sample_track_id=sample.id,
-            sample_relative_path=sample.relative_path,
-            sample_seconds=60,
-        )
-        options = self._analysis_options()
-        return self._coordinator.submit(
-            JobType.BENCHMARK,
-            [sample.relative_path],
-            {
-                "run_id": run.id,
-                "analysis": asdict(options),
-                "compute_modes": self._available_compute or ["cpu"],
-            },
-        )
+            options = self._analysis_options()
+            return self._coordinator.submit(
+                JobType.BENCHMARK,
+                [sample.relative_path],
+                {
+                    "run_id": run.id,
+                    "analysis": asdict(options),
+                    "compute_modes": self._available_compute or ["cpu"],
+                },
+            )
 
     def execute(
         self,

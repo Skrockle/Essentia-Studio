@@ -1,6 +1,7 @@
 import json
 from importlib.resources import files
 from pathlib import Path
+from threading import Event
 from typing import Any
 
 import numpy as np
@@ -35,7 +36,14 @@ class EssentiaBackend:
     def initialize(self) -> None:
         self._load_models()
 
-    def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
+    def analyze(
+        self,
+        path: Path,
+        options: AnalysisOptions,
+        cancellation: Event | None = None,
+    ) -> AnalysisResult:
+        if cancellation is not None and cancellation.is_set():
+            return AnalysisResult(model_ids=[])
         models = self._load_models()
         audio = models["MonoLoader"](
             filename=str(path),
@@ -46,11 +54,14 @@ class EssentiaBackend:
         embeddings = models["embedding"](audio[:max_samples])
         genres = self._predict_genres(models, embeddings, options) if options.enable_genres else []
         moods = self._predict_moods(models, embeddings, options) if options.enable_moods else []
-        return AnalysisResult(
+        result = AnalysisResult(
             genres=genres,
             moods=moods,
             model_ids=[model["name"] for model in self._manifest],
         )
+        if cancellation is not None and cancellation.is_set():
+            return AnalysisResult(model_ids=[])
+        return result
 
     def _load_models(self) -> dict[str, Any]:
         if self._loaded is not None:

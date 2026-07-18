@@ -46,6 +46,17 @@ def test_benchmark_is_manual_job_and_does_not_change_settings(client) -> None:
     assert [measurement["compute"] for measurement in runs[0]["measurements"]] == ["cpu"]
 
 
+def test_benchmark_can_start_again_after_previous_run_finishes(client) -> None:
+    _add_sample(client)
+
+    first = client.post("/api/benchmarks").json()
+    assert _wait_for_job(client, first["id"])["status"] == "completed"
+    second = client.post("/api/benchmarks")
+
+    assert second.status_code == 202
+    assert _wait_for_job(client, second.json()["id"])["status"] == "completed"
+
+
 def test_benchmark_requires_a_long_enough_sample(client) -> None:
     response = client.post("/api/benchmarks")
 

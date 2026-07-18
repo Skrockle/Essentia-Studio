@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
-from threading import Condition, RLock
+from threading import Condition, Event, RLock
 
 from essentia_studio.analysis.protocol import AnalysisBackend
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
@@ -22,11 +22,16 @@ class WorkerPoolManager:
         self._active = 0
         self._backend = factory(settings)
 
-    def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
+    def analyze(
+        self,
+        path: Path,
+        options: AnalysisOptions,
+        cancellation: Event | None = None,
+    ) -> AnalysisResult:
         with self._lock:
             self._active += 1
         try:
-            return self._analyze_with_recovery(path, options)
+            return self._analyze_with_recovery(path, options, cancellation)
         finally:
             with self._idle:
                 self._active -= 1
@@ -36,13 +41,20 @@ class WorkerPoolManager:
         self,
         path: Path,
         options: AnalysisOptions,
+        cancellation: Event | None,
     ) -> AnalysisResult:
         for attempt in range(2):
             with self._lock:
                 backend = self._backend
             try:
-                return backend.analyze(path, options)
+                return backend.analyze(path, options, cancellation)
             except BrokenProcessPool as error:
+                if cancellation is not None and cancellation.is_set():
+                    raise AppError(
+                        "analysis_cancelled",
+                        "Die Analyse wurde abgebrochen.",
+                        409,
+                    ) from error
                 self._discard_broken(backend)
                 if attempt == 1:
                     raise AppError(
@@ -52,6 +64,13 @@ class WorkerPoolManager:
                         500,
                     ) from error
         raise AssertionError("unreachable")
+
+    def cancel(self) -> None:
+        with self._lock:
+            backend = self._backend
+        cancel = getattr(backend, "cancel", None)
+        if cancel is not None:
+            cancel()
 
     def reconfigure(self, settings: AnalysisSettings) -> None:
         with self._lock:

@@ -13,6 +13,7 @@ from essentia_studio.repositories.jobs import JobRepository
 
 JobHandler = Callable[[str, str, Event], dict[str, Any]]
 TerminalListener = Callable[[JobRecord], None]
+Canceller = Callable[[], None]
 logger = logging.getLogger(__name__)
 
 
@@ -29,6 +30,8 @@ class JobCoordinator:
         self._queue: Queue[str] = Queue()
         self._shutdown = Event()
         self._active_cancellations: dict[str, Event] = {}
+        self._active_job_types: dict[str, JobType] = {}
+        self._cancellation_handlers: dict[JobType, Canceller] = {}
         self._active_lock = Lock()
         self._thread: Thread | None = None
         self._terminal_listeners: list[TerminalListener] = []
@@ -43,6 +46,13 @@ class JobCoordinator:
         if self._thread is not None:
             raise RuntimeError("Job handlers must be registered before the coordinator starts")
         self._handlers[job_type] = handler
+
+    def register_cancellation_handler(self, job_type: JobType, handler: Canceller) -> None:
+        if self._thread is not None:
+            raise RuntimeError(
+                "Cancellation handlers must be registered before the coordinator starts"
+            )
+        self._cancellation_handlers[job_type] = handler
 
     def add_terminal_listener(self, listener: TerminalListener) -> None:
         self._terminal_listeners.append(listener)
@@ -68,10 +78,16 @@ class JobCoordinator:
 
     def cancel(self, job_id: str) -> JobRecord:
         self._repository.request_cancel(job_id)
+        cancellation_handler: Canceller | None = None
         with self._active_lock:
             cancellation = self._active_cancellations.get(job_id)
             if cancellation is not None:
                 cancellation.set()
+                job_type = self._active_job_types.get(job_id)
+                if job_type is not None:
+                    cancellation_handler = self._cancellation_handlers.get(job_type)
+        if cancellation_handler is not None:
+            cancellation_handler()
         return self._repository.get(job_id)
 
     def resume(self, job_id: str) -> JobRecord:
@@ -103,8 +119,10 @@ class JobCoordinator:
 
     def _run_job(self, job_id: str) -> None:
         cancellation = Event()
+        job_type = self._repository.get(job_id).type
         with self._active_lock:
             self._active_cancellations[job_id] = cancellation
+            self._active_job_types[job_id] = job_type
 
         try:
             self._repository.start(job_id)
@@ -130,6 +148,7 @@ class JobCoordinator:
         finally:
             with self._active_lock:
                 self._active_cancellations.pop(job_id, None)
+                self._active_job_types.pop(job_id, None)
 
     def _process_serial(
         self,
@@ -188,6 +207,9 @@ class JobCoordinator:
             result = handler(job_id, value, cancellation)
             self._repository.complete_item(job_id, item_id, result)
         except AppError as error:
+            if error.code == "analysis_cancelled":
+                cancellation.set()
+                return
             logger.exception(
                 "Job item failed: job_id=%s item_id=%s value=%s error_code=%s",
                 job_id,

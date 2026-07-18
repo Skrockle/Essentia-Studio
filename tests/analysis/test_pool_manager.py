@@ -17,7 +17,7 @@ class FakeBackend:
         self.release = release
         self.closed = False
 
-    def analyze(self, _path: Path, _options: AnalysisOptions) -> AnalysisResult:
+    def analyze(self, _path: Path, _options: AnalysisOptions, _cancellation=None) -> AnalysisResult:
         if self.entered is not None:
             self.entered.set()
         if self.release is not None:
@@ -39,14 +39,14 @@ class CrashingBackend(FakeBackend):
         super().__init__(workers)
         self.barrier = barrier
 
-    def analyze(self, _path: Path, _options: AnalysisOptions) -> AnalysisResult:
+    def analyze(self, _path: Path, _options: AnalysisOptions, _cancellation=None) -> AnalysisResult:
         if self.barrier is not None:
             self.barrier.wait(timeout=2)
         raise BrokenProcessPool("worker exited")
 
 
 class ValueErrorBackend(FakeBackend):
-    def analyze(self, _path: Path, _options: AnalysisOptions) -> AnalysisResult:
+    def analyze(self, _path: Path, _options: AnalysisOptions, _cancellation=None) -> AnalysisResult:
         raise ValueError("invalid audio")
 
 

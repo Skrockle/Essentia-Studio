@@ -23,7 +23,7 @@ const JobMonitorContext = createContext<JobMonitorValue | null>(null)
 
 export function JobMonitorProvider({ children }: { children: React.ReactNode }) {
   const [jobs, setJobs] = useState<JobRecord[]>([])
-  const [cancellingJobId, setCancellingJobId] = useState<string | null>(null)
+  const [cancellingJobIds, setCancellingJobIds] = useState<Set<string>>(() => new Set())
   const [etaSeconds, setEtaSeconds] = useState<number | null>(null)
   const etaByJob = useRef(new Map<string, EtaState>())
   const loadJobs = useCallback(async () => {
@@ -84,12 +84,16 @@ export function JobMonitorProvider({ children }: { children: React.ReactNode }) 
   }, [activeJob, progress])
 
   async function cancelJob(jobId: string) {
-    setCancellingJobId(jobId)
+    setCancellingJobIds((current) => new Set(current).add(jobId))
     try {
       await apiRequest(`/api/jobs/${jobId}/cancel`, { method: 'POST' })
       await loadJobs()
     } finally {
-      setCancellingJobId(null)
+      setCancellingJobIds((current) => {
+        const next = new Set(current)
+        next.delete(jobId)
+        return next
+      })
     }
   }
 
@@ -98,7 +102,7 @@ export function JobMonitorProvider({ children }: { children: React.ReactNode }) 
       {children}
       <JobStatusSlot
         activeJob={activeJob}
-        cancellingJobId={cancellingJobId}
+        cancellingJobIds={cancellingJobIds}
         etaSeconds={etaSeconds}
         jobs={jobs}
         onCancel={cancelJob}
@@ -138,13 +142,13 @@ function calculateEta(
 
 function JobStatusSlot({
   activeJob,
-  cancellingJobId,
+  cancellingJobIds,
   etaSeconds,
   jobs,
   onCancel,
 }: {
   activeJob: JobRecord | null
-  cancellingJobId: string | null
+  cancellingJobIds: ReadonlySet<string>
   etaSeconds: number | null
   jobs: JobRecord[]
   onCancel: (jobId: string) => Promise<void>
@@ -154,7 +158,7 @@ function JobStatusSlot({
   return (
     <JobStatusBar
       activeJob={activeJob}
-      cancellingJobId={cancellingJobId}
+      cancellingJobIds={cancellingJobIds}
       etaSeconds={etaSeconds}
       expanded={expanded}
       jobs={jobs}

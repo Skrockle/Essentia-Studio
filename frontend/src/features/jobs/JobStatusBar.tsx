@@ -13,7 +13,7 @@ const jobLabels: Record<JobRecord['type'], string> = {
 
 interface Props {
   activeJob: JobRecord
-  cancellingJobId?: string | null
+  cancellingJobIds?: ReadonlySet<string>
   etaSeconds: number | null
   expanded: boolean
   jobs: JobRecord[]
@@ -21,9 +21,11 @@ interface Props {
   onToggle: () => void
 }
 
+const noCancellingJobs = new Set<string>()
+
 export function JobStatusBar({
   activeJob,
-  cancellingJobId = null,
+  cancellingJobIds = noCancellingJobs,
   etaSeconds,
   expanded,
   jobs,
@@ -33,7 +35,7 @@ export function JobStatusBar({
   const percent = activeJob.total_items > 0
     ? Math.round((activeJob.completed_items / activeJob.total_items) * 100)
     : 0
-  const cancelling = cancellingJobId === activeJob.id || activeJob.cancel_requested
+  const cancelling = cancellingJobIds.has(activeJob.id) || activeJob.cancel_requested
 
   return (
     <aside className="job-status" aria-label="Aktueller Job">
@@ -81,6 +83,17 @@ export function JobStatusBar({
             <div key={job.id}>
               <span>{jobLabels[job.type]}</span>
               <span>{job.completed_items} / {job.total_items} · {job.status === 'running' ? 'läuft' : 'wartet'}</span>
+              {job.id !== activeJob.id && (
+                <button
+                  aria-label="Job abbrechen"
+                  className="job-status__detail-cancel"
+                  disabled={cancellingJobIds.has(job.id) || job.cancel_requested}
+                  onClick={() => void onCancel(job.id)}
+                  type="button"
+                >
+                  {cancellingJobIds.has(job.id) || job.cancel_requested ? 'Angefordert …' : 'Abbrechen'}
+                </button>
+              )}
             </div>
           ))}
         </div>

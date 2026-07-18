@@ -1,5 +1,6 @@
 from dataclasses import replace
 from pathlib import Path
+from threading import Event
 
 from essentia_studio.analysis.protocol import AnalysisBackend
 from essentia_studio.domain.analysis import AnalysisOptions, StoredAnalysis
@@ -29,11 +30,16 @@ class AnalysisJobService:
         relative_path: str,
         options: AnalysisOptions,
         job_id: str | None = None,
+        cancellation: Event | None = None,
     ) -> StoredAnalysis:
+        if cancellation is not None and cancellation.is_set():
+            raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
         track = self._tracks.get_by_path(relative_path)
         path = resolve_track_path(self._music_root, relative_path)
         before = path.stat()
-        result = self._backend.analyze(path, options)
+        result = self._backend.analyze(path, options, cancellation)
+        if cancellation is not None and cancellation.is_set():
+            raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
         after = path.stat()
         fingerprint = TrackFingerprint(before.st_size, before.st_mtime_ns)
         if fingerprint != TrackFingerprint(after.st_size, after.st_mtime_ns):
@@ -42,6 +48,8 @@ class AnalysisJobService:
                 "Der Titel wurde während der Analyse geändert und nicht übernommen.",
                 409,
             )
+        if cancellation is not None and cancellation.is_set():
+            raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
         genres = normalize_tags(
             [
                 genre

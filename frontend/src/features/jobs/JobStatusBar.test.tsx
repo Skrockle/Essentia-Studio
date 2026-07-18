@@ -33,3 +33,29 @@ test('shows progress, remaining time, and an always available cancel action', as
   await userEvent.click(screen.getByRole('button', { name: 'Job abbrechen' }))
   expect(onCancel).toHaveBeenCalledWith(job.id)
 })
+
+test('offers a cancel action for every queued or running job', async () => {
+  const onCancel = vi.fn()
+  const queuedJob: JobRecord = {
+    ...job,
+    id: 'analysis-2',
+    status: 'queued',
+    completed_items: 0,
+  }
+
+  render(
+    <JobStatusBar
+      etaSeconds={null}
+      activeJob={job}
+      onCancel={onCancel}
+      onToggle={() => undefined}
+      expanded
+      jobs={[job, queuedJob]}
+    />,
+  )
+
+  const cancelButtons = screen.getAllByRole('button', { name: 'Job abbrechen' })
+  expect(cancelButtons).toHaveLength(2)
+  await userEvent.click(cancelButtons[1])
+  expect(onCancel).toHaveBeenCalledWith(queuedJob.id)
+})
