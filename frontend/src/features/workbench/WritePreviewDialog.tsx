@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AlertTriangle, Check, X } from 'lucide-react'
 
-import { apiRequest } from '../../api/client'
+import { ApiError, apiRequest } from '../../api/client'
 import type { WriteOperation } from '../jobs/types'
 import type { SelectionSpec } from './types'
 
@@ -30,6 +30,7 @@ interface Props {
 
 export function WritePreviewDialog({ selection, onClose, onWritten }: Props) {
   const [preview, setPreview] = useState<Preview | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [writing, setWriting] = useState(false)
 
   useEffect(() => {
@@ -39,9 +40,13 @@ export function WritePreviewDialog({ selection, onClose, onWritten }: Props) {
       body: JSON.stringify({ selection }),
       signal: controller.signal,
     })
-      .then(setPreview)
+      .then((nextPreview) => {
+        setPreview(nextPreview)
+        setError(null)
+      })
       .catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === 'AbortError')) throw error
+        if (error instanceof DOMException && error.name === 'AbortError') return
+        setError(error instanceof ApiError ? error.message : 'Die Vorschau konnte nicht geladen werden.')
       })
     return () => controller.abort()
   }, [selection])
@@ -67,7 +72,9 @@ export function WritePreviewDialog({ selection, onClose, onWritten }: Props) {
             <X aria-hidden="true" size={18} />
           </button>
         </header>
-        {!preview ? (
+        {error ? (
+          <p className="notice notice--error">{error}</p>
+        ) : !preview ? (
           <p>Vorschau wird geladen …</p>
         ) : (
           <>

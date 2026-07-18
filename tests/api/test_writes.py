@@ -98,3 +98,36 @@ def test_preview_requires_a_separate_write_confirmation(client, music_root) -> N
     undone = client.post(f"/api/writes/{operation['id']}/undo")
     assert undone.json()["status"] == "undone"
     assert adapter.snapshot.fields["genres"] == ["Rock"]
+
+
+def test_preview_reports_invalid_audio_instead_of_returning_server_error(
+    client, music_root
+) -> None:
+    path = music_root / "broken.mp3"
+    path.write_bytes(b"not an mp3")
+    stat = path.stat()
+    tracks = client.app.state.track_repository
+    tracks.replace_scan(
+        [
+            ScannedTrack(
+                "broken.mp3",
+                ".mp3",
+                TrackFingerprint(stat.st_size, stat.st_mtime_ns),
+            )
+        ],
+        datetime.now(timezone.utc),
+    )
+    result = client.app.state.result_repository.save(
+        tracks.get_by_path("broken.mp3"),
+        AnalysisResult(model_ids=["fake"]),
+        ["Ambient"],
+        ["Calm"],
+    )
+
+    response = client.post(
+        "/api/writes/preview",
+        json={"selection": {"mode": "ids", "ids": [result.id]}},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_audio_file"

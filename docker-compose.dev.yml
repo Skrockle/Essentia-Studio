@@ -1,0 +1,9 @@
+services:
+  essentia-studio:
+    image: ghcr.io/skrockle/essentia-studio:dev-cpu
+    ports:
+      - "${ESSENTIA_BIND:-0.0.0.0}:${ESSENTIA_PORT:-8080}:8000"
+    volumes:
+      - "${MUSIC_DIR}:/music"
+      - "${DATA_DIR}:/data"
+    restart: unless-stopped

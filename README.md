@@ -85,6 +85,20 @@ docker compose pull
 docker compose up -d
 ```
 
+Für den aktuellen Entwicklungsstand gibt es ein separates CPU-Image. Es wird
+bei jedem Push auf `main` automatisch nach GHCR veröffentlicht und überschreibt
+keine Release-Tags:
+
+```bash
+docker compose -f docker-compose.dev.yml pull
+docker compose -f docker-compose.dev.yml up -d
+```
+
+Das CUDA-Dev-Image wird im GitHub-Workflow manuell über „Run workflow“ mit der
+Variante `cuda` oder `both` gebaut und ist anschließend unter
+`ghcr.io/skrockle/essentia-studio:dev-cuda` verfügbar. Für einen stabilen Betrieb
+weiterhin `latest-cpu` oder einen festen Release-Tag verwenden.
+
 Releases veröffentlichen unveränderliche Tags wie `v1.2.3-cpu` und
 `v1.2.3-cuda`. Für ein Rollback wird in einer lokalen Compose-Erweiterung ein
 solcher Tag fest eingetragen; `/data` und `/music` bleiben erhalten.

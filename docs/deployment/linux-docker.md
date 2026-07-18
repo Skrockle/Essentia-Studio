@@ -28,6 +28,18 @@ docker compose pull
 docker compose up -d
 ```
 
+Der Entwicklungsstand wird als separates CPU-Image unter `dev-cpu` veröffentlicht.
+Nach einem Push auf `main` kannst du es aktualisieren mit:
+
+```bash
+docker compose -f docker-compose.dev.yml pull
+docker compose -f docker-compose.dev.yml up -d
+```
+
+Das CUDA-Dev-Image wird im GitHub-Workflow manuell gestartet und verwendet den Tag
+`ghcr.io/skrockle/essentia-studio:dev-cuda`. Für produktive Nutzung bitte einen
+Release-Tag verwenden.
+
 Für ein festes Rollback die `image:`-Zeile in einer lokalen Compose-Erweiterung
 auf den gewünschten `vX.Y.Z-cpu`- oder `vX.Y.Z-cuda`-Tag setzen. Die Datenbank
 bleibt im `/data`-Mount; Audiodateien und Playlists liegen im `/music`-Mount.

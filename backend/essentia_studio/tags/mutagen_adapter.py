@@ -49,7 +49,10 @@ class MutagenTagAdapter:
 
     @staticmethod
     def _open(path: Path):
-        audio = mutagen.File(path, easy=False)
+        try:
+            audio = mutagen.File(path, easy=False)
+        except mutagen.MutagenError as error:
+            raise ValueError(f"Ungültige Audiodatei: {path.name}") from error
         if audio is None:
             raise ValueError(f"Unsupported audio format: {path.suffix}")
         if audio.tags is None:

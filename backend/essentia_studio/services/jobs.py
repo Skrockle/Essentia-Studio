@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Sequence
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from queue import Empty, Queue
 from threading import Event, Lock, Thread
 from typing import Any
 
-from essentia_studio.domain.jobs import JobRecord, JobStatus, JobType
+from essentia_studio.domain.jobs import JobItem, JobRecord, JobStatus, JobType
 from essentia_studio.errors import AppError
 from essentia_studio.repositories.jobs import JobRepository
 
@@ -15,9 +16,15 @@ logger = logging.getLogger(__name__)
 
 
 class JobCoordinator:
-    def __init__(self, repository: JobRepository, handlers: dict[JobType, JobHandler]) -> None:
+    def __init__(
+        self,
+        repository: JobRepository,
+        handlers: dict[JobType, JobHandler],
+        worker_counts: dict[JobType, int] | None = None,
+    ) -> None:
         self._repository = repository
         self._handlers = handlers
+        self._worker_counts = worker_counts or {}
         self._queue: Queue[str] = Queue()
         self._shutdown = Event()
         self._active_cancellations: dict[str, Event] = {}
@@ -98,12 +105,13 @@ class JobCoordinator:
             self._repository.start(job_id)
             job = self._repository.get(job_id)
             handler = self._handlers[job.type]
-            for item in self._repository.pending_items(job_id):
-                if self._repository.is_cancel_requested(job_id):
-                    cancellation.set()
-                if cancellation.is_set():
-                    break
-                self._process_item(job_id, item.id, item.value, handler, cancellation)
+            self._process_items(
+                job_id,
+                self._repository.pending_items(job_id),
+                handler,
+                cancellation,
+                self._worker_counts.get(job.type, 1),
+            )
             self._finish_job(job_id, cancellation)
         except Exception:
             self._repository.finalize(job_id, JobStatus.FAILED)
@@ -111,6 +119,64 @@ class JobCoordinator:
         finally:
             with self._active_lock:
                 self._active_cancellations.pop(job_id, None)
+
+    def _process_items(
+        self,
+        job_id: str,
+        items: list[JobItem],
+        handler: JobHandler,
+        cancellation: Event,
+        worker_count: int,
+    ) -> None:
+        if worker_count <= 1:
+            for item in items:
+                if self._should_stop(job_id, cancellation):
+                    break
+                self._process_item(job_id, item.id, item.value, handler, cancellation)
+            return
+
+        item_iterator = iter(items)
+        with ThreadPoolExecutor(
+            max_workers=worker_count,
+            thread_name_prefix="analysis-item",
+        ) as pool:
+            pending: set[Future[None]] = set()
+            self._submit_next_items(
+                pool, pending, item_iterator, job_id, handler, cancellation, worker_count
+            )
+            while pending:
+                completed, pending = wait(pending, return_when=FIRST_COMPLETED)
+                if self._should_stop(job_id, cancellation):
+                    continue
+                self._submit_next_items(
+                    pool, pending, item_iterator, job_id, handler, cancellation, len(completed)
+                )
+
+    def _submit_next_items(
+        self,
+        pool: ThreadPoolExecutor,
+        pending: set[Future[None]],
+        item_iterator,
+        job_id: str,
+        handler: JobHandler,
+        cancellation: Event,
+        limit: int,
+    ) -> None:
+        for _ in range(limit):
+            if self._should_stop(job_id, cancellation):
+                return
+            try:
+                item = next(item_iterator)
+            except StopIteration:
+                return
+            pending.add(
+                pool.submit(self._process_item, job_id, item.id, item.value, handler, cancellation)
+            )
+
+    def _should_stop(self, job_id: str, cancellation: Event) -> bool:
+        if self._repository.is_cancel_requested(job_id):
+            cancellation.set()
+        return cancellation.is_set()
 
     def _process_item(
         self,

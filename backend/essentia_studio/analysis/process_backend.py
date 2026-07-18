@@ -40,6 +40,6 @@ class ProcessAnalysisBackend:
             self._executor = ProcessPoolExecutor(
                 max_workers=self._worker_count,
                 initializer=initialize_worker,
-                initargs=(str(self._model_dir), self._compute),
+                initargs=(str(self._model_dir), self._compute, self._worker_count),
             )
         return self._executor

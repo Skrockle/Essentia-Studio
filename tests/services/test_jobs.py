@@ -1,4 +1,5 @@
-from threading import Event
+from threading import Event, Lock
+from time import sleep
 
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
@@ -68,3 +69,37 @@ def test_item_failure_does_not_stop_remaining_items(tmp_path) -> None:
     assert saved.status == JobStatus.COMPLETED_WITH_ERRORS
     assert saved.completed_items == 3
     assert saved.failed_items == 1
+
+
+def test_analysis_items_run_in_parallel_when_workers_are_configured(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+    active = 0
+    peak_active = 0
+    state_lock = Lock()
+    both_started = Event()
+
+    def handler(_job_id: str, _item: str, _cancelled: Event) -> dict[str, str]:
+        nonlocal active, peak_active
+        with state_lock:
+            active += 1
+            peak_active = max(peak_active, active)
+            if peak_active == 2:
+                both_started.set()
+        both_started.wait(timeout=2)
+        sleep(0.01)
+        with state_lock:
+            active -= 1
+        return {"path": "done"}
+
+    coordinator = JobCoordinator(
+        repository,
+        {JobType.ANALYSIS: handler},
+        worker_counts={JobType.ANALYSIS: 2},
+    )
+    job = coordinator.submit(JobType.ANALYSIS, ["a.flac", "b.flac"], {})
+    coordinator.run_next_for_test()
+
+    assert repository.get(job.id).status == JobStatus.COMPLETED
+    assert peak_active == 2

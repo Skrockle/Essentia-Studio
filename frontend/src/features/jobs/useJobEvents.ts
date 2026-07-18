@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
-interface JobEventPayload {
+export interface JobEventPayload {
   sequence: number
+  job_id: string
   kind: string
   payload: Record<string, unknown>
 }
@@ -12,6 +13,7 @@ export function useJobEvents(jobId: string | null) {
 
   useEffect(() => {
     if (!jobId) return
+    lastSequence.current = 0
     const source = new EventSource(`/api/jobs/${jobId}/events?after=${lastSequence.current}`)
 
     function receive(event: MessageEvent<string>) {
@@ -22,6 +24,7 @@ export function useJobEvents(jobId: string | null) {
       if (parsed.kind === 'terminal') source.close()
     }
 
+    source.addEventListener('started', receive as EventListener)
     source.addEventListener('progress', receive as EventListener)
     source.addEventListener('terminal', receive as EventListener)
     return () => source.close()

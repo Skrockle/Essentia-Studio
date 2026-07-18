@@ -5,6 +5,12 @@ export interface JobRecord {
   total_items: number
   completed_items: number
   failed_items: number
+  cancel_requested?: boolean
+}
+
+export interface JobProgress {
+  completed_items: number
+  total_items: number
 }
 
 export interface WriteOperation {

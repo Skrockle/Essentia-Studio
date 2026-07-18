@@ -8,6 +8,7 @@ from essentia_studio.api.dependencies import (
     get_write_repository,
 )
 from essentia_studio.domain.tracks import TrackFingerprint
+from essentia_studio.errors import AppError
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.schemas.writes import (
@@ -39,7 +40,16 @@ def preview_writes(
         conflict = TrackFingerprint(stat.st_size, stat.st_mtime_ns) != result.fingerprint
         conflict_count += int(conflict)
         if len(items) < 20:
-            snapshot = request.app.state.tag_registry.for_path(path).read(path)
+            try:
+                snapshot = request.app.state.tag_registry.for_path(path).read(path)
+            except (OSError, ValueError) as error:
+                raise AppError(
+                    "invalid_audio_file",
+                    "Die Datei ist beschädigt oder kein gültiges Audioformat "
+                    "und kann nicht gelesen werden.",
+                    422,
+                    {"relative_path": result.relative_path, "reason": str(error)},
+                ) from error
             items.append(
                 WritePreviewItem(
                     result_id=result.id,

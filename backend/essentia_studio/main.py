@@ -109,6 +109,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
                 JobType.SCAN: scan_handler,
                 JobType.ANALYSIS: analysis_handler,
             },
+            worker_counts={JobType.ANALYSIS: application_settings.worker_count},
         )
         app.state.config = runtime_config
         app.state.engine = engine

@@ -7,7 +7,7 @@ WORKFLOW_DIR = Path(".github/workflows")
 
 
 def test_required_workflows_exist() -> None:
-    for name in ["ci.yml", "gpu-smoke.yml", "release.yml"]:
+    for name in ["ci.yml", "gpu-smoke.yml", "release.yml", "dev-images.yml"]:
         assert (WORKFLOW_DIR / name).is_file(), name
 
 
@@ -59,3 +59,15 @@ def test_release_workflow_publishes_all_required_tags() -> None:
     assert "packages: write" in text
     assert "provenance: mode=max" in text
     assert "sbom: true" in text
+
+
+def test_dev_workflow_separates_automatic_cpu_and_manual_cuda_builds() -> None:
+    text = (WORKFLOW_DIR / "dev-images.yml").read_text(encoding="utf-8")
+    assert "push:" in text
+    assert "branches: [main]" in text
+    assert "workflow_dispatch:" in text
+    assert "ghcr.io/skrockle/essentia-studio:dev" in text
+    assert "ghcr.io/skrockle/essentia-studio:dev-cpu" in text
+    assert "ghcr.io/skrockle/essentia-studio:dev-cuda" in text
+    assert "Dockerfile.cuda" in text
+    assert "packages: write" in text

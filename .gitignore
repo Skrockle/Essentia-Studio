@@ -54,3 +54,7 @@ frontend/playwright-report/
 
 # Local Git worktrees
 .worktrees/
+
+# Codex local artifacts
+.playwright-mcp/
+essentia-light.png
