@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/Skrockle/Essentia-Studio/compare/essentia-studio-v1.1.0...essentia-studio-v1.2.0) (2026-07-18)
+
+
+### Features
+
+* add job monitor and dev image workflow ([e7bf8c1](https://github.com/Skrockle/Essentia-Studio/commit/e7bf8c103f8aefedc3b9af324aede65cca360c7b))
+
+
+### Bug Fixes
+
+* cancel jobs and stabilize status bar ([024232a](https://github.com/Skrockle/Essentia-Studio/commit/024232a2c1041ca49fedf78e14b03f2b196fab55))
+
 ## [1.1.0](https://github.com/Skrockle/Essentia-Studio/compare/essentia-studio-v1.0.0...essentia-studio-v1.1.0) (2026-07-17)
 
 
