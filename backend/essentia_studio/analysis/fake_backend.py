@@ -16,10 +16,16 @@ class FakeAnalysisBackend:
         return ["cpu"]
 
     def analyze(self, path: Path, options: AnalysisOptions) -> AnalysisResult:
-        genres = [Prediction("Electronic---House", 0.91)] if options.enable_genres else []
+        genres = self._genres(path) if options.enable_genres else []
         moods = [Prediction("moodtheme---happy", 0.84)] if options.enable_moods else []
         return AnalysisResult(
             genres=genres,
             moods=moods,
             model_ids=["fake-genre", "fake-mood"],
         )
+
+    @staticmethod
+    def _genres(path: Path) -> list[Prediction]:
+        if path.stem == "uncertain":
+            return [Prediction("Rock---Alternative Rock", 0.116, accepted=False)]
+        return [Prediction("Electronic---House", 0.91)]

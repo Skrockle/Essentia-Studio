@@ -8,10 +8,13 @@ import {
 } from 'lucide-react'
 
 import type { ViewId } from '../api/types'
+import type { ThemePreference } from '../app/theme'
 
 interface AppNavProps {
   activeView: ViewId
   onNavigate: (view: ViewId) => void
+  onThemeChange: (theme: ThemePreference) => void
+  themePreference: ThemePreference
 }
 
 const navigation: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
@@ -22,7 +25,12 @@ const navigation: Array<{ id: ViewId; label: string; icon: LucideIcon }> = [
   { id: 'about', label: 'Über Essentia Studio', icon: CircleHelp },
 ]
 
-export function AppNav({ activeView, onNavigate }: AppNavProps) {
+export function AppNav({
+  activeView,
+  onNavigate,
+  onThemeChange,
+  themePreference,
+}: AppNavProps) {
   return (
     <nav className="app-nav" aria-label="Hauptnavigation">
       <div className="app-nav__identity">
@@ -51,10 +59,23 @@ export function AppNav({ activeView, onNavigate }: AppNavProps) {
         ))}
       </div>
 
-      <p className="app-nav__scope">
-        <span className="status-dot" aria-hidden="true" />
-        Lokales Netzwerk
-      </p>
+      <div className="app-nav__footer">
+        <label className="app-nav__theme">
+          <span>Farbschema</span>
+          <select
+            onChange={(event) => onThemeChange(event.target.value as ThemePreference)}
+            value={themePreference}
+          >
+            <option value="system">System</option>
+            <option value="light">Hell</option>
+            <option value="dark">Dunkel</option>
+          </select>
+        </label>
+        <p className="app-nav__scope">
+          <span className="status-dot" aria-hidden="true" />
+          Lokales Netzwerk
+        </p>
+      </div>
     </nav>
   )
 }

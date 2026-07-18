@@ -79,6 +79,6 @@ Do not report success from intent, a narrow substitute test, or the absence of o
 
 ## Git and scope
 
-Use Conventional Commits. Do not force-push, rewrite user changes, commit secrets, or perform unrelated cleanup. Keep `upstream` pointed at `WB2024/Essentia-to-Metadata` and treat it as read-only. Reserve `origin` for the private `Skrockle/Essentia-Studio` repository.
+Use Conventional Commits. Do not force-push, rewrite user changes, commit secrets, or perform unrelated cleanup. Reserve `origin` for the private `Skrockle/Essentia-Studio` repository.
 
 Make small, reviewable commits at the boundaries specified by the implementation plans. Update the design before changing an approved product decision and update the active plan before changing its interfaces or task order.

@@ -6,4 +6,5 @@ services:
     volumes:
       - "${MUSIC_DIR}:/music"
       - "${DATA_DIR}:/data"
+    mem_limit: "${ESSENTIA_MEMORY_LIMIT:-4g}"
     restart: unless-stopped

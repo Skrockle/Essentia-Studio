@@ -29,7 +29,7 @@ def test_analysis_job_snapshots_settings_and_orders_tracks(client, music_root) -
     assert response.status_code == 202
     job = response.json()
     assert job["configuration"]["analysis"]["genre_threshold"] == 0.2
-    assert job["configuration"]["analysis"]["mood_threshold"] == 0.005
+    assert job["configuration"]["analysis"]["mood_threshold"] == 0.10
     assert wait_for_job(client, job["id"])["status"] == "completed"
 
 

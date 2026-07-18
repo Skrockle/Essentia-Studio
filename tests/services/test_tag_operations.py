@@ -4,6 +4,7 @@ from essentia_studio.domain.analysis import AnalysisResult
 from essentia_studio.domain.tracks import ScannedTrack, TrackFingerprint
 from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.services.tag_operations import TagOperationService
+from essentia_studio.services.track_state import TrackStateService
 from essentia_studio.tags.protocol import DesiredTags, ManagedTagSnapshot
 from essentia_studio.tags.registry import TagAdapterRegistry
 
@@ -90,3 +91,37 @@ def test_undo_restores_exact_managed_snapshot(client, music_root) -> None:
     assert operation.status == "verified"
     assert restored.status == "undone"
     assert adapter.snapshot == original
+
+
+def test_verified_write_commits_the_draft_as_the_current_file_state(
+    client, music_root
+) -> None:
+    service, _adapter, result_id, _path, _original = make_service(client, music_root)
+    results = client.app.state.result_repository
+    results.update_selection({"mode": "ids", "ids": [result_id]}, True)
+
+    operation = service.write_one(result_id)
+
+    stored = results.get(result_id)
+    track = client.app.state.track_repository.get_by_path(stored.relative_path)
+    assert operation.status == "verified"
+    assert operation.requested_tags == DesiredTags(["Ambient"], ["Calm"])
+    assert stored.draft.selected is False
+    assert track.fingerprint == operation.post_write_fingerprint
+
+
+def test_editing_a_verified_draft_makes_it_pending_again(client, music_root) -> None:
+    service, _adapter, result_id, _path, _original = make_service(client, music_root)
+    results = client.app.state.result_repository
+    stored = results.get(result_id)
+
+    service.write_one(result_id)
+    assert TrackStateService(client.app.state.engine).states([stored.track_id]) == {
+        stored.track_id: "written"
+    }
+
+    results.replace_draft(result_id, ["Ambient", "Downtempo"], None)
+
+    assert TrackStateService(client.app.state.engine).states([stored.track_id]) == {
+        stored.track_id: "current"
+    }

@@ -5,16 +5,16 @@ from fastapi import APIRouter, Depends
 
 from essentia_studio.api.dependencies import (
     get_job_coordinator,
-    get_settings_repository,
+    get_settings_service,
     get_track_repository,
 )
 from essentia_studio.domain.jobs import JobType
 from essentia_studio.errors import AppError
-from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.schemas.analysis import AnalysisJobRequest
 from essentia_studio.schemas.jobs import JobResponse
 from essentia_studio.services.jobs import JobCoordinator
+from essentia_studio.services.settings import SettingsService
 
 router = APIRouter(prefix="/analysis")
 
@@ -23,16 +23,18 @@ router = APIRouter(prefix="/analysis")
 def create_analysis_job(
     payload: AnalysisJobRequest,
     coordinator: Annotated[JobCoordinator, Depends(get_job_coordinator)],
-    settings: Annotated[SettingsRepository, Depends(get_settings_repository)],
+    settings: Annotated[SettingsService, Depends(get_settings_service)],
     tracks: Annotated[TrackRepository, Depends(get_track_repository)],
 ) -> JobResponse:
     selected_tracks = _selected_tracks(payload, tracks)
     if not selected_tracks:
         raise AppError("empty_selection", "Die Auswahl enthält keine vorhandenen Titel.", 422)
 
-    options = payload.options(settings.get())
+    analysis_settings = settings.load().values.analysis
+    options = payload.options(analysis_settings)
     configuration = {
         "analysis": asdict(options),
+        "worker_count": analysis_settings.workers,
         "selection": payload.model_dump(exclude_none=True),
     }
     job = coordinator.submit(

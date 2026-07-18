@@ -1,6 +1,6 @@
 export interface JobRecord {
   id: string
-  type: 'scan' | 'analysis' | 'write' | 'undo' | 'playlist_write'
+  type: 'scan' | 'analysis' | 'write' | 'undo' | 'playlist_write' | 'benchmark'
   status: string
   total_items: number
   completed_items: number
@@ -11,6 +11,17 @@ export interface JobRecord {
 export interface JobProgress {
   completed_items: number
   total_items: number
+}
+
+export interface JobItemRecord {
+  id: number
+  job_id: string
+  position: number
+  value: string
+  status: string
+  result: Record<string, unknown> | null
+  error: string | null
+  error_code: string | null
 }
 
 export interface WriteOperation {

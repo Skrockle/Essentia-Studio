@@ -19,7 +19,7 @@ test('shows a readable error when a selected audio file cannot be previewed', as
   render(
     <WritePreviewDialog
       onClose={() => undefined}
-      onWritten={() => undefined}
+      onCompleted={() => undefined}
       selection={{ mode: 'ids', ids: ['result-1'] }}
     />,
   )

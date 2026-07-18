@@ -1,10 +1,20 @@
 import type { LibraryTrack } from './types'
+import type { LibraryColumn } from './viewPreferences'
 
 interface LibraryTableProps {
   tracks: LibraryTrack[]
   selectedIds: ReadonlySet<number>
   onSelectAll: (selected: boolean) => void
   onSelectTrack: (trackId: number, selected: boolean) => void
+  visibleColumns: LibraryColumn[]
+}
+
+const stateLabels = {
+  new: 'Neu',
+  current: 'Aktuell',
+  changed: 'Verändert',
+  written: 'Geschrieben',
+  failed: 'Fehler',
 }
 
 export function LibraryTable({
@@ -12,6 +22,7 @@ export function LibraryTable({
   selectedIds,
   onSelectAll,
   onSelectTrack,
+  visibleColumns,
 }: LibraryTableProps) {
   const allSelected = tracks.length > 0 && tracks.every((track) => selectedIds.has(track.id))
 
@@ -39,8 +50,12 @@ export function LibraryTable({
                     type="checkbox"
                   />
                 </th>
-                <th>Titel</th>
-                <th>Format</th>
+                {visibleColumns.includes('artist') && <th>Interpret</th>}
+                {visibleColumns.includes('title') && <th>Titel</th>}
+                {visibleColumns.includes('file') && <th>Datei</th>}
+                {visibleColumns.includes('album') && <th>Album</th>}
+                {visibleColumns.includes('format') && <th>Format</th>}
+                {visibleColumns.includes('status') && <th>Status</th>}
               </tr>
             </thead>
             <tbody>
@@ -54,8 +69,16 @@ export function LibraryTable({
                       type="checkbox"
                     />
                   </td>
-                  <td><code className="track-path">{track.relative_path}</code></td>
-                  <td><span className="format-badge">{track.extension.slice(1).toUpperCase()}</span></td>
+                  {visibleColumns.includes('artist') && <td className="track-artist">{track.artist}</td>}
+                  {visibleColumns.includes('title') && <td><strong className="track-title">{track.title}</strong></td>}
+                  {visibleColumns.includes('file') && <td><code className="track-path">{track.relative_path}</code></td>}
+                  {visibleColumns.includes('album') && <td className="track-album">{track.album ?? '—'}</td>}
+                  {visibleColumns.includes('format') && <td><span className="format-badge">{track.extension.slice(1).toUpperCase()}</span></td>}
+                  {visibleColumns.includes('status') && <td>
+                    <span className="processing-state" data-state={track.processing_state}>
+                      {stateLabels[track.processing_state]}
+                    </span>
+                  </td>}
                 </tr>
               ))}
             </tbody>

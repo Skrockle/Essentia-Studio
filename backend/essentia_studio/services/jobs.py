@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Sequence
-from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
+from concurrent.futures import ThreadPoolExecutor
 from queue import Empty, Queue
 from threading import Event, Lock, Thread
 from typing import Any
@@ -12,6 +12,7 @@ from essentia_studio.errors import AppError
 from essentia_studio.repositories.jobs import JobRepository
 
 JobHandler = Callable[[str, str, Event], dict[str, Any]]
+TerminalListener = Callable[[JobRecord], None]
 logger = logging.getLogger(__name__)
 
 
@@ -30,6 +31,7 @@ class JobCoordinator:
         self._active_cancellations: dict[str, Event] = {}
         self._active_lock = Lock()
         self._thread: Thread | None = None
+        self._terminal_listeners: list[TerminalListener] = []
 
     def start(self) -> None:
         if self._thread is not None:
@@ -41,6 +43,9 @@ class JobCoordinator:
         if self._thread is not None:
             raise RuntimeError("Job handlers must be registered before the coordinator starts")
         self._handlers[job_type] = handler
+
+    def add_terminal_listener(self, listener: TerminalListener) -> None:
+        self._terminal_listeners.append(listener)
 
     def stop(self) -> None:
         self._shutdown.set()
@@ -105,78 +110,71 @@ class JobCoordinator:
             self._repository.start(job_id)
             job = self._repository.get(job_id)
             handler = self._handlers[job.type]
-            self._process_items(
-                job_id,
-                self._repository.pending_items(job_id),
-                handler,
-                cancellation,
-                self._worker_counts.get(job.type, 1),
-            )
+            pending_items = self._repository.pending_items(job_id)
+            worker_count = self._worker_count(job)
+            if worker_count > 1:
+                self._process_parallel(
+                    job_id,
+                    pending_items,
+                    handler,
+                    cancellation,
+                    worker_count,
+                )
+            else:
+                self._process_serial(job_id, pending_items, handler, cancellation)
             self._finish_job(job_id, cancellation)
         except Exception:
-            self._repository.finalize(job_id, JobStatus.FAILED)
+            finalized = self._repository.finalize(job_id, JobStatus.FAILED)
+            self._notify_terminal(finalized)
             logger.exception("Job %s failed before item-level recovery", job_id)
         finally:
             with self._active_lock:
                 self._active_cancellations.pop(job_id, None)
 
-    def _process_items(
+    def _process_serial(
         self,
         job_id: str,
-        items: list[JobItem],
+        items: Sequence[JobItem],
+        handler: JobHandler,
+        cancellation: Event,
+    ) -> None:
+        for item in items:
+            if self._repository.is_cancel_requested(job_id):
+                cancellation.set()
+            if cancellation.is_set():
+                break
+            self._process_item(job_id, item.id, item.value, handler, cancellation)
+
+    def _process_parallel(
+        self,
+        job_id: str,
+        items: Sequence[JobItem],
         handler: JobHandler,
         cancellation: Event,
         worker_count: int,
     ) -> None:
-        if worker_count <= 1:
-            for item in items:
-                if self._should_stop(job_id, cancellation):
-                    break
-                self._process_item(job_id, item.id, item.value, handler, cancellation)
-            return
+        def process(item: JobItem) -> None:
+            if cancellation.is_set():
+                return
+            if self._repository.is_cancel_requested(job_id):
+                cancellation.set()
+                return
+            self._process_item(job_id, item.id, item.value, handler, cancellation)
 
-        item_iterator = iter(items)
         with ThreadPoolExecutor(
             max_workers=worker_count,
-            thread_name_prefix="analysis-item",
-        ) as pool:
-            pending: set[Future[None]] = set()
-            self._submit_next_items(
-                pool, pending, item_iterator, job_id, handler, cancellation, worker_count
-            )
-            while pending:
-                completed, pending = wait(pending, return_when=FIRST_COMPLETED)
-                if self._should_stop(job_id, cancellation):
-                    continue
-                self._submit_next_items(
-                    pool, pending, item_iterator, job_id, handler, cancellation, len(completed)
-                )
+            thread_name_prefix="essentia-analysis",
+        ) as executor:
+            list(executor.map(process, items))
 
-    def _submit_next_items(
-        self,
-        pool: ThreadPoolExecutor,
-        pending: set[Future[None]],
-        item_iterator,
-        job_id: str,
-        handler: JobHandler,
-        cancellation: Event,
-        limit: int,
-    ) -> None:
-        for _ in range(limit):
-            if self._should_stop(job_id, cancellation):
-                return
-            try:
-                item = next(item_iterator)
-            except StopIteration:
-                return
-            pending.add(
-                pool.submit(self._process_item, job_id, item.id, item.value, handler, cancellation)
-            )
-
-    def _should_stop(self, job_id: str, cancellation: Event) -> bool:
-        if self._repository.is_cancel_requested(job_id):
-            cancellation.set()
-        return cancellation.is_set()
+    @staticmethod
+    def _worker_count(job: JobRecord) -> int:
+        if job.type != JobType.ANALYSIS:
+            return 1
+        configured = job.configuration.get("worker_count", 1)
+        if isinstance(configured, bool) or not isinstance(configured, int):
+            return 1
+        return max(1, min(configured, 64))
 
     def _process_item(
         self,
@@ -189,6 +187,20 @@ class JobCoordinator:
         try:
             result = handler(job_id, value, cancellation)
             self._repository.complete_item(job_id, item_id, result)
+        except AppError as error:
+            logger.exception(
+                "Job item failed: job_id=%s item_id=%s value=%s error_code=%s",
+                job_id,
+                item_id,
+                value,
+                error.code,
+            )
+            self._repository.fail_item(
+                job_id,
+                item_id,
+                error.message,
+                error_code=error.code,
+            )
         except Exception as error:
             self._repository.fail_item(job_id, item_id, str(error))
 
@@ -200,4 +212,12 @@ class JobCoordinator:
             status = JobStatus.COMPLETED_WITH_ERRORS
         else:
             status = JobStatus.COMPLETED
-        self._repository.finalize(job_id, status)
+        finalized = self._repository.finalize(job_id, status)
+        self._notify_terminal(finalized)
+
+    def _notify_terminal(self, job: JobRecord) -> None:
+        for listener in self._terminal_listeners:
+            try:
+                listener(job)
+            except Exception:
+                logger.exception("Terminal listener failed for job %s", job.id)

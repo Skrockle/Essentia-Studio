@@ -44,6 +44,21 @@ def test_cpu_smoke_fixture_is_writable_by_the_non_root_container() -> None:
     assert text.index(generated) < text.index(made_writable)
 
 
+def test_cpu_image_runs_resource_benchmark_with_explicit_memory_limit() -> None:
+    text = (WORKFLOW_DIR / "ci.yml").read_text(encoding="utf-8")
+
+    assert "--memory 4g" in text
+    assert "--seconds 65" in text
+    assert "scripts/ci/benchmark_api_smoke.py http://127.0.0.1:18000" in text
+
+
+def test_gpu_smoke_compares_cpu_and_cuda_benchmark_modes() -> None:
+    text = (WORKFLOW_DIR / "gpu-smoke.yml").read_text(encoding="utf-8")
+
+    assert "benchmark_api_smoke.py" in text
+    assert "--require-cuda" in text
+
+
 def test_release_workflow_publishes_all_required_tags() -> None:
     text = (WORKFLOW_DIR / "release.yml").read_text(encoding="utf-8")
     for tag in [

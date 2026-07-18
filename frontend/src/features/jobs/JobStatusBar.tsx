@@ -8,6 +8,7 @@ const jobLabels: Record<JobRecord['type'], string> = {
   write: 'Schreiben',
   undo: 'Wiederherstellen',
   playlist_write: 'Playlist speichern',
+  benchmark: 'Benchmark',
 }
 
 interface Props {

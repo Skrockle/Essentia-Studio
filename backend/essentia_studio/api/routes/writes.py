@@ -3,14 +3,17 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 
 from essentia_studio.api.dependencies import (
+    get_job_coordinator,
     get_result_repository,
     get_tag_operation_service,
     get_write_repository,
 )
+from essentia_studio.domain.jobs import JobType
 from essentia_studio.domain.tracks import TrackFingerprint
 from essentia_studio.errors import AppError
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.writes import WriteRepository
+from essentia_studio.schemas.jobs import JobResponse
 from essentia_studio.schemas.writes import (
     WriteBatchResponse,
     WriteOperationResponse,
@@ -18,10 +21,23 @@ from essentia_studio.schemas.writes import (
     WritePreviewResponse,
     WriteSelectionRequest,
 )
+from essentia_studio.services.jobs import JobCoordinator
 from essentia_studio.services.path_safety import resolve_track_path
 from essentia_studio.services.tag_operations import TagOperationService
 
 router = APIRouter(prefix="/writes")
+
+
+@router.post("/jobs", response_model=JobResponse, status_code=202)
+def create_write_job(
+    payload: WriteSelectionRequest,
+    results: Annotated[ResultRepository, Depends(get_result_repository)],
+    coordinator: Annotated[JobCoordinator, Depends(get_job_coordinator)],
+) -> JobResponse:
+    result_ids = results.resolve_selection(payload.selection.model_dump())
+    return JobResponse.from_record(
+        coordinator.submit(JobType.WRITE, result_ids, {"trigger": "manual"})
+    )
 
 
 @router.post("/preview", response_model=WritePreviewResponse)

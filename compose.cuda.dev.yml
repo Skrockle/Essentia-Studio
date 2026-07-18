@@ -1,0 +1,3 @@
+services:
+  essentia-studio:
+    image: ghcr.io/skrockle/essentia-studio:dev-cuda

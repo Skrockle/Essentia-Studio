@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from essentia_studio.domain.analysis import AnalysisResult
+from essentia_studio.domain.jobs import JobType
 from essentia_studio.domain.tracks import ScannedTrack, TrackFingerprint
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.tags.protocol import ManagedTagSnapshot
@@ -131,3 +132,37 @@ def test_preview_reports_invalid_audio_instead_of_returning_server_error(
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "invalid_audio_file"
+
+
+def test_confirmed_writes_run_as_observable_jobs(client, music_root) -> None:
+    result, _adapter = seed_result(client, music_root)
+    selection = {"selection": {"mode": "ids", "ids": [result.id]}}
+
+    def write_handler(_job_id, result_id, _cancelled):
+        operation = client.app.state.tag_operation_service.write_one(result_id, "manual")
+        if operation.status != "verified":
+            raise RuntimeError(operation.error_message or "write failed")
+        return {
+            "operation_id": operation.id,
+            "relative_path": operation.relative_path,
+            "status": operation.status,
+        }
+
+    client.app.state.job_coordinator._handlers[JobType.WRITE] = write_handler
+
+    response = client.post("/api/writes/jobs", json=selection)
+    assert response.status_code == 202
+    job = response.json()
+    assert job["type"] == "write"
+    assert job["total_items"] == 1
+
+    client.get(f"/api/jobs/{job['id']}/events")
+    saved = client.get(f"/api/jobs/{job['id']}").json()
+    items = client.get(f"/api/jobs/{job['id']}/items").json()
+
+    assert saved["status"] == "completed"
+    assert saved["completed_items"] == 1
+    assert saved["failed_items"] == 0
+    assert items[0]["value"] == result.id
+    assert items[0]["status"] == "completed"
+    assert items[0]["result"]["status"] == "verified"

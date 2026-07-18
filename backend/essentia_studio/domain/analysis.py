@@ -1,20 +1,21 @@
 from dataclasses import dataclass, field
 
-from essentia_studio.domain.tracks import TrackFingerprint
+from essentia_studio.domain.tracks import TrackFingerprint, TrackMetadata
 
 
 @dataclass(frozen=True, slots=True)
 class Prediction:
     label: str
     confidence: float
+    accepted: bool = True
 
 
 @dataclass(frozen=True, slots=True)
 class AnalysisOptions:
     enable_genres: bool = True
     enable_moods: bool = True
-    genre_threshold: float = 0.15
-    mood_threshold: float = 0.005
+    genre_threshold: float = 0.25
+    mood_threshold: float = 0.10
     genre_count: int = 3
     max_audio_seconds: int = 300
 
@@ -39,6 +40,7 @@ class StoredAnalysis:
     id: str
     track_id: int
     relative_path: str
+    metadata: TrackMetadata
     fingerprint: TrackFingerprint
     result: AnalysisResult
     draft: TagDraft
