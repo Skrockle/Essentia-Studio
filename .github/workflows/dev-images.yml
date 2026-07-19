@@ -124,3 +124,25 @@ jobs:
             org.opencontainers.image.version=dev
           cache-from: type=gha,scope=dev-cuda-onnx
           cache-to: type=gha,mode=max,scope=dev-cuda-onnx
+      - name: Smoke test published ONNX image
+        run: |
+          mkdir -p /tmp/essentia-onnx-music /tmp/essentia-onnx-data
+          chmod 0777 /tmp/essentia-onnx-music /tmp/essentia-onnx-data
+          python scripts/ci/generate_fixture.py /tmp/essentia-onnx-music/tone.wav
+          chmod 0666 /tmp/essentia-onnx-music/tone.wav
+          python scripts/ci/generate_fixture.py /tmp/essentia-onnx-music/zz-benchmark-tone.wav --seconds 65
+          chmod 0666 /tmp/essentia-onnx-music/zz-benchmark-tone.wav
+          docker run --rm -d --name essentia-studio-onnx-smoke -p 18002:8000 \
+            --memory 4g \
+            -v /tmp/essentia-onnx-music:/music \
+            -v /tmp/essentia-onnx-data:/data \
+            ghcr.io/skrockle/essentia-studio:dev-cuda-onnx
+          cleanup() { docker logs essentia-studio-onnx-smoke || true; docker stop essentia-studio-onnx-smoke || true; }
+          trap cleanup EXIT
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:18002/health; then break; fi
+            sleep 2
+          done
+          curl --fail http://127.0.0.1:18002/health
+          python scripts/ci/container_api_smoke.py http://127.0.0.1:18002
+          python scripts/ci/benchmark_api_smoke.py http://127.0.0.1:18002

@@ -38,3 +38,24 @@ def test_onnx_backend_reads_separate_model_manifest(tmp_path: Path) -> None:
     backend = OnnxBackend(tmp_path)
 
     assert backend.model_inventory() == []
+
+
+def test_onnx_features_accept_tensorflow_input_numpy_arrays(tmp_path: Path) -> None:
+    class InputExtractor:
+        def __call__(self, _frame: np.ndarray) -> np.ndarray:
+            return np.ones(96, dtype=np.float32)
+
+    models = {
+        "TensorflowInputMusiCNN": InputExtractor,
+        "FrameGenerator": lambda _audio, _frame_size, _hop_size: [
+            np.zeros(512, dtype=np.float32)
+        ],
+    }
+
+    (tmp_path / "onnx-models.json").write_text("[]", encoding="utf-8")
+    backend = OnnxBackend(tmp_path)
+
+    features = backend._features(np.zeros(512, dtype=np.float32), models)
+
+    assert features.shape == (1, 128, 96)
+    assert features.dtype == np.float32
