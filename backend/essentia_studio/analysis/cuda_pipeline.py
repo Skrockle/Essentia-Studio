@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import CancelledError, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeoutError
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -114,6 +114,8 @@ class CudaInferencePipeline:
                 try:
                     prepared = future.result(timeout=0.1)
                     break
+                except CancelledError:
+                    raise self._cancelled_future_error(cancellation) from None
                 except FutureTimeoutError:
                     interruption = self._interruption_error(cancellation)
                     if interruption is None:
@@ -192,6 +194,16 @@ class CudaInferencePipeline:
                 503,
             )
         return None
+
+    def _cancelled_future_error(self, cancellation: Event | None) -> AppError:
+        interruption = self._interruption_error(cancellation)
+        if interruption is not None:
+            return interruption
+        return AppError(
+            "analysis_pipeline_stopped",
+            "Die CUDA-Analysepipeline wurde beendet.",
+            503,
+        )
 
     def _dispatch(self) -> None:
         while not self._stopped.is_set():

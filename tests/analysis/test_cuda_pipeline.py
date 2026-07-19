@@ -1,4 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 from threading import Event, Lock
 
@@ -265,3 +265,26 @@ def test_cancellation_releases_queued_capacity_and_skips_gpu_submission(
         pipeline.close()
 
     assert submitted == ["first.flac", "third.flac"]
+
+
+def test_executor_shutdown_is_reported_as_stopped_pipeline(tmp_path: Path) -> None:
+    class CancelledExecutor:
+        def submit(self, *_args):
+            pipeline._stopped.set()
+            future = Future()
+            future.cancel()
+            return future
+
+        def shutdown(self, **_kwargs) -> None:
+            pass
+
+    pipeline = CudaInferencePipeline(
+        CudaPipelineSettings(cpu_workers=1, batch_size=1, queue_size=1),
+        prepare=lambda path, _options: path.name,
+        infer=lambda _batch, _options: [],
+    )
+    pipeline._preprocessors.shutdown()
+    pipeline._preprocessors = CancelledExecutor()
+
+    with pytest.raises(Exception, match="beendet"):
+        pipeline.analyze(tmp_path / "song.flac", AnalysisOptions())
