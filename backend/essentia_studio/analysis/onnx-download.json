@@ -1,0 +1,8 @@
+[
+  {
+    "name": "discogs-effnet-bsdynamic-1.onnx",
+    "role": "embedding",
+    "url": "https://essentia.upf.edu/models/feature-extractors/discogs-effnet/discogs-effnet-bsdynamic-1.onnx",
+    "sha256": "a280825b334797cf677939db8cd5762c0392aedd0ca6415dbc1cd083f045e43c"
+  }
+]
