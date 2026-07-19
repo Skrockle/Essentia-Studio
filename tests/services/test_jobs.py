@@ -1,4 +1,5 @@
 import logging
+import time
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
 from threading import Event, Lock, Thread
@@ -74,6 +75,56 @@ def test_resume_copies_only_unfinished_items(tmp_path) -> None:
     assert resumed.parent_job_id == original.id
     assert resumed.configuration == {"x": 1}
     assert repository.item_values(resumed.id) == ["second.flac"]
+
+
+def test_start_requeues_jobs_left_active_by_previous_process(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+    handled = Event()
+
+    def handler(_job_id: str, item: str, _cancelled: Event) -> dict[str, str]:
+        handled.set()
+        return {"path": item}
+
+    previous_coordinator = JobCoordinator(repository, {JobType.ANALYSIS: handler})
+    queued_job = previous_coordinator.submit(JobType.ANALYSIS, ["queued.flac"], {})
+    repository.start(queued_job.id)
+
+    restarted_coordinator = JobCoordinator(repository, {JobType.ANALYSIS: handler})
+    restarted_coordinator.start()
+    try:
+        assert handled.wait(timeout=1)
+        deadline = time.monotonic() + 1
+        while (
+            time.monotonic() < deadline
+            and repository.get(queued_job.id).status != JobStatus.COMPLETED
+        ):
+            time.sleep(0.01)
+        assert repository.get(queued_job.id).status == JobStatus.COMPLETED
+    finally:
+        restarted_coordinator.stop()
+
+
+def test_start_finishes_cancel_requested_job_left_by_previous_process(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+    coordinator = JobCoordinator(repository, {JobType.ANALYSIS: lambda *_: {}})
+    job = coordinator.submit(JobType.ANALYSIS, ["cancelled.flac"], {})
+    repository.request_cancel(job.id)
+
+    coordinator.start()
+    try:
+        deadline = time.monotonic() + 1
+        while (
+            time.monotonic() < deadline
+            and repository.get(job.id).status != JobStatus.CANCELLED
+        ):
+            time.sleep(0.01)
+        assert repository.get(job.id).status == JobStatus.CANCELLED
+    finally:
+        coordinator.stop()
 
 
 def test_item_failure_does_not_stop_remaining_items(tmp_path) -> None:

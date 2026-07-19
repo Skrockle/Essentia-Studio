@@ -39,7 +39,9 @@ test('scan, analyze, edit, selectively write, and undo', async ({ page }) => {
   ).toHaveCount(0)
   await uncertainRow.getByRole('button', { name: 'Unsichere Genres übernehmen' }).click()
   await expect(uncertainRow.getByText('Rock', { exact: true })).toBeVisible()
-  await expect(uncertainRow.getByText('Alternative Rock', { exact: true })).toBeVisible()
+  await expect(
+    uncertainRow.locator('.tag-editor[data-kind="genre"] .tag-chip').filter({ hasText: 'Alternative Rock' }),
+  ).toBeVisible()
 
   await expect(page.getByRole('checkbox', { name: 'song-one.wav analysieren' })).toHaveCount(0)
   await page.getByText('Filter', { exact: true }).click()
