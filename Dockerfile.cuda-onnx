@@ -47,7 +47,8 @@ RUN echo "Installing verified models for build $BUILD_REVISION" \
       --archive-url "$ESSENTIA_MODEL_ARCHIVE_URL" \
       --archive-sha256 "$ESSENTIA_MODEL_ARCHIVE_SHA256" \
     && python3.10 /app/download_models.py --manifest /app/onnx-download.json --output /app/models
-RUN python3.10 /app/validate_model_manifest.py /app/onnx-models.json /app/models
+RUN cp /app/onnx-models.json /app/models/onnx-models.json \
+    && python3.10 /app/validate_model_manifest.py /app/onnx-models.json /app/models
 COPY backend/essentia_studio /app/essentia_studio
 COPY --from=frontend /src/frontend/dist /app/frontend
 COPY docker/entrypoint.py /app/entrypoint.py
