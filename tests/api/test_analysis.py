@@ -33,6 +33,22 @@ def test_analysis_job_snapshots_settings_and_orders_tracks(client, music_root) -
     assert wait_for_job(client, job["id"])["status"] == "completed"
 
 
+def test_analysis_job_uses_cpu_worker_setting_for_job_parallelism(client, music_root) -> None:
+    (music_root / "song.flac").write_bytes(b"song")
+    scan_job = client.post("/api/library/scan").json()
+    wait_for_job(client, scan_job["id"])
+    track_id = client.get("/api/library/tracks").json()["items"][0]["id"]
+
+    settings = client.put("/api/settings", json={"analysis": {"cpu_workers": 8}})
+    assert settings.status_code == 200
+
+    response = client.post("/api/analysis/jobs", json={"track_ids": [track_id]})
+
+    assert response.status_code == 202
+    assert response.json()["configuration"]["worker_count"] == 8
+    wait_for_job(client, response.json()["id"])
+
+
 def test_analysis_rejects_empty_selection_and_disabled_heads(client) -> None:
     empty = client.post("/api/analysis/jobs", json={"track_ids": []})
     disabled = client.post(
