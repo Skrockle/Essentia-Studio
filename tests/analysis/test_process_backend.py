@@ -1,8 +1,10 @@
 from concurrent.futures import Future
 from pathlib import Path
+from threading import Event, Thread
 
 from essentia_studio.analysis.process_backend import ProcessAnalysisBackend
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
+from essentia_studio.errors import AppError
 
 
 class FakeProcess:
@@ -51,6 +53,47 @@ def test_cancel_terminates_executor_processes_and_recreates_pool(monkeypatch) ->
     assert executors[0].process.terminated is True
     assert executors[0].shutdown_called is True
     assert len(executors) == 2
+
+
+def test_cancel_returns_when_worker_future_does_not_resolve(monkeypatch) -> None:
+    submitted = Event()
+    cancellation = Event()
+    future: Future = Future()
+
+    class BlockingExecutor:
+        _processes = {1: FakeProcess()}
+
+        def submit(self, _function, _path: str, _options: AnalysisOptions) -> Future:
+            submitted.set()
+            return future
+
+        def shutdown(self, *, wait: bool, cancel_futures: bool) -> None:
+            assert wait is False
+            assert cancel_futures is True
+
+    executor = BlockingExecutor()
+    monkeypatch.setattr(
+        "essentia_studio.analysis.process_backend.ProcessPoolExecutor",
+        lambda *_args, **_kwargs: executor,
+    )
+    backend = ProcessAnalysisBackend(Path("/models"), "cpu", 1, "cpu")
+    errors: list[AppError] = []
+
+    def run_analysis() -> None:
+        try:
+            backend.analyze(Path("song.flac"), AnalysisOptions(), cancellation)
+        except AppError as error:
+            errors.append(error)
+
+    thread = Thread(target=run_analysis)
+    thread.start()
+    assert submitted.wait(timeout=1)
+    cancellation.set()
+    backend.cancel()
+    thread.join(timeout=1)
+
+    assert not thread.is_alive()
+    assert [error.code for error in errors] == ["analysis_cancelled"]
 
 
 def test_cuda_backend_uses_one_gpu_process_and_configured_cpu_pipeline(monkeypatch) -> None:

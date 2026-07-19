@@ -1,4 +1,5 @@
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from pathlib import Path
 from threading import Event, RLock
 
@@ -54,7 +55,18 @@ class ProcessAnalysisBackend:
             raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
         if self._compute == "cuda":
             return self._get_pipeline().analyze(path, options, cancellation)
-        result = self._get_executor().submit(analyze_in_worker, str(path), options).result()
+        future = self._get_executor().submit(analyze_in_worker, str(path), options)
+        while True:
+            try:
+                result = future.result(timeout=0.2)
+                break
+            except FutureTimeoutError:
+                if cancellation is not None and cancellation.is_set():
+                    raise AppError(
+                        "analysis_cancelled",
+                        "Die Analyse wurde abgebrochen.",
+                        409,
+                    ) from None
         if cancellation is not None and cancellation.is_set():
             raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
         return result
