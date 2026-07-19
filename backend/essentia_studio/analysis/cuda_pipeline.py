@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from queue import Empty, Full, Queue
-from threading import Event, Semaphore, Thread
+from threading import Event, Thread
 from typing import Any
 
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
@@ -53,7 +53,6 @@ class CudaInferencePipeline:
         self._prepare = prepare
         self._infer = infer
         self._requests: Queue[_Request | None] = Queue(maxsize=settings.queue_size)
-        self._slots = Semaphore(settings.queue_size)
         self._preprocessors = ThreadPoolExecutor(
             max_workers=settings.cpu_workers,
             thread_name_prefix="essentia-cpu-preprocess",
@@ -81,36 +80,19 @@ class CudaInferencePipeline:
                 503,
             )
 
-        self._acquire_slot(cancellation)
-        try:
-            prepared = self._preprocessors.submit(self._prepare, path, options).result()
-            request = _Request(prepared, options, cancellation, Event())
-            while True:
-                if cancellation is not None and cancellation.is_set():
-                    raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
-                try:
-                    self._requests.put(request, timeout=0.1)
-                    break
-                except Full:
-                    if self._stopped.is_set():
-                        raise AppError(
-                            "analysis_pipeline_stopped",
-                            "Die CUDA-Analysepipeline wurde beendet.",
-                            503,
-                        ) from None
-            request.completed.wait()
-            if request.error is not None:
-                raise request.error
-            if request.result is None:
-                raise AppError(
-                    "analysis_pipeline_failed",
-                    "Die CUDA-Analyse lieferte kein Ergebnis.",
-                    500,
-                )
-            return request.result
-        finally:
-            if "request" not in locals() or not request.completed.is_set():
-                self._slots.release()
+        prepared = self._preprocessors.submit(self._prepare, path, options).result()
+        request = _Request(prepared, options, cancellation, Event())
+        self._enqueue(request)
+        request.completed.wait()
+        if request.error is not None:
+            raise request.error
+        if request.result is None:
+            raise AppError(
+                "analysis_pipeline_failed",
+                "Die CUDA-Analyse lieferte kein Ergebnis.",
+                500,
+            )
+        return request.result
 
     def close(self) -> None:
         if self._stopped.is_set():
@@ -123,7 +105,7 @@ class CudaInferencePipeline:
     def cancel(self) -> None:
         self.close()
 
-    def _acquire_slot(self, cancellation: Event | None) -> None:
+    def _enqueue(self, request: _Request) -> None:
         while True:
             if self._stopped.is_set():
                 raise AppError(
@@ -131,10 +113,16 @@ class CudaInferencePipeline:
                     "Die CUDA-Analysepipeline wurde beendet.",
                     503,
                 )
-            if cancellation is not None and cancellation.is_set():
+            if request.cancellation is not None and request.cancellation.is_set():
                 raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
-            if self._slots.acquire(timeout=0.1):
+            try:
+                self._requests.put(request, timeout=0.1)
+            except Full:
+                continue
+            if self._stopped.is_set():
+                self._cancel_queued()
                 return
+            return
 
     def _dispatch(self) -> None:
         while not self._stopped.is_set():
@@ -196,7 +184,6 @@ class CudaInferencePipeline:
         request.result = result
         request.error = error
         request.completed.set()
-        self._slots.release()
 
     @staticmethod
     def _cancelled(request: _Request) -> bool:
