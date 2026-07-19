@@ -90,6 +90,8 @@ def _measure(
         "CUDA_VISIBLE_DEVICES",
         "0",
     )
+    if compute == "cuda":
+        os.environ.setdefault("TF_FORCE_GPU_ALLOW_GROWTH", "true")
     baseline = _peak_rss_bytes()
     backend_type = (
         OnnxBackend

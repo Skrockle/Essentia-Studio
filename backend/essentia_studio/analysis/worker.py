@@ -27,6 +27,8 @@ def initialize_worker(
     os.environ["CUDA_VISIBLE_DEVICES"] = "" if compute == "cpu" else os.environ.get(
         "CUDA_VISIBLE_DEVICES", "0"
     )
+    if compute == "cuda":
+        os.environ.setdefault("TF_FORCE_GPU_ALLOW_GROWTH", "true")
     backend_type = OnnxBackend if inference_runtime == "onnx" else EssentiaBackend
     _backend = backend_type(Path(model_dir), "cuda" if compute == "cuda" else "cpu")
 

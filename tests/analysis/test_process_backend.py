@@ -3,7 +3,10 @@ from concurrent.futures import Future
 from pathlib import Path
 from threading import Event, Thread
 
-from essentia_studio.analysis.process_backend import ProcessAnalysisBackend
+from essentia_studio.analysis.process_backend import (
+    ProcessAnalysisBackend,
+    _is_cuda_out_of_memory,
+)
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 from essentia_studio.errors import AppError
 
@@ -200,3 +203,9 @@ def test_cuda_batch_falls_back_to_smaller_batches_on_oom() -> None:
     assert [item.model_ids for item in result] == [["one"], ["two"], ["three"], ["four"]]
     assert executor.calls == [4, 2, 1, 1, 2, 1, 1]
     assert backend.cuda_oom_fallbacks == 3
+
+
+def test_cuda_blas_allocation_failure_is_treated_as_gpu_memory_error() -> None:
+    assert _is_cuda_out_of_memory(
+        RuntimeError("Internal: Blas xGEMM launch failed: CUBLAS_STATUS_ALLOC_FAILED")
+    )
