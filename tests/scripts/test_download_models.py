@@ -56,3 +56,13 @@ def test_production_images_use_the_verified_model_archive() -> None:
         assert archive_sha256 in text
         assert "--archive-url" in text
         assert "--archive-sha256" in text
+
+
+def test_cuda_onnx_image_downloads_its_native_manifest_without_archive() -> None:
+    text = Path("Dockerfile.cuda-onnx").read_text(encoding="utf-8")
+
+    assert "ESSENTIA_MODEL_ARCHIVE" not in text
+    assert "--manifest /app/onnx-download.json" in text
+    assert "cp /app/onnx-models.json /app/models/onnx-models.json" in text
+    assert "--archive-url" not in text
+    assert "--archive-sha256" not in text

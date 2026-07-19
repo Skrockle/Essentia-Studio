@@ -41,7 +41,7 @@ def test_entrypoint_rejects_model_with_wrong_checksum(tmp_path) -> None:
 
 
 def test_production_images_keep_application_files_read_only() -> None:
-    for dockerfile in ["Dockerfile", "Dockerfile.cuda"]:
+    for dockerfile in ["Dockerfile", "Dockerfile.cuda", "Dockerfile.cuda-onnx"]:
         text = Path(dockerfile).read_text(encoding="utf-8")
         assert "chmod -R a+rX,a-w /app" in text
         assert "chown -R app:app /app" not in text

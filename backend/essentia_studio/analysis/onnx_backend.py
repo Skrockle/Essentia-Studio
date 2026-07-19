@@ -12,7 +12,7 @@ from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 
 
 class OnnxBackend(EssentiaBackend):
-    """EffNet inference through ONNX Runtime with Essentia-compatible features."""
+    """CPU feature preparation and batched EffNet inference through ONNX Runtime."""
 
     def __init__(self, model_dir: Path, image_variant: str = "cuda") -> None:
         super().__init__(model_dir, image_variant)
@@ -20,45 +20,34 @@ class OnnxBackend(EssentiaBackend):
             (model_dir / "onnx-models.json").read_text(encoding="utf-8")
         )
 
+    def prepare(self, path: Path, options: AnalysisOptions) -> np.ndarray:
+        audio = super().prepare(path, options)
+        return self._features(audio)
+
     def _load_models(self) -> dict[str, Any]:
         if self._loaded is not None:
             return self._loaded
 
-        import essentia
         import onnxruntime as ort
 
-        providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        effnet_providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
         if self._image_variant != "cuda":
-            providers = ["CPUExecutionProvider"]
-        from essentia.standard import (
-            FrameGenerator,
-            MonoLoader,
-            TensorflowInputMusiCNN,
-            TensorflowPredict2D,
-        )
-
-        essentia.log.warningActive = False
+            effnet_providers = ["CPUExecutionProvider"]
         self._loaded = {
-            "embedding": ort.InferenceSession(
+            "effnet": ort.InferenceSession(
                 str(self._model_dir / "discogs-effnet-bsdynamic-1.onnx"),
-                providers=providers,
+                providers=effnet_providers,
             ),
-            "genre": TensorflowPredict2D(
-                graphFilename=str(self._model_dir / "genre_discogs400-discogs-effnet-1.pb"),
-                input="serving_default_model_Placeholder",
-                output="PartitionedCall",
-            ),
-            "mood": TensorflowPredict2D(
-                graphFilename=str(
-                    self._model_dir / "mtg_jamendo_moodtheme-discogs-effnet-1.pb"
+            "mood": ort.InferenceSession(
+                str(
+                    self._model_dir
+                    / "mtg_jamendo_moodtheme-discogs-effnet-1.onnx"
                 ),
-                input="model/Placeholder",
-                output="model/Sigmoid",
+                providers=["CPUExecutionProvider"],
             ),
-            "FrameGenerator": FrameGenerator,
-            "MonoLoader": MonoLoader,
-            "TensorflowInputMusiCNN": TensorflowInputMusiCNN,
-            "genre_labels": self._read_labels("genre_discogs400-discogs-effnet-1.json"),
+            "genre_labels": self._read_labels(
+                "genre_discogs400-discogs-effnet-1.json"
+            ),
             "mood_labels": self._read_labels(
                 "mtg_jamendo_moodtheme-discogs-effnet-1.json"
             ),
@@ -67,50 +56,87 @@ class OnnxBackend(EssentiaBackend):
 
     def analyze_prepared_batch(
         self,
-        audio_batch: list[Any],
+        feature_batches: list[Any],
         options: AnalysisOptions,
         cancellation: Event | None = None,
     ) -> list[AnalysisResult]:
-        if not audio_batch:
+        if not feature_batches:
             return []
         if cancellation is not None and cancellation.is_set():
-            return [AnalysisResult(model_ids=[]) for _ in audio_batch]
+            return [AnalysisResult(model_ids=[]) for _ in feature_batches]
+
         models = self._load_models()
-        feature_batches = [self._features(audio, models) for audio in audio_batch]
         lengths = [len(features) for features in feature_batches]
         all_features = np.concatenate(feature_batches, axis=0)
-        embeddings = self._run_embedding(models["embedding"], all_features)
-        genre_predictions = self._predict_genre_batch(
-            models, embeddings, lengths, options
+        genre_scores, embeddings = self._run_effnet(models["effnet"], all_features)
+        genres = self._select_genre_batch(
+            models["genre_labels"], genre_scores, lengths, options
         )
-        mood_predictions = self._predict_mood_batch(
-            models, embeddings, lengths, options
-        )
-        results = []
-        for genre_output, mood_output in zip(genre_predictions, mood_predictions, strict=True):
-            genres = genre_output if options.enable_genres else []
-            moods = mood_output if options.enable_moods else []
-            results.append(
-                AnalysisResult(
-                    genres=genres,
-                    moods=moods,
-                    model_ids=[model["name"] for model in self._manifest],
-                )
+        moods = self._select_mood_batch(models, embeddings, lengths, options)
+        model_ids = [model["name"] for model in self._manifest]
+        results = [
+            AnalysisResult(
+                genres=title_genres,
+                moods=title_moods,
+                model_ids=model_ids.copy(),
             )
+            for title_genres, title_moods in zip(genres, moods, strict=True)
+        ]
+        if cancellation is not None and cancellation.is_set():
+            return [AnalysisResult(model_ids=[]) for _ in feature_batches]
         return results
 
     @staticmethod
-    def _run_embedding(session: Any, features: np.ndarray) -> np.ndarray:
+    def _run_effnet(
+        session: Any, features: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
         input_name = session.get_inputs()[0].name
         outputs = session.run(None, {input_name: features.astype(np.float32)})
-        embedding = next(output for output in outputs if output.shape[-1] == 1280)
-        return np.asarray(embedding)
+        genre_scores = next(output for output in outputs if output.shape[-1] == 400)
+        embeddings = next(output for output in outputs if output.shape[-1] == 1280)
+        return np.asarray(genre_scores), np.asarray(embeddings)
 
-    def _features(self, audio: Any, models: dict[str, Any]) -> np.ndarray:
-        input_extractor = models["TensorflowInputMusiCNN"]()
+    @staticmethod
+    def _run_onnx(session: Any, inputs: np.ndarray) -> np.ndarray:
+        input_name = session.get_inputs()[0].name
+        outputs = session.run(None, {input_name: inputs.astype(np.float32)})
+        return np.asarray(outputs[0])
+
+    def _select_genre_batch(
+        self,
+        labels: list[str],
+        scores: np.ndarray,
+        lengths: list[int],
+        options: AnalysisOptions,
+    ) -> list[list[Any]]:
+        if not options.enable_genres:
+            return [[] for _ in lengths]
+        return [
+            self._select_genres(labels, scores[start:end], options)
+            for start, end in _ranges(lengths)
+        ]
+
+    def _select_mood_batch(
+        self,
+        models: dict[str, Any],
+        embeddings: np.ndarray,
+        lengths: list[int],
+        options: AnalysisOptions,
+    ) -> list[list[Any]]:
+        if not options.enable_moods:
+            return [[] for _ in lengths]
+        scores = self._run_onnx(models["mood"], embeddings)
+        return [
+            self._select_moods(models["mood_labels"], scores[start:end], options)
+            for start, end in _ranges(lengths)
+        ]
+
+    def _features(self, audio: Any) -> np.ndarray:
+        frame_generator, input_type = self._load_feature_algorithms()
+        input_extractor = input_type()
         bands = [
             np.asarray(input_extractor(frame), dtype=np.float32)
-            for frame in models["FrameGenerator"](audio, 512, 256)
+            for frame in frame_generator(audio, 512, 256)
         ]
         if not bands:
             return np.zeros((1, 128, 96), dtype=np.float32)
@@ -123,5 +149,25 @@ class OnnxBackend(EssentiaBackend):
             padding = np.zeros((128 - len(mel_spectrogram), 96), dtype=np.float32)
             patches = [np.concatenate((mel_spectrogram, padding), axis=0)]
         elif len(patches[-1]) < 128:
-            patches[-1] = np.pad(patches[-1], ((0, 128 - len(patches[-1])), (0, 0)))
+            patches[-1] = np.pad(
+                patches[-1], ((0, 128 - len(patches[-1])), (0, 0))
+            )
         return np.asarray(patches, dtype=np.float32)
+
+    @staticmethod
+    def _load_feature_algorithms() -> tuple[Any, Any]:
+        import essentia
+        from essentia.standard import FrameGenerator, TensorflowInputMusiCNN
+
+        essentia.log.warningActive = False
+        return FrameGenerator, TensorflowInputMusiCNN
+
+
+def _ranges(lengths: list[int]) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    start = 0
+    for length in lengths:
+        end = start + length
+        ranges.append((start, end))
+        start = end
+    return ranges

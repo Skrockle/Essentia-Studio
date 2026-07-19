@@ -6,8 +6,6 @@ COPY frontend/ ./
 RUN npm run build
 
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 AS runtime
-ARG ESSENTIA_MODEL_ARCHIVE_URL=https://oc-file.gozdzik.online/api/public/dl/_OlwyHdn/
-ARG ESSENTIA_MODEL_ARCHIVE_SHA256=25878d4d36533b2ef6ac888f4479baa2477eac48bae0bdbea79a1bad79c41916
 ARG VERSION=0.0.0
 ARG BUILD_REVISION=local
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -38,15 +36,11 @@ RUN uv pip install --system --python /usr/bin/python3.10 --require-hashes -r /ap
     && uv pip install --system --python /usr/bin/python3.10 \
       --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-11/pypi/simple/ \
       onnxruntime-gpu==1.18.1
-COPY backend/essentia_studio/analysis/models.json /app/models.json
 COPY backend/essentia_studio/analysis/onnx-models.json /app/onnx-models.json
 COPY backend/essentia_studio/analysis/onnx-download.json /app/onnx-download.json
 COPY scripts/download_models.py /app/download_models.py
 COPY scripts/validate_model_manifest.py /app/validate_model_manifest.py
 RUN echo "Installing verified models for build $BUILD_REVISION" \
-    && python3.10 /app/download_models.py --manifest /app/models.json --output /app/models \
-      --archive-url "$ESSENTIA_MODEL_ARCHIVE_URL" \
-      --archive-sha256 "$ESSENTIA_MODEL_ARCHIVE_SHA256" \
     && python3.10 /app/download_models.py --manifest /app/onnx-download.json --output /app/models
 RUN cp /app/onnx-models.json /app/models/onnx-models.json \
     && python3.10 /app/validate_model_manifest.py /app/onnx-models.json /app/models
