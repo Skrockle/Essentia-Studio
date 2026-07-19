@@ -1,0 +1,54 @@
+FROM node:24-bookworm-slim AS frontend
+WORKDIR /src/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04 AS runtime
+ARG VERSION=0.0.0
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    ESSENTIA_VERSION=$VERSION \
+    TF_CPP_MIN_LOG_LEVEL=2 \
+    ESSENTIA_MUSIC_ROOT=/music \
+    ESSENTIA_DATA_DIR=/data \
+    ESSENTIA_MODEL_DIR=/app/models \
+    ESSENTIA_MODEL_MANIFEST=/app/onnx-models.json \
+    ESSENTIA_IMAGE_VARIANT=cuda \
+    ESSENTIA_INFERENCE_RUNTIME=onnx \
+    ESSENTIA_FRONTEND_DIR=/app/frontend
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      python3.10 python3-pip ffmpeg libfftw3-double3 libsamplerate0 \
+      libtag1v5 libyaml-0-2 libchromaprint1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 app \
+    && useradd --uid 10001 --gid app --home-dir /app --create-home app
+WORKDIR /app
+RUN python3.10 -m pip install --no-cache-dir uv==0.11.7
+COPY requirements/analysis.lock /app/requirements.lock
+RUN uv pip install --system --python /usr/bin/python3.10 --require-hashes -r /app/requirements.lock \
+    && uv pip install --system --python /usr/bin/python3.10 \
+      --index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-11/pypi/simple/ \
+      onnxruntime-gpu==1.18.1
+COPY backend/essentia_studio/analysis/onnx-models.json /app/onnx-models.json
+COPY scripts/download_models.py /app/download_models.py
+RUN python3.10 /app/download_models.py --manifest /app/onnx-models.json --output /app/models
+COPY backend/essentia_studio /app/essentia_studio
+COPY --from=frontend /src/frontend/dist /app/frontend
+COPY docker/entrypoint.py /app/entrypoint.py
+COPY scripts/gpu_smoke.py /app/scripts/gpu_smoke.py
+RUN mkdir -p /music /data \
+    && chown -R root:root /app \
+    && chmod -R a+rX,a-w /app \
+    && chown app:app /music /data
+USER app
+EXPOSE 8000
+VOLUME ["/music", "/data"]
+LABEL org.opencontainers.image.source="https://github.com/Skrockle/Essentia-Studio" \
+      org.opencontainers.image.version="$VERSION" \
+      org.opencontainers.image.licenses="MIT"
+ENTRYPOINT ["python3.10", "/app/entrypoint.py"]
+CMD ["python3.10", "-m", "uvicorn", "essentia_studio.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

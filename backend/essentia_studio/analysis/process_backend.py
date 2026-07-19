@@ -6,6 +6,7 @@ from threading import Event, RLock
 
 from essentia_studio.analysis.cuda_pipeline import CudaInferencePipeline, CudaPipelineSettings
 from essentia_studio.analysis.essentia_backend import EssentiaBackend
+from essentia_studio.analysis.onnx_backend import OnnxBackend
 from essentia_studio.analysis.worker import (
     analyze_in_worker,
     analyze_prepared_batch_in_worker,
@@ -26,14 +27,17 @@ class ProcessAnalysisBackend:
         cpu_workers: int | None = None,
         gpu_batch_size: int = 1,
         gpu_queue_size: int = 8,
+        inference_runtime: str = "essentia",
     ) -> None:
-        self._inventory = EssentiaBackend(model_dir, image_variant)
+        backend_type = OnnxBackend if inference_runtime == "onnx" else EssentiaBackend
+        self._inventory = backend_type(model_dir, image_variant)
         self._model_dir = model_dir
         self._compute = compute
         self._worker_count = worker_count
         self._cpu_workers = cpu_workers or worker_count
         self._gpu_batch_size = gpu_batch_size
         self._gpu_queue_size = gpu_queue_size
+        self._inference_runtime = inference_runtime
         self._available_compute = available_compute or ["cpu"]
         self._executor: ProcessPoolExecutor | None = None
         self._pipeline: CudaInferencePipeline | None = None
@@ -153,6 +157,7 @@ class ProcessAnalysisBackend:
                         str(self._model_dir),
                         self._compute,
                         1 if self._compute == "cuda" else self._worker_count,
+                        self._inference_runtime,
                     ),
                 }
                 if self._compute == "cuda":

@@ -253,6 +253,7 @@ def _analysis_backend_factory(
             cpu_workers=settings.cpu_workers if settings.cpu_workers != 1 else settings.workers,
             gpu_batch_size=settings.gpu_batch_size,
             gpu_queue_size=settings.gpu_queue_size,
+            inference_runtime=config.inference_runtime,
         )
 
     return create
