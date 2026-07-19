@@ -43,7 +43,7 @@ def put_settings(
             409,
         )
 
-    pool_fields = {"workers", "compute"}
+    pool_fields = {"workers", "cpu_workers", "compute"}
     reconfigure_pool = bool(
         payload.analysis is not None
         and payload.analysis.model_fields_set.intersection(pool_fields)

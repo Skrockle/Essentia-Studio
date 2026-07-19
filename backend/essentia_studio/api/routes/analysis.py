@@ -34,7 +34,7 @@ def create_analysis_job(
     options = payload.options(analysis_settings)
     configuration = {
         "analysis": asdict(options),
-        "worker_count": analysis_settings.workers,
+        "worker_count": max(analysis_settings.workers, analysis_settings.cpu_workers),
         "selection": payload.model_dump(exclude_none=True),
     }
     job = coordinator.submit(
