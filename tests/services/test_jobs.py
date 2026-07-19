@@ -2,7 +2,7 @@ import logging
 import time
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
-from threading import Event, Lock, Thread
+from threading import Barrier, Event, Lock, Thread
 
 from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.db.engine import create_sqlite_engine
@@ -242,6 +242,38 @@ def test_analysis_job_uses_configured_parallel_workers(tmp_path) -> None:
 
     assert maximum_active == 2
     assert repository.get(job.id).status == JobStatus.COMPLETED
+
+
+def test_parallel_item_failures_hold_result_write_lock(tmp_path, monkeypatch) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = JobRepository(engine)
+    original_fail_item = repository.fail_item
+    simultaneous_handlers = Barrier(2)
+
+    def handler(_job_id: str, _item: str, _cancelled: Event) -> dict[str, str]:
+        simultaneous_handlers.wait(timeout=1)
+        raise AppError("analysis_cuda_oom", "CUDA-Speicher reicht nicht aus", 503)
+
+    coordinator = JobCoordinator(repository, {JobType.ANALYSIS: handler})
+
+    def guarded_fail_item(*args, **kwargs) -> None:
+        assert coordinator._result_write_lock.locked()
+        original_fail_item(*args, **kwargs)
+
+    monkeypatch.setattr(repository, "fail_item", guarded_fail_item)
+    job = coordinator.submit(
+        JobType.ANALYSIS,
+        ["one.flac", "two.flac"],
+        {"worker_count": 2},
+    )
+
+    coordinator.run_next_for_test()
+
+    saved = repository.get(job.id)
+    assert saved.status == JobStatus.COMPLETED_WITH_ERRORS
+    assert saved.completed_items == 2
+    assert saved.failed_items == 2
 
 
 def test_cancel_running_job_invokes_registered_cancellation_hook(tmp_path) -> None:

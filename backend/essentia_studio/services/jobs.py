@@ -34,6 +34,7 @@ class JobCoordinator:
         self._active_job_types: dict[str, JobType] = {}
         self._cancellation_handlers: dict[JobType, Canceller] = {}
         self._active_lock = Lock()
+        self._result_write_lock = Lock()
         self._thread: Thread | None = None
         self._terminal_listeners: list[TerminalListener] = []
 
@@ -218,7 +219,8 @@ class JobCoordinator:
     ) -> None:
         try:
             result = handler(job_id, value, cancellation)
-            self._repository.complete_item(job_id, item_id, result)
+            with self._result_write_lock:
+                self._repository.complete_item(job_id, item_id, result)
         except AppError as error:
             if error.code == "analysis_cancelled":
                 cancellation.set()
@@ -230,14 +232,16 @@ class JobCoordinator:
                 value,
                 error.code,
             )
-            self._repository.fail_item(
-                job_id,
-                item_id,
-                error.message,
-                error_code=error.code,
-            )
+            with self._result_write_lock:
+                self._repository.fail_item(
+                    job_id,
+                    item_id,
+                    error.message,
+                    error_code=error.code,
+                )
         except Exception as error:
-            self._repository.fail_item(job_id, item_id, str(error))
+            with self._result_write_lock:
+                self._repository.fail_item(job_id, item_id, str(error))
 
     def _finish_job(self, job_id: str, cancellation: Event) -> None:
         job = self._repository.get(job_id)

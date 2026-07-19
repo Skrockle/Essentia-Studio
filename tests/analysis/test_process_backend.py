@@ -189,7 +189,11 @@ def test_cuda_batch_falls_back_to_smaller_batches_on_oom() -> None:
         def submit(self, _function, prepared, _options):
             self.calls.append(len(prepared))
             if len(prepared) > 1:
-                raise RuntimeError("CUDA out of memory")
+                raise RuntimeError(
+                    "Non-zero status code returned while running Conv node. "
+                    "BFCArena::AllocateRawInternal: Failed to allocate memory "
+                    "for requested buffer of size 2299133952"
+                )
             future = Future()
             future.set_result([AnalysisResult(model_ids=[str(prepared[0])])])
             return future

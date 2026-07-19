@@ -177,5 +177,6 @@ def _is_cuda_out_of_memory(error: RuntimeError) -> bool:
             "cublas_status_alloc_failed",
             "blas xgemm launch failed",
             "cuda_error_out_of_memory",
+            "failed to allocate memory",
         )
     )
