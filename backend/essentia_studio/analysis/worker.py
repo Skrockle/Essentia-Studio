@@ -2,12 +2,18 @@ import os
 from pathlib import Path
 
 from essentia_studio.analysis.essentia_backend import EssentiaBackend
+from essentia_studio.analysis.onnx_backend import OnnxBackend
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 
-_backend: EssentiaBackend | None = None
+_backend: EssentiaBackend | OnnxBackend | None = None
 
 
-def initialize_worker(model_dir: str, compute: str, worker_count: int) -> None:
+def initialize_worker(
+    model_dir: str,
+    compute: str,
+    worker_count: int,
+    inference_runtime: str = "essentia",
+) -> None:
     global _backend
     cpu_count = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count()
     threads_per_worker = max(1, ((cpu_count or 1) + worker_count - 1) // worker_count)
@@ -21,7 +27,8 @@ def initialize_worker(model_dir: str, compute: str, worker_count: int) -> None:
     os.environ["CUDA_VISIBLE_DEVICES"] = "" if compute == "cpu" else os.environ.get(
         "CUDA_VISIBLE_DEVICES", "0"
     )
-    _backend = EssentiaBackend(Path(model_dir), "cuda" if compute == "cuda" else "cpu")
+    backend_type = OnnxBackend if inference_runtime == "onnx" else EssentiaBackend
+    _backend = backend_type(Path(model_dir), "cuda" if compute == "cuda" else "cpu")
 
 
 def analyze_in_worker(path: str, options: AnalysisOptions) -> AnalysisResult:

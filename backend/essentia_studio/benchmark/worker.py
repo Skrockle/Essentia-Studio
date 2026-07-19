@@ -9,6 +9,7 @@ from pathlib import Path
 from threading import Event
 
 from essentia_studio.analysis.essentia_backend import EssentiaBackend
+from essentia_studio.analysis.onnx_backend import OnnxBackend
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 from essentia_studio.domain.benchmarks import ComputeMeasurement, ComputeMode
 from essentia_studio.errors import AppError
@@ -90,7 +91,12 @@ def _measure(
         "0",
     )
     baseline = _peak_rss_bytes()
-    backend = EssentiaBackend(model_dir, "cuda" if compute == "cuda" else "cpu")
+    backend_type = (
+        OnnxBackend
+        if os.environ.get("ESSENTIA_INFERENCE_RUNTIME") == "onnx"
+        else EssentiaBackend
+    )
+    backend = backend_type(model_dir, "cuda" if compute == "cuda" else "cpu")
 
     started = time.perf_counter()
     backend.initialize()

@@ -17,6 +17,7 @@ class RuntimeConfig:
     frontend_dir: Path
     model_dir: Path
     analysis_backend: Literal["essentia", "fake"]
+    inference_runtime: Literal["essentia", "onnx"]
     image_variant: Literal["cpu", "cuda"]
     host: str
     port: int
@@ -44,6 +45,9 @@ class RuntimeConfig:
             analysis_backend=_analysis_backend(
                 values.get("ESSENTIA_ANALYSIS_BACKEND", "essentia")
             ),
+            inference_runtime=_inference_runtime(
+                values.get("ESSENTIA_INFERENCE_RUNTIME", "essentia")
+            ),
             image_variant=_image_variant(values.get("ESSENTIA_IMAGE_VARIANT", "cpu")),
             host=values.get("ESSENTIA_HOST", "0.0.0.0"),
             port=int(values.get("ESSENTIA_PORT", "8000")),
@@ -59,4 +63,10 @@ def _image_variant(value: str) -> Literal["cpu", "cuda"]:
 def _analysis_backend(value: str) -> Literal["essentia", "fake"]:
     if value not in {"essentia", "fake"}:
         raise ValueError("ESSENTIA_ANALYSIS_BACKEND must be 'essentia' or 'fake'")
+    return value
+
+
+def _inference_runtime(value: str) -> Literal["essentia", "onnx"]:
+    if value not in {"essentia", "onnx"}:
+        raise ValueError("ESSENTIA_INFERENCE_RUNTIME must be 'essentia' or 'onnx'")
     return value
