@@ -114,7 +114,10 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: ghcr.io/skrockle/essentia-studio:dev-cuda-onnx
-          build-args: VERSION=dev
+          no-cache: true
+          build-args: |
+            VERSION=dev
+            BUILD_REVISION=${{ github.sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
