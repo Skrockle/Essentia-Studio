@@ -19,8 +19,9 @@ def validate(manifest_path: Path, model_dir: Path) -> None:
     invalid = []
     for model in manifest:
         model_path = model_dir / model["name"]
-        if not model_path.is_file() or sha256(model_path) != model["sha256"]:
-            invalid.append(model["name"])
+        actual = sha256(model_path) if model_path.is_file() else "missing"
+        if actual != model["sha256"]:
+            invalid.append(f"{model['name']} (expected {model['sha256']}, got {actual})")
     if invalid:
         raise SystemExit(f"Model manifest validation failed: {', '.join(invalid)}")
 
