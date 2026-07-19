@@ -101,6 +101,20 @@ class JobRepository:
                 ).scalar_one()
             )
 
+    def active_jobs(self) -> list[JobRecord]:
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                text(
+                    """
+                    SELECT id, type, status, configuration, parent_job_id, total_items,
+                           completed_items, failed_items, cancel_requested
+                    FROM jobs WHERE status IN ('queued', 'running')
+                    ORDER BY created_at, id
+                    """
+                )
+            ).all()
+        return [self._job_from_row(row) for row in rows]
+
     def start(self, job_id: str) -> None:
         with self._engine.begin() as connection:
             connection.execute(

@@ -29,6 +29,7 @@ class JobCoordinator:
         self._worker_counts = worker_counts or {}
         self._queue: Queue[str] = Queue()
         self._shutdown = Event()
+        self._queued_job_ids: set[str] = set()
         self._active_cancellations: dict[str, Event] = {}
         self._active_job_types: dict[str, JobType] = {}
         self._cancellation_handlers: dict[JobType, Canceller] = {}
@@ -39,6 +40,14 @@ class JobCoordinator:
     def start(self) -> None:
         if self._thread is not None:
             return
+        for job in self._repository.active_jobs():
+            if job.id in self._queued_job_ids:
+                continue
+            if job.cancel_requested:
+                self._repository.finalize(job.id, JobStatus.CANCELLED)
+            else:
+                self._queue.put(job.id)
+                self._queued_job_ids.add(job.id)
         self._thread = Thread(target=self._run_forever, name="essentia-job-worker", daemon=True)
         self._thread.start()
 
@@ -74,6 +83,7 @@ class JobCoordinator:
     ) -> JobRecord:
         job = self._repository.create(job_type, items, configuration, parent_job_id)
         self._queue.put(job.id)
+        self._queued_job_ids.add(job.id)
         return job
 
     def cancel(self, job_id: str) -> JobRecord:
@@ -107,7 +117,9 @@ class JobCoordinator:
         )
 
     def run_next_for_test(self) -> None:
-        self._run_job(self._queue.get_nowait())
+        job_id = self._queue.get_nowait()
+        self._queued_job_ids.discard(job_id)
+        self._run_job(job_id)
 
     def _run_forever(self) -> None:
         while not self._shutdown.is_set():
@@ -115,6 +127,7 @@ class JobCoordinator:
                 job_id = self._queue.get(timeout=0.2)
             except Empty:
                 continue
+            self._queued_job_ids.discard(job_id)
             self._run_job(job_id)
 
     def _run_job(self, job_id: str) -> None:
