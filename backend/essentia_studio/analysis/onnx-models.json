@@ -15,13 +15,13 @@
     "name": "genre_discogs400-discogs-effnet-1.json",
     "role": "genre_labels",
     "url": "https://essentia.upf.edu/models/classification-heads/genre_discogs400/genre_discogs400-discogs-effnet-1.json",
-    "sha256": "2d367319d9b782ffa10f69ab0e805b3ac4e10899025e5bdbaceda3919b243e0"
+    "sha256": "2d367319d9b782ffa10f69abf0e805b3ac4e10899025e5bdbaceda3919b243e0"
   },
   {
     "name": "mtg_jamendo_moodtheme-discogs-effnet-1.pb",
     "role": "mood",
     "url": "https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.pb",
-    "sha256": "03f2b047020aee4ab39f8880da7bdae2a36d06a1508d656c6d424ad4d6de07a"
+    "sha256": "03f2b047020aee4ab39f8880da7bdae2a36d06a1508d656c6d424ad4d6de07a9"
   },
   {
     "name": "mtg_jamendo_moodtheme-discogs-effnet-1.json",
