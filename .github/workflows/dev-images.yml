@@ -130,6 +130,8 @@ jobs:
           chmod 0777 /tmp/essentia-onnx-music /tmp/essentia-onnx-data
           python scripts/ci/generate_fixture.py /tmp/essentia-onnx-music/tone.wav
           chmod 0666 /tmp/essentia-onnx-music/tone.wav
+          python scripts/ci/generate_fixture.py /tmp/essentia-onnx-music/zz-benchmark-tone.wav --seconds 65
+          chmod 0666 /tmp/essentia-onnx-music/zz-benchmark-tone.wav
           docker run --rm -d --name essentia-studio-onnx-smoke -p 18002:8000 \
             --memory 4g \
             -v /tmp/essentia-onnx-music:/music \
