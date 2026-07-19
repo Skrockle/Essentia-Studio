@@ -7,6 +7,24 @@ from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 from essentia_studio.errors import AppError
 
 
+def test_cuda_worker_submits_prepared_batch_to_backend_once(monkeypatch) -> None:
+    calls: list[list[object]] = []
+
+    class FakeBackend:
+        def analyze_prepared_batch(self, prepared, _options):
+            calls.append(prepared)
+            return [AnalysisResult(model_ids=[str(value)]) for value in prepared]
+
+    monkeypatch.setattr("essentia_studio.analysis.worker._backend", FakeBackend())
+
+    from essentia_studio.analysis.worker import analyze_prepared_batch_in_worker
+
+    results = analyze_prepared_batch_in_worker(["one", "two"], AnalysisOptions())
+
+    assert calls == [["one", "two"]]
+    assert [result.model_ids for result in results] == [["one"], ["two"]]
+
+
 class FakeProcess:
     def __init__(self) -> None:
         self.terminated = False
