@@ -63,10 +63,10 @@ class BenchmarkRepository:
                     INSERT INTO benchmark_measurements (
                       run_id, compute, initialization_seconds, warmup_seconds,
                       measured_seconds_json, baseline_peak_bytes, worker_peak_bytes,
-                      model_ids_json
+                      model_ids_json, batch_size, cuda_oom_fallbacks
                     ) VALUES (
                       :run_id, :compute, :initialization, :warmup, :measured,
-                      :baseline, :worker, :models
+                      :baseline, :worker, :models, :batch_size, :fallbacks
                     )
                     """
                 ),
@@ -79,6 +79,8 @@ class BenchmarkRepository:
                     "baseline": measurement.baseline_peak_bytes,
                     "worker": measurement.worker_peak_bytes,
                     "models": json.dumps(measurement.model_ids),
+                    "batch_size": measurement.batch_size,
+                    "fallbacks": measurement.cuda_oom_fallbacks,
                 },
             )
         return self.get(run_id)
@@ -173,6 +175,8 @@ class BenchmarkRepository:
                 baseline_peak_bytes=row.baseline_peak_bytes,
                 worker_peak_bytes=row.worker_peak_bytes,
                 model_ids=json.loads(row.model_ids_json),
+                batch_size=row.batch_size,
+                cuda_oom_fallbacks=row.cuda_oom_fallbacks,
             )
             for row in rows
         ]

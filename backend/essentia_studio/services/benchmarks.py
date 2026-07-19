@@ -81,6 +81,7 @@ class BenchmarkService:
                     "run_id": run.id,
                     "analysis": asdict(options),
                     "compute_modes": self._available_compute or ["cpu"],
+                    "batch_sizes": [1, 2, 4] if "cuda" in self._available_compute else [1],
                 },
             )
 
@@ -90,11 +91,18 @@ class BenchmarkService:
         relative_path: str,
         options: AnalysisOptions,
         compute_modes: Sequence[ComputeMode],
+        batch_sizes: Sequence[int],
         cancel: Event,
     ) -> BenchmarkRun:
         try:
             sample = self._tracks.get_by_path(relative_path)
-            measurements = self._runner.run(sample, options, compute_modes, cancel)
+            measurements = self._runner.run(
+                sample,
+                options,
+                compute_modes,
+                cancel,
+                batch_sizes=batch_sizes,
+            )
             if cancel.is_set():
                 return self._repository.cancel(run_id)
             for measurement in measurements:

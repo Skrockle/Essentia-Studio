@@ -55,7 +55,7 @@ def test_sample_selection_rejects_missing_or_unknown_duration() -> None:
 def test_runner_uses_fixed_sample_and_requested_compute_modes(tmp_path: Path) -> None:
     calls = []
 
-    def worker(path, options, model_dir, compute, cancel):
+    def worker(path, options, model_dir, compute, cancel, _batch_size):
         calls.append((path, options, model_dir, compute, cancel))
         return _measurement(compute)
 
@@ -79,7 +79,7 @@ def test_cancellation_stops_before_next_compute_mode(tmp_path: Path) -> None:
     cancel = Event()
     calls = []
 
-    def worker(_path, _options, _model_dir, compute, _cancel):
+    def worker(_path, _options, _model_dir, compute, _cancel, _batch_size):
         calls.append(compute)
         cancel.set()
         return _measurement(compute)
@@ -89,3 +89,34 @@ def test_cancellation_stops_before_next_compute_mode(tmp_path: Path) -> None:
 
     assert [measurement.compute for measurement in measurements] == ["cpu"]
     assert calls == ["cpu"]
+
+
+def test_runner_measures_configured_cuda_batch_sizes(tmp_path: Path) -> None:
+    def worker(_path, _options, _model_dir, compute, _cancel, batch_size):
+        return ComputeMeasurement(
+            compute=compute,
+            initialization_seconds=0.1,
+            warmup_seconds=0.1,
+            measured_seconds=[1.0],
+            baseline_peak_bytes=100,
+            worker_peak_bytes=200,
+            model_ids=[],
+            batch_size=batch_size,
+        )
+
+    runner = BenchmarkRunner(tmp_path, tmp_path, worker=worker)
+    measurements = runner.run(
+        _track("song.flac", 60),
+        AnalysisOptions(),
+        ["cpu", "cuda"],
+        Event(),
+        batch_sizes=[1, 2, 4],
+    )
+
+    assert [(measurement.compute, measurement.batch_size) for measurement in measurements] == [
+        ("cpu", 1),
+        ("cuda", 1),
+        ("cuda", 2),
+        ("cuda", 4),
+    ]
+    assert measurements[-1].tracks_per_minute == 240

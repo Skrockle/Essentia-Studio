@@ -66,5 +66,8 @@ Der Benchmark analysiert einen mindestens 60 Sekunden langen Titel isoliert und
 schreibt keine Tags. Im CPU-Image gibt es nur eine CPU-Messung. Im CUDA-Image wird
 CUDA nur bei einer tatsächlich sichtbaren NVIDIA-GPU verglichen; Meldungen über
 fehlendes CUDA sind beim CPU-Betrieb unkritisch. GPU-Worker werden konservativ auf
-sichtbare Geräte begrenzt. Ein Ergebnis wird veraltet, sobald Ressourcen, Modelle
-oder relevante Analyseoptionen nicht mehr zum gespeicherten Snapshot passen.
+sichtbare Geräte begrenzt. Der CUDA-Benchmark misst Batch 1, 2 und 4, während die
+Analyse einen persistenten GPU-Prozess mit bounded Queue und separaten CPU-
+Vorbereitungsworkern nutzt. Bei VRAM-Mangel wird automatisch auf kleinere Batches
+zurückgefallen. Ein Ergebnis wird veraltet, sobald Ressourcen, Modelle oder
+relevante Analyseoptionen nicht mehr zum gespeicherten Snapshot passen.

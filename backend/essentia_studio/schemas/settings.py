@@ -9,6 +9,10 @@ class AnalysisSettings(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     workers: int = Field(default=1, ge=1, le=64)
+    cpu_workers: int = Field(default=1, ge=1, le=64)
+    gpu_workers: int = Field(default=1, ge=1, le=1)
+    gpu_batch_size: Literal[1, 2, 4, 8] = 1
+    gpu_queue_size: int = Field(default=8, ge=1, le=256)
     max_audio_seconds: int = Field(default=300, ge=1, le=3600)
     genre_threshold: float = Field(default=0.25, ge=0, le=1)
     mood_threshold: float = Field(default=0.10, ge=0, le=1)
@@ -55,6 +59,10 @@ class AnalysisSettingsUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     workers: int | None = Field(default=None, ge=1, le=64)
+    cpu_workers: int | None = Field(default=None, ge=1, le=64)
+    gpu_workers: int | None = Field(default=None, ge=1, le=1)
+    gpu_batch_size: Literal[1, 2, 4, 8] | None = None
+    gpu_queue_size: int | None = Field(default=None, ge=1, le=256)
     max_audio_seconds: int | None = Field(default=None, ge=1, le=3600)
     genre_threshold: float | None = Field(default=None, ge=0, le=1)
     mood_threshold: float | None = Field(default=None, ge=0, le=1)

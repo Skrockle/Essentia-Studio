@@ -19,10 +19,16 @@ class ComputeMeasurement:
     baseline_peak_bytes: int
     worker_peak_bytes: int
     model_ids: list[str]
+    batch_size: int = 1
+    cuda_oom_fallbacks: int = 0
 
     @property
     def average_seconds(self) -> float:
         return sum(self.measured_seconds) / len(self.measured_seconds)
+
+    @property
+    def tracks_per_minute(self) -> float:
+        return 60 * self.batch_size / self.average_seconds
 
 
 @dataclass(frozen=True, slots=True)

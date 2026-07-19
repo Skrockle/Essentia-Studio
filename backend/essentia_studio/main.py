@@ -161,6 +161,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
                 relative_path,
                 AnalysisOptions(**job.configuration["analysis"]),
                 job.configuration["compute_modes"],
+                job.configuration.get("batch_sizes", [1]),
                 cancelled,
             )
             return {"run_id": run.id, "relative_path": relative_path}
@@ -249,6 +250,9 @@ def _analysis_backend_factory(
             settings.workers,
             config.image_variant,
             available_compute,
+            cpu_workers=settings.cpu_workers if settings.cpu_workers != 1 else settings.workers,
+            gpu_batch_size=settings.gpu_batch_size,
+            gpu_queue_size=settings.gpu_queue_size,
         )
 
     return create

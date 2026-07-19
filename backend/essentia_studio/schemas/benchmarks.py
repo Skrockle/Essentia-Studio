@@ -17,6 +17,9 @@ class ComputeMeasurementResponse(BaseModel):
     baseline_peak_bytes: int
     worker_peak_bytes: int
     model_ids: list[str]
+    batch_size: int
+    cuda_oom_fallbacks: int
+    tracks_per_minute: float
 
 
 class BenchmarkResponse(BaseModel):
@@ -53,6 +56,7 @@ class BenchmarkResponse(BaseModel):
                     **asdict_measurement(measurement),
                     average_seconds=measurement.average_seconds,
                     seconds_per_audio_minute=measurement.average_seconds,
+                    tracks_per_minute=measurement.tracks_per_minute,
                 )
                 for measurement in run.measurements
             ],
@@ -69,4 +73,6 @@ def asdict_measurement(measurement) -> dict[str, object]:
         "baseline_peak_bytes": measurement.baseline_peak_bytes,
         "worker_peak_bytes": measurement.worker_peak_bytes,
         "model_ids": measurement.model_ids,
+        "batch_size": measurement.batch_size,
+        "cuda_oom_fallbacks": measurement.cuda_oom_fallbacks,
     }

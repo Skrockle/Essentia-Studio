@@ -44,14 +44,29 @@ class EssentiaBackend:
     ) -> AnalysisResult:
         if cancellation is not None and cancellation.is_set():
             return AnalysisResult(model_ids=[])
-        models = self._load_models()
-        audio = models["MonoLoader"](
+        audio = self.prepare(path, options)
+        result = self.analyze_prepared(audio, options, cancellation)
+        return result
+
+    def prepare(self, path: Path, options: AnalysisOptions) -> Any:
+        audio = self._load_audio_loader()(
             filename=str(path),
             sampleRate=16000,
             resampleQuality=1,
         )()
         max_samples = options.max_audio_seconds * 16000
-        embeddings = models["embedding"](audio[:max_samples])
+        return audio[:max_samples]
+
+    def analyze_prepared(
+        self,
+        audio: Any,
+        options: AnalysisOptions,
+        cancellation: Event | None = None,
+    ) -> AnalysisResult:
+        if cancellation is not None and cancellation.is_set():
+            return AnalysisResult(model_ids=[])
+        models = self._load_models()
+        embeddings = models["embedding"](audio)
         genres = self._predict_genres(models, embeddings, options) if options.enable_genres else []
         moods = self._predict_moods(models, embeddings, options) if options.enable_moods else []
         result = AnalysisResult(
@@ -62,6 +77,13 @@ class EssentiaBackend:
         if cancellation is not None and cancellation.is_set():
             return AnalysisResult(model_ids=[])
         return result
+
+    def _load_audio_loader(self) -> Any:
+        import essentia
+        from essentia.standard import MonoLoader
+
+        essentia.log.warningActive = False
+        return MonoLoader
 
     def _load_models(self) -> dict[str, Any]:
         if self._loaded is not None:

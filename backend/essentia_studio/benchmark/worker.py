@@ -9,7 +9,7 @@ from pathlib import Path
 from threading import Event
 
 from essentia_studio.analysis.essentia_backend import EssentiaBackend
-from essentia_studio.domain.analysis import AnalysisOptions
+from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
 from essentia_studio.domain.benchmarks import ComputeMeasurement, ComputeMode
 from essentia_studio.errors import AppError
 
@@ -20,12 +20,13 @@ def run_isolated_worker(
     model_dir: Path,
     compute: ComputeMode,
     cancel: Event,
+    batch_size: int = 1,
 ) -> ComputeMeasurement:
     context = multiprocessing.get_context("spawn")
     receive, send = context.Pipe(duplex=False)
     process = context.Process(
         target=_worker_entry,
-        args=(send, str(path), options, str(model_dir), compute),
+        args=(send, str(path), options, str(model_dir), compute, batch_size),
         name=f"essentia-benchmark-{compute}",
     )
     process.start()
@@ -67,9 +68,10 @@ def _worker_entry(
     options: AnalysisOptions,
     model_dir: str,
     compute: ComputeMode,
+    batch_size: int,
 ) -> None:
     try:
-        connection.send(_measure(Path(path), options, Path(model_dir), compute))
+        connection.send(_measure(Path(path), options, Path(model_dir), compute, batch_size))
     except BaseException as error:
         connection.send({"error": str(error)})
     finally:
@@ -81,6 +83,7 @@ def _measure(
     options: AnalysisOptions,
     model_dir: Path,
     compute: ComputeMode,
+    batch_size: int,
 ) -> ComputeMeasurement:
     os.environ["CUDA_VISIBLE_DEVICES"] = "" if compute == "cpu" else os.environ.get(
         "CUDA_VISIBLE_DEVICES",
@@ -94,14 +97,14 @@ def _measure(
     initialization_seconds = time.perf_counter() - started
 
     started = time.perf_counter()
-    warmup_result = backend.analyze(path, options)
+    warmup_result = _analyze_batch(backend, path, options, batch_size)
     warmup_seconds = time.perf_counter() - started
 
     measured_seconds: list[float] = []
     result = warmup_result
     for _ in range(2):
         started = time.perf_counter()
-        result = backend.analyze(path, options)
+        result = _analyze_batch(backend, path, options, batch_size)
         measured_seconds.append(time.perf_counter() - started)
 
     peak = _peak_rss_bytes()
@@ -113,7 +116,22 @@ def _measure(
         baseline_peak_bytes=baseline,
         worker_peak_bytes=max(peak - baseline, 1),
         model_ids=result.model_ids,
+        batch_size=batch_size,
     )
+
+
+def _analyze_batch(
+    backend: EssentiaBackend,
+    path: Path,
+    options: AnalysisOptions,
+    batch_size: int,
+) -> AnalysisResult:
+    result = None
+    for _ in range(batch_size):
+        result = backend.analyze(path, options)
+    if result is None:
+        raise RuntimeError("Leere Benchmark-Batch")
+    return result
 
 
 def _peak_rss_bytes() -> int:

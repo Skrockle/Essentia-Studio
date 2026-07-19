@@ -54,7 +54,7 @@ def test_migrations_are_idempotent(tmp_path) -> None:
             text("SELECT version FROM schema_migrations ORDER BY version")
         ).scalars().all()
 
-    assert versions == list(range(1, 12))
+    assert versions == list(range(1, 13))
     with engine.connect() as connection:
         columns = {
             row[1] for row in connection.execute(text("PRAGMA table_info(job_items)"))

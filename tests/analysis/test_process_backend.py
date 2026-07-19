@@ -51,3 +51,65 @@ def test_cancel_terminates_executor_processes_and_recreates_pool(monkeypatch) ->
     assert executors[0].process.terminated is True
     assert executors[0].shutdown_called is True
     assert len(executors) == 2
+
+
+def test_cuda_backend_uses_one_gpu_process_and_configured_cpu_pipeline(monkeypatch) -> None:
+    created = []
+
+    class FakePipeline:
+        def __init__(self, settings, **_callbacks) -> None:
+            created.append(settings)
+
+        def analyze(self, _path, _options, _cancellation=None):
+            return AnalysisResult(model_ids=["persistent-cuda"])
+
+        def close(self):
+            pass
+
+        cancel = close
+
+    monkeypatch.setattr(
+        "essentia_studio.analysis.process_backend.CudaInferencePipeline",
+        FakePipeline,
+    )
+    backend = ProcessAnalysisBackend(
+        Path("/models"),
+        "cuda",
+        4,
+        "cuda",
+        ["cpu", "cuda"],
+        cpu_workers=3,
+        gpu_batch_size=4,
+        gpu_queue_size=8,
+    )
+
+    result = backend.analyze(Path("song.flac"), AnalysisOptions())
+
+    assert result.model_ids == ["persistent-cuda"]
+    assert created[0].cpu_workers == 3
+    assert created[0].batch_size == 4
+    assert created[0].queue_size == 8
+
+
+def test_cuda_batch_falls_back_to_smaller_batches_on_oom() -> None:
+    class OomExecutor:
+        def __init__(self) -> None:
+            self.calls = []
+
+        def submit(self, _function, prepared, _options):
+            self.calls.append(len(prepared))
+            if len(prepared) > 1:
+                raise RuntimeError("CUDA out of memory")
+            future = Future()
+            future.set_result([AnalysisResult(model_ids=[str(prepared[0])])])
+            return future
+
+    backend = ProcessAnalysisBackend(Path("/models"), "cuda", 1, "cuda")
+    executor = OomExecutor()
+    backend._executor = executor
+
+    result = backend._infer_batch(["one", "two", "three", "four"], AnalysisOptions())
+
+    assert [item.model_ids for item in result] == [["one"], ["two"], ["three"], ["four"]]
+    assert executor.calls == [4, 2, 1, 1, 2, 1, 1]
+    assert backend.cuda_oom_fallbacks == 3
