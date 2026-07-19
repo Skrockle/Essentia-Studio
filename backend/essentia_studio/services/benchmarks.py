@@ -159,7 +159,12 @@ class BenchmarkService:
                 409,
             )
         effective = self._settings.update(
-            {"analysis": {"workers": run.recommended_workers}}
+            {
+                "analysis": {
+                    "workers": run.recommended_workers,
+                    "cpu_workers": run.recommended_workers,
+                }
+            }
         )
         self._pool_manager.reconfigure(effective.values.analysis)
         return effective

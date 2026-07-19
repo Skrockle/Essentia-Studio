@@ -36,6 +36,10 @@ export interface TagOptions {
 export interface AppSettings {
   analysis: {
     workers: number
+    cpu_workers: number
+    gpu_workers: number
+    gpu_batch_size: 1 | 2 | 4 | 8
+    gpu_queue_size: number
     max_audio_seconds: number
     genre_threshold: number
     mood_threshold: number

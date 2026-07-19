@@ -4,7 +4,10 @@ import { beforeEach, expect, test, vi } from 'vitest'
 
 import { App } from './App'
 
+let includeCuda = false
+
 beforeEach(() => {
+  includeCuda = false
   vi.stubGlobal(
     'fetch',
     vi.fn(async (input: RequestInfo | URL) => {
@@ -12,8 +15,8 @@ beforeEach(() => {
       if (url.endsWith('/api/capabilities')) {
         return new Response(
           JSON.stringify({
-            image_variant: 'cpu',
-            available_compute: ['cpu'],
+            image_variant: includeCuda ? 'cuda' : 'cpu',
+            available_compute: includeCuda ? ['cpu', 'cuda'] : ['cpu'],
             models: [],
             music_root: { path: '/music', status: 'ready' },
             data_dir: { path: '/data', status: 'ready' },
@@ -44,6 +47,10 @@ beforeEach(() => {
         values: {
           analysis: {
             workers: 1,
+            cpu_workers: 1,
+            gpu_workers: 1,
+            gpu_batch_size: 1,
+            gpu_queue_size: 8,
             max_audio_seconds: 300,
             genre_threshold: 0.25,
             mood_threshold: 0.1,
@@ -63,7 +70,7 @@ beforeEach(() => {
           benchmark: { minimum_track_seconds: 60, safety_margin_percent: 30 },
         },
         sources: {
-          'analysis.workers': 'env',
+          'analysis.cpu_workers': 'env',
         },
       })
     }),
@@ -77,7 +84,7 @@ test('opens settings and explains the active CPU image', async () => {
 
   expect(await screen.findByText('CPU-Image')).toBeInTheDocument()
   expect(screen.getByText('/music')).toBeInTheDocument()
-  expect(screen.getByLabelText('Worker')).toBeDisabled()
+  expect(screen.getByLabelText('CPU-Worker')).toBeDisabled()
   expect(screen.getByText('Durch Umgebungsvariable festgelegt')).toBeVisible()
   expect(screen.getByLabelText('Genre-Schwelle')).toHaveValue(25)
   expect(screen.getByLabelText('Mood-Schwelle')).toHaveValue(10)
@@ -88,6 +95,18 @@ test('opens settings and explains the active CPU image', async () => {
   expect(screen.getByRole('tooltip')).toHaveTextContent(
     'Die Schwelle kann zu weniger Vorschlägen führen',
   )
+})
+
+test('shows safe CUDA tuning controls in the CUDA image', async () => {
+  includeCuda = true
+  render(<App />)
+
+  await userEvent.click(screen.getByRole('button', { name: 'Einstellungen' }))
+
+  expect(await screen.findByText('GPU-Tuning')).toBeInTheDocument()
+  expect(screen.getByLabelText('GPU-Worker')).toBeDisabled()
+  expect(screen.getByLabelText('GPU-Batchgröße')).toHaveValue('1')
+  expect(screen.getByLabelText('CUDA-Queue')).toHaveValue(8)
 })
 
 test('persists a dark theme selection and applies it to the document', async () => {
