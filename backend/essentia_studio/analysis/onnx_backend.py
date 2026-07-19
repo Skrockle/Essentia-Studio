@@ -109,7 +109,7 @@ class OnnxBackend(EssentiaBackend):
     def _features(self, audio: Any, models: dict[str, Any]) -> np.ndarray:
         input_extractor = models["TensorflowInputMusiCNN"]()
         bands = [
-            input_extractor(frame).bands
+            np.asarray(input_extractor(frame), dtype=np.float32)
             for frame in models["FrameGenerator"](audio, 512, 256)
         ]
         if not bands:
