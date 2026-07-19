@@ -13,7 +13,7 @@ from essentia_studio.domain.tracks import LibraryTrack
 from essentia_studio.errors import AppError
 
 BenchmarkWorker = Callable[
-    [Path, AnalysisOptions, Path, ComputeMode, Event],
+    [Path, AnalysisOptions, Path, ComputeMode, Event, int],
     ComputeMeasurement,
 ]
 
@@ -24,6 +24,7 @@ def fake_benchmark_worker(
     _model_dir: Path,
     compute: ComputeMode,
     cancel: Event,
+    batch_size: int = 1,
 ) -> ComputeMeasurement:
     if cancel.is_set():
         raise AppError("benchmark_cancelled", "Benchmark wurde abgebrochen.", 409)
@@ -35,6 +36,7 @@ def fake_benchmark_worker(
         baseline_peak_bytes=128 * 1024 * 1024,
         worker_peak_bytes=256 * 1024 * 1024,
         model_ids=["fake-genre", "fake-mood"],
+        batch_size=batch_size,
     )
 
 
@@ -80,20 +82,24 @@ class BenchmarkRunner:
         options: AnalysisOptions,
         compute_modes: Sequence[ComputeMode],
         cancel: Event,
+        batch_sizes: Sequence[int] | None = None,
     ) -> list[ComputeMeasurement]:
         fixed_options = replace(options, max_audio_seconds=60)
         sample_path = self._music_root / sample.relative_path
         measurements: list[ComputeMeasurement] = []
         for compute in compute_modes:
-            if cancel.is_set():
-                break
-            measurements.append(
-                self._worker(
-                    sample_path,
-                    fixed_options,
-                    self._model_dir,
-                    compute,
-                    cancel,
+            modes = batch_sizes if compute == "cuda" and batch_sizes else (1,)
+            for batch_size in modes:
+                if cancel.is_set():
+                    return measurements
+                measurements.append(
+                    self._worker(
+                        sample_path,
+                        fixed_options,
+                        self._model_dir,
+                        compute,
+                        cancel,
+                        batch_size,
+                    )
                 )
-            )
         return measurements

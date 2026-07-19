@@ -2,6 +2,7 @@
 
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
+from threading import Event
 
 from essentia_studio.analysis.pool_manager import WorkerPoolManager
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult
@@ -12,7 +13,12 @@ class SmokeBackend:
     def __init__(self, should_crash: bool):
         self._should_crash = should_crash
 
-    def analyze(self, _path: Path, _options: AnalysisOptions) -> AnalysisResult:
+    def analyze(
+        self,
+        _path: Path,
+        _options: AnalysisOptions,
+        _cancellation: Event | None = None,
+    ) -> AnalysisResult:
         if self._should_crash:
             raise BrokenProcessPool("intentional smoke failure")
         return AnalysisResult(model_ids=["recovered"])

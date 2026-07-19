@@ -52,6 +52,56 @@ function ModelStatus({ models }: Pick<Capabilities, 'models'>) {
   )
 }
 
+interface CudaTuningProps {
+  analysis: AppSettings['analysis']
+  sources: EffectiveSettings['sources']
+  onChange: (patch: Partial<AppSettings['analysis']>) => void
+  enabled: boolean
+}
+
+function CudaTuning({ analysis, sources, onChange, enabled }: CudaTuningProps) {
+  if (!enabled) return null
+  return (
+    <div className="cuda-tuning" aria-labelledby="cuda-tuning-heading">
+      <div className="cuda-tuning__heading">
+        <div><p className="eyebrow">NVIDIA CUDA</p><h3 id="cuda-tuning-heading">GPU-Tuning</h3></div>
+        <span className="cuda-tuning__badge">1 GPU-Worker</span>
+      </div>
+      <p className="section-copy">Die GPU bleibt als einzelner Worker reserviert. Batchgröße und Warteschlange bestimmen, wie viel Arbeit gleichzeitig im Grafikspeicher liegt.</p>
+      <div className="form-grid cuda-tuning__grid">
+        <SettingField id="gpu-workers" label="GPU-Worker" explanation="Die GPU-Pipeline läuft bewusst mit genau einem Worker, damit der Grafikspeicher stabil und vorhersehbar genutzt wird." source={sources['analysis.gpu_workers']}>
+          <input id="gpu-workers" aria-label="GPU-Worker" min="1" max="1" type="number" value={analysis.gpu_workers} disabled />
+        </SettingField>
+        <SettingField id="gpu-batch-size" label="GPU-Batchgröße" explanation="Mehrere Titel werden gemeinsam an die GPU übergeben. Erhöhe den Wert nur, wenn ausreichend VRAM frei ist." source={sources['analysis.gpu_batch_size']}>
+          <select id="gpu-batch-size" value={analysis.gpu_batch_size} disabled={sources['analysis.gpu_batch_size'] === 'env'} onChange={(event) => onChange({ gpu_batch_size: Number(event.target.value) as AppSettings['analysis']['gpu_batch_size'] })}>
+            {[1, 2, 4, 8].map((size) => <option key={size} value={size}>{size} Titel</option>)}
+          </select>
+        </SettingField>
+        <SettingField id="gpu-queue-size" label="CUDA-Queue" explanation="Anzahl der Titel, die auf die GPU warten dürfen. 8 ist der sichere Standard für das Dev-Image." source={sources['analysis.gpu_queue_size']}>
+          <input id="gpu-queue-size" aria-label="CUDA-Queue" min="1" max="256" type="number" value={analysis.gpu_queue_size} disabled={sources['analysis.gpu_queue_size'] === 'env'} onChange={(event) => onChange({ gpu_queue_size: Number(event.target.value) })} />
+        </SettingField>
+      </div>
+    </div>
+  )
+}
+
+interface CpuWorkerFieldProps {
+  analysis: AppSettings['analysis']
+  sources: EffectiveSettings['sources']
+  onChange: (patch: Partial<AppSettings['analysis']>) => void
+}
+
+function CpuWorkerField({ analysis, sources, onChange }: CpuWorkerFieldProps) {
+  const lockedByEnvironment = sources['analysis.cpu_workers'] === 'env' || sources['analysis.workers'] === 'env'
+  const source = lockedByEnvironment ? 'env' : sources['analysis.cpu_workers']
+  const value = analysis.cpu_workers === 1 ? analysis.workers : analysis.cpu_workers
+  return (
+    <SettingField id="analysis-workers" label="CPU-Worker" explanation="Anzahl der Titel, die parallel auf der CPU analysiert werden. Mehr Worker benötigen entsprechend mehr Arbeitsspeicher." source={source}>
+      <input id="analysis-workers" aria-label="CPU-Worker" min="1" max="64" type="number" value={value} disabled={lockedByEnvironment} onChange={(event) => onChange({ cpu_workers: Number(event.target.value) })} />
+    </SettingField>
+  )
+}
+
 function changedSettings(
   original: AppSettings,
   draft: AppSettings,
@@ -133,6 +183,7 @@ export function SettingsView() {
   const sources = effective.sources
   const analysis = draft.analysis
   const isCudaImage = capabilities.image_variant === 'cuda'
+  const cpuWorkerLocked = sources['analysis.cpu_workers'] === 'env' || sources['analysis.workers'] === 'env'
   const updateAnalysis = (patch: Partial<AppSettings['analysis']>) =>
     setDraft({ ...draft, analysis: { ...analysis, ...patch } })
   const updateThreshold = (
@@ -190,9 +241,7 @@ export function SettingsView() {
         <section className="panel settings-section" aria-labelledby="analysis-heading">
           <div className="section-heading"><div><p className="eyebrow">Standardwerte</p><h2 id="analysis-heading">Analyse</h2></div></div>
           <div className="form-grid">
-            <SettingField id="analysis-workers" label="Worker" explanation="Anzahl der Titel, die gleichzeitig analysiert werden. Mehr Worker benötigen entsprechend mehr Arbeitsspeicher." source={sources['analysis.workers']}>
-              <input id="analysis-workers" aria-label="Worker" min="1" max="64" type="number" value={analysis.workers} disabled={sources['analysis.workers'] === 'env'} onChange={(event) => updateAnalysis({ workers: Number(event.target.value) })} />
-            </SettingField>
+            <CpuWorkerField analysis={analysis} sources={sources} onChange={updateAnalysis} />
             <SettingField id="max-audio-seconds" label="Maximale Audiolänge" explanation="Begrenzt den pro Titel ausgewerteten Audioausschnitt. Kürzere Werte sparen Zeit, können aber weniger repräsentativ sein." source={sources['analysis.max_audio_seconds']}>
               <span className="input-with-unit"><input id="max-audio-seconds" min="1" max="3600" type="number" value={analysis.max_audio_seconds} disabled={sources['analysis.max_audio_seconds'] === 'env'} onChange={(event) => updateAnalysis({ max_audio_seconds: Number(event.target.value) })} /><span>Sek.</span></span>
             </SettingField>
@@ -208,11 +257,12 @@ export function SettingsView() {
           </div>
           <label className="check-row"><input type="checkbox" checked={analysis.write_confidence_tags} disabled={sources['analysis.write_confidence_tags'] === 'env'} onChange={(event) => updateAnalysis({ write_confidence_tags: event.target.checked })} />Konfidenzwerte in verwaltete Tags schreiben</label>
           <label className="check-row"><input type="checkbox" checked={analysis.overwrite_existing} disabled={sources['analysis.overwrite_existing'] === 'env'} onChange={(event) => updateAnalysis({ overwrite_existing: event.target.checked })} />Bestehende verwaltete Tags standardmäßig ersetzen</label>
+          <CudaTuning analysis={analysis} sources={sources} onChange={updateAnalysis} enabled={capabilities.available_compute.includes('cuda')} />
         </section>
       </div>
 
       <BenchmarkPanel
-        workerLocked={sources['analysis.workers'] === 'env'}
+        workerLocked={cpuWorkerLocked}
         onApplied={(saved) => {
           setEffective(saved)
           setDraft(saved.values)

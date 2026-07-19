@@ -28,3 +28,12 @@ def analyze_in_worker(path: str, options: AnalysisOptions) -> AnalysisResult:
     if _backend is None:
         raise RuntimeError("Analysis worker is not initialized")
     return _backend.analyze(Path(path), options)
+
+
+def analyze_prepared_batch_in_worker(
+    prepared_audio: list[object],
+    options: AnalysisOptions,
+) -> list[AnalysisResult]:
+    if _backend is None:
+        raise RuntimeError("Analysis worker is not initialized")
+    return [_backend.analyze_prepared(audio, options) for audio in prepared_audio]

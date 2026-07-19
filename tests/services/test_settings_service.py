@@ -44,6 +44,25 @@ def test_env_overrides_yaml_and_reports_source(tmp_path: Path) -> None:
     assert effective.sources["analysis.max_audio_seconds"] == "default"
 
 
+def test_env_configures_cuda_pipeline_workers_batch_and_queue(tmp_path: Path) -> None:
+    effective = SettingsService(
+        tmp_path / "settings.yaml",
+        {
+            "ESSENTIA_ANALYSIS_CPU_WORKERS": "4",
+            "ESSENTIA_GPU_WORKERS": "1",
+            "ESSENTIA_GPU_BATCH_SIZE": "4",
+            "ESSENTIA_GPU_QUEUE_SIZE": "16",
+        },
+    ).load()
+
+    analysis = effective.values.analysis
+    assert analysis.cpu_workers == 4
+    assert analysis.gpu_workers == 1
+    assert analysis.gpu_batch_size == 4
+    assert analysis.gpu_queue_size == 16
+    assert effective.sources["analysis.cpu_workers"] == "env"
+
+
 def test_yaml_requires_a_mapping_root(tmp_path: Path) -> None:
     path = tmp_path / "settings.yaml"
     path.write_text("- invalid\n- root\n", encoding="utf-8")

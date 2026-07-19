@@ -1842,6 +1842,47 @@ select:hover {
   accent-color: var(--genre);
 }
 
+.cuda-tuning {
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--signal) 45%, var(--line));
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--signal) 9%, var(--surface-subtle)), var(--surface-subtle));
+}
+
+.cuda-tuning__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.cuda-tuning h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.cuda-tuning__badge {
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--signal) 55%, var(--line));
+  border-radius: 999px;
+  color: var(--signal);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.cuda-tuning .section-copy {
+  margin: 0 0 16px;
+  line-height: 1.55;
+}
+
+.cuda-tuning__grid {
+  margin-bottom: 0;
+}
+
 .automation-panel {
   overflow: hidden;
 }

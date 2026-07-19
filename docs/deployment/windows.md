@@ -50,5 +50,8 @@ Die Entwicklung innerhalb des WSL2-Linux-Dateisystems liefert zuverlässigere Ev
 
 Der Benchmark nutzt automatisch einen Titel mit mindestens 60 Sekunden und schreibt
 keine Tags. CPU wird immer gemessen; CUDA nur im CUDA-Image mit sichtbarer NVIDIA-GPU.
-Nach Änderungen an Docker-RAM, Modellen oder Analyseoptionen ist eine alte Messung
-nicht mehr gültig und wird in der Oberfläche entsprechend markiert.
+Im CUDA-Image werden Batch 1, 2 und 4 nacheinander gemessen. Die laufende Analyse
+verwendet einen persistenten GPU-Prozess, CPU-Vorbereitungsworker und eine bounded
+Queue; bei VRAM-Mangel wird auf kleinere Batches zurückgefallen. Nach Änderungen
+an Docker-RAM, Modellen oder Analyseoptionen ist eine alte Messung nicht mehr
+gültig und wird in der Oberfläche entsprechend markiert.

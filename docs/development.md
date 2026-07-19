@@ -79,6 +79,21 @@ python scripts/verify.py
 
 The command runs backend tests and Ruff, then frontend lint, component tests, type checking, and a production build. It is the same contract on PowerShell, WSL2, macOS, Linux, and CI.
 
+### CUDA-Analysepipeline
+
+Im CUDA-Image lädt genau ein persistenter GPU-Prozess die Essentia-/TensorFlow-
+Modelle. `ESSENTIA_ANALYSIS_CPU_WORKERS` steuert die CPU-Vorbereitung; die
+GPU-Prozesszahl bleibt aus VRAM-Gründen auf `ESSENTIA_GPU_WORKERS=1` begrenzt.
+`ESSENTIA_GPU_BATCH_SIZE` akzeptiert `1`, `2`, `4` oder `8`, und
+`ESSENTIA_GPU_QUEUE_SIZE` begrenzt die Zahl vorbereiteter Anfragen. Eine volle
+Queue erzeugt Backpressure statt unbeschränkt RAM zu belegen. Bei CUDA-OOM wird
+die Batchgröße schrittweise halbiert; scheitert auch Batch 1, endet der Titel mit
+einem verständlichen CUDA-Fehler.
+
+Der Benchmark misst im CUDA-Image die Batchgrößen 1, 2 und 4 nacheinander und
+weist Durchsatz, Initialisierungszeit und Fallbacks aus. CPU misst weiterhin nur
+die Referenz mit Batch 1. Benchmarks laufen nie parallel.
+
 ## Running the production build locally
 
 Build the frontend, configure local paths, and start the same-origin application:

@@ -84,6 +84,7 @@ def test_apply_current_recommendation_updates_workers_explicitly(client) -> None
 
     assert response.status_code == 200
     assert response.json()["values"]["analysis"]["workers"] == run["recommended_workers"]
+    assert response.json()["values"]["analysis"]["cpu_workers"] == run["recommended_workers"]
     assert response.json()["sources"]["analysis.workers"] == "file"
 
 

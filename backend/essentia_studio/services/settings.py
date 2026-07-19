@@ -54,6 +54,10 @@ def _parse_write_mode(value: str, name: str) -> str:
 
 ENV_SETTINGS: dict[str, tuple[str, Parser]] = {
     "ESSENTIA_ANALYSIS_WORKERS": ("analysis.workers", _parse_int),
+    "ESSENTIA_ANALYSIS_CPU_WORKERS": ("analysis.cpu_workers", _parse_int),
+    "ESSENTIA_GPU_WORKERS": ("analysis.gpu_workers", _parse_int),
+    "ESSENTIA_GPU_BATCH_SIZE": ("analysis.gpu_batch_size", _parse_int),
+    "ESSENTIA_GPU_QUEUE_SIZE": ("analysis.gpu_queue_size", _parse_int),
     "ESSENTIA_MAX_AUDIO_SECONDS": ("analysis.max_audio_seconds", _parse_int),
     "ESSENTIA_GENRE_THRESHOLD": ("analysis.genre_threshold", _parse_float),
     "ESSENTIA_MOOD_THRESHOLD": ("analysis.mood_threshold", _parse_float),
