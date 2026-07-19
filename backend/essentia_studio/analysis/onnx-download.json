@@ -1,8 +1,26 @@
 [
   {
     "name": "discogs-effnet-bsdynamic-1.onnx",
-    "role": "embedding",
+    "role": "genre_and_embedding",
     "url": "https://essentia.upf.edu/models/feature-extractors/discogs-effnet/discogs-effnet-bsdynamic-1.onnx",
     "sha256": "a280825b334797cf677939db8cd5762c0392aedd0ca6415dbc1cd083f045e43c"
+  },
+  {
+    "name": "genre_discogs400-discogs-effnet-1.json",
+    "role": "genre_labels",
+    "url": "https://essentia.upf.edu/models/classification-heads/genre_discogs400/genre_discogs400-discogs-effnet-1.json",
+    "sha256": "2d367319d9b782ffa10f69abf0e805b3ac4e10899025e5bdbaceda3919b243e0"
+  },
+  {
+    "name": "mtg_jamendo_moodtheme-discogs-effnet-1.onnx",
+    "role": "mood",
+    "url": "https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.onnx",
+    "sha256": "7d6270acaa5f4bba4b115a0d6849aca05ed6bd153dcb6d9da4f6ab9f99ef10ff"
+  },
+  {
+    "name": "mtg_jamendo_moodtheme-discogs-effnet-1.json",
+    "role": "mood_labels",
+    "url": "https://essentia.upf.edu/models/classification-heads/mtg_jamendo_moodtheme/mtg_jamendo_moodtheme-discogs-effnet-1.json",
+    "sha256": "d62cd90263e4d613fa7fcce7a831e339450394794af63685f96e065c1a896ab0"
   }
 ]
