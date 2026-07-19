@@ -37,3 +37,33 @@ def test_prepared_batch_runs_genre_and_mood_heads_once_per_batch() -> None:
     assert len(mood_calls) == 1
     assert [result.genres[0].label for result in results] == ["rock", "pop"]
     assert [result.moods[0].label for result in results] == ["calm", "energetic"]
+
+
+def test_prepared_batch_chunks_large_classification_heads() -> None:
+    genre_calls: list[np.ndarray] = []
+    mood_calls: list[np.ndarray] = []
+
+    class ChunkedFakeModel:
+        def __init__(self, calls: list[np.ndarray], width: int) -> None:
+            self.calls = calls
+            self.width = width
+
+        def __call__(self, value: np.ndarray) -> np.ndarray:
+            self.calls.append(value)
+            return np.ones((len(value), self.width), dtype=np.float32)
+
+    backend = EssentiaBackend(Path("/models"), "cuda")
+    backend._loaded = {
+        "embedding": lambda audio: np.ones((32, 3), dtype=np.float32),
+        "genre": ChunkedFakeModel(genre_calls, 2),
+        "mood": ChunkedFakeModel(mood_calls, 2),
+        "genre_labels": ["rock", "pop"],
+        "mood_labels": ["calm", "energetic"],
+    }
+    options = AnalysisOptions(genre_threshold=0.5, mood_threshold=0.5, genre_count=1)
+
+    results = backend.analyze_prepared_batch(["one"], options)
+
+    assert len(results) == 1
+    assert [len(call) for call in genre_calls] == [16, 16]
+    assert [len(call) for call in mood_calls] == [16, 16]

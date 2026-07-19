@@ -9,6 +9,8 @@ import numpy as np
 from essentia_studio.analysis.genre_selection import select_genre_predictions
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult, Prediction
 
+_CLASSIFICATION_CHUNK_SIZE = 16
+
 
 class EssentiaBackend:
     def __init__(self, model_dir: Path, image_variant: str = "cpu") -> None:
@@ -103,7 +105,7 @@ class EssentiaBackend:
     ) -> list[list[Prediction]]:
         if not options.enable_genres:
             return [[] for _ in lengths]
-        predictions = np.asarray(models["genre"](embeddings))
+        predictions = _predict_in_chunks(models["genre"], embeddings)
         return [
             self._select_genres(models["genre_labels"], predictions[start:end], options)
             for start, end in _ranges(lengths)
@@ -118,7 +120,7 @@ class EssentiaBackend:
     ) -> list[list[Prediction]]:
         if not options.enable_moods:
             return [[] for _ in lengths]
-        predictions = np.asarray(models["mood"](embeddings))
+        predictions = _predict_in_chunks(models["mood"], embeddings)
         return [
             self._select_moods(models["mood_labels"], predictions[start:end], options)
             for start, end in _ranges(lengths)
@@ -225,3 +227,12 @@ def _ranges(lengths: list[int]) -> list[tuple[int, int]]:
         ranges.append((start, end))
         start = end
     return ranges
+
+
+def _predict_in_chunks(model: Any, embeddings: Any) -> np.ndarray:
+    embedding_array = np.asarray(embeddings)
+    predictions = [
+        np.asarray(model(embedding_array[start : start + _CLASSIFICATION_CHUNK_SIZE]))
+        for start in range(0, len(embedding_array), _CLASSIFICATION_CHUNK_SIZE)
+    ]
+    return np.concatenate(predictions, axis=0)

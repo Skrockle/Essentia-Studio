@@ -170,5 +170,12 @@ def _is_cuda_out_of_memory(error: RuntimeError) -> bool:
     message = str(error).lower()
     return any(
         marker in message
-        for marker in ("out of memory", "resourceexhausted", "cudnn_status_not_initialized")
+        for marker in (
+            "out of memory",
+            "resourceexhausted",
+            "cudnn_status_not_initialized",
+            "cublas_status_alloc_failed",
+            "blas xgemm launch failed",
+            "cuda_error_out_of_memory",
+        )
     )
