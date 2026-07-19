@@ -63,20 +63,66 @@ class EssentiaBackend:
         options: AnalysisOptions,
         cancellation: Event | None = None,
     ) -> AnalysisResult:
+        return self.analyze_prepared_batch([audio], options, cancellation)[0]
+
+    def analyze_prepared_batch(
+        self,
+        audio_batch: list[Any],
+        options: AnalysisOptions,
+        cancellation: Event | None = None,
+    ) -> list[AnalysisResult]:
+        if not audio_batch:
+            return []
         if cancellation is not None and cancellation.is_set():
-            return AnalysisResult(model_ids=[])
+            return [AnalysisResult(model_ids=[]) for _ in audio_batch]
         models = self._load_models()
-        embeddings = models["embedding"](audio)
-        genres = self._predict_genres(models, embeddings, options) if options.enable_genres else []
-        moods = self._predict_moods(models, embeddings, options) if options.enable_moods else []
-        result = AnalysisResult(
-            genres=genres,
-            moods=moods,
-            model_ids=[model["name"] for model in self._manifest],
+        embeddings = [models["embedding"](audio) for audio in audio_batch]
+        lengths = [len(embedding) for embedding in embeddings]
+        combined_embeddings = np.concatenate(embeddings, axis=0)
+        genre_predictions = self._predict_genre_batch(
+            models, combined_embeddings, lengths, options
         )
+        mood_predictions = self._predict_mood_batch(
+            models, combined_embeddings, lengths, options
+        )
+        model_ids = [model["name"] for model in self._manifest]
+        results = [
+            AnalysisResult(genres=genres, moods=moods, model_ids=model_ids.copy())
+            for genres, moods in zip(genre_predictions, mood_predictions, strict=True)
+        ]
         if cancellation is not None and cancellation.is_set():
-            return AnalysisResult(model_ids=[])
-        return result
+            return [AnalysisResult(model_ids=[]) for _ in audio_batch]
+        return results
+
+    def _predict_genre_batch(
+        self,
+        models: dict[str, Any],
+        embeddings: Any,
+        lengths: list[int],
+        options: AnalysisOptions,
+    ) -> list[list[Prediction]]:
+        if not options.enable_genres:
+            return [[] for _ in lengths]
+        predictions = np.asarray(models["genre"](embeddings))
+        return [
+            self._select_genres(models["genre_labels"], predictions[start:end], options)
+            for start, end in _ranges(lengths)
+        ]
+
+    def _predict_mood_batch(
+        self,
+        models: dict[str, Any],
+        embeddings: Any,
+        lengths: list[int],
+        options: AnalysisOptions,
+    ) -> list[list[Prediction]]:
+        if not options.enable_moods:
+            return [[] for _ in lengths]
+        predictions = np.asarray(models["mood"](embeddings))
+        return [
+            self._select_moods(models["mood_labels"], predictions[start:end], options)
+            for start, end in _ranges(lengths)
+        ]
 
     def _load_audio_loader(self) -> Any:
         import essentia
@@ -132,9 +178,17 @@ class EssentiaBackend:
         embeddings: Any,
         options: AnalysisOptions,
     ) -> list[Prediction]:
-        activations = np.mean(models["genre"](embeddings), axis=0)
+        return EssentiaBackend._select_genres(
+            models["genre_labels"], models["genre"](embeddings), options
+        )
+
+    @staticmethod
+    def _select_genres(
+        labels: list[str], predictions: Any, options: AnalysisOptions
+    ) -> list[Prediction]:
+        activations = np.mean(predictions, axis=0)
         return select_genre_predictions(
-            models["genre_labels"],
+            labels,
             activations,
             options.genre_threshold,
             options.genre_count,
@@ -146,10 +200,28 @@ class EssentiaBackend:
         embeddings: Any,
         options: AnalysisOptions,
     ) -> list[Prediction]:
-        activations = np.mean(models["mood"](embeddings), axis=0)
+        return EssentiaBackend._select_moods(
+            models["mood_labels"], models["mood"](embeddings), options
+        )
+
+    @staticmethod
+    def _select_moods(
+        labels: list[str], predictions: Any, options: AnalysisOptions
+    ) -> list[Prediction]:
+        activations = np.mean(predictions, axis=0)
         predictions = [
-            Prediction(models["mood_labels"][index], float(activation))
+            Prediction(labels[index], float(activation))
             for index, activation in enumerate(activations)
             if activation >= options.mood_threshold
         ]
         return sorted(predictions, key=lambda value: value.confidence, reverse=True)[:5]
+
+
+def _ranges(lengths: list[int]) -> list[tuple[int, int]]:
+    ranges: list[tuple[int, int]] = []
+    start = 0
+    for length in lengths:
+        end = start + length
+        ranges.append((start, end))
+        start = end
+    return ranges

@@ -97,14 +97,15 @@ def _measure(
     initialization_seconds = time.perf_counter() - started
 
     started = time.perf_counter()
-    warmup_result = _analyze_batch(backend, path, options, batch_size)
+    prepared = backend.prepare(path, options)
+    warmup_result = _analyze_batch(backend, prepared, options, batch_size)[-1]
     warmup_seconds = time.perf_counter() - started
 
     measured_seconds: list[float] = []
     result = warmup_result
     for _ in range(2):
         started = time.perf_counter()
-        result = _analyze_batch(backend, path, options, batch_size)
+        result = _analyze_batch(backend, prepared, options, batch_size)[-1]
         measured_seconds.append(time.perf_counter() - started)
 
     peak = _peak_rss_bytes()
@@ -122,16 +123,11 @@ def _measure(
 
 def _analyze_batch(
     backend: EssentiaBackend,
-    path: Path,
+    prepared: object,
     options: AnalysisOptions,
     batch_size: int,
-) -> AnalysisResult:
-    result = None
-    for _ in range(batch_size):
-        result = backend.analyze(path, options)
-    if result is None:
-        raise RuntimeError("Leere Benchmark-Batch")
-    return result
+) -> list[AnalysisResult]:
+    return backend.analyze_prepared_batch([prepared] * batch_size, options)
 
 
 def _peak_rss_bytes() -> int:

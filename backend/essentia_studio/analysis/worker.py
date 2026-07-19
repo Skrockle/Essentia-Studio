@@ -36,4 +36,4 @@ def analyze_prepared_batch_in_worker(
 ) -> list[AnalysisResult]:
     if _backend is None:
         raise RuntimeError("Analysis worker is not initialized")
-    return [_backend.analyze_prepared(audio, options) for audio in prepared_audio]
+    return _backend.analyze_prepared_batch(prepared_audio, options)
