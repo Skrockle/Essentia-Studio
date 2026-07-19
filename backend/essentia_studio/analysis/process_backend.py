@@ -1,3 +1,4 @@
+import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from threading import Event, RLock
@@ -133,15 +134,18 @@ class ProcessAnalysisBackend:
     def _get_executor(self) -> ProcessPoolExecutor:
         with self._lock:
             if self._executor is None:
-                self._executor = ProcessPoolExecutor(
-                    max_workers=1 if self._compute == "cuda" else self._worker_count,
-                    initializer=initialize_worker,
-                    initargs=(
+                executor_options: dict[str, object] = {
+                    "max_workers": 1 if self._compute == "cuda" else self._worker_count,
+                    "initializer": initialize_worker,
+                    "initargs": (
                         str(self._model_dir),
                         self._compute,
                         1 if self._compute == "cuda" else self._worker_count,
                     ),
-                )
+                }
+                if self._compute == "cuda":
+                    executor_options["mp_context"] = multiprocessing.get_context("spawn")
+                self._executor = ProcessPoolExecutor(**executor_options)
             return self._executor
 
 
