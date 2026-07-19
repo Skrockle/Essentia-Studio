@@ -1,3 +1,4 @@
+import multiprocessing
 from concurrent.futures import Future
 from pathlib import Path
 
@@ -89,6 +90,31 @@ def test_cuda_backend_uses_one_gpu_process_and_configured_cpu_pipeline(monkeypat
     assert created[0].cpu_workers == 3
     assert created[0].batch_size == 4
     assert created[0].queue_size == 8
+
+
+def test_cuda_executor_uses_spawn_context(monkeypatch) -> None:
+    created: list[dict[str, object]] = []
+
+    class SpawnSafeExecutor(FakeExecutor):
+        pass
+
+    def create_executor(*_args, **kwargs) -> SpawnSafeExecutor:
+        created.append(kwargs)
+        executor = SpawnSafeExecutor()
+        executor._processes = {1: executor.process}
+        return executor
+
+    monkeypatch.setattr(
+        "essentia_studio.analysis.process_backend.ProcessPoolExecutor",
+        create_executor,
+    )
+    backend = ProcessAnalysisBackend(Path("/models"), "cuda", 1, "cuda", ["cpu", "cuda"])
+
+    backend._get_executor()
+
+    context = created[0]["mp_context"]
+    assert isinstance(context, multiprocessing.context.BaseContext)
+    assert context.get_start_method() == "spawn"
 
 
 def test_cuda_batch_falls_back_to_smaller_batches_on_oom() -> None:
