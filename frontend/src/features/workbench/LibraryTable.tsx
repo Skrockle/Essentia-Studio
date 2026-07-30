@@ -6,6 +6,7 @@ interface LibraryTableProps {
   selectedIds: ReadonlySet<number>
   onSelectAll: (selected: boolean) => void
   onSelectTrack: (trackId: number, selected: boolean) => void
+  selectionDisabled: boolean
   visibleColumns: LibraryColumn[]
 }
 
@@ -22,6 +23,7 @@ export function LibraryTable({
   selectedIds,
   onSelectAll,
   onSelectTrack,
+  selectionDisabled,
   visibleColumns,
 }: LibraryTableProps) {
   const allSelected = tracks.length > 0 && tracks.every((track) => selectedIds.has(track.id))
@@ -36,7 +38,9 @@ export function LibraryTable({
         <span><strong>{selectedIds.size}</strong> von {tracks.length} ausgewählt</span>
       </div>
       {tracks.length === 0 ? (
-        <p className="library-panel__empty">Noch keine Titel gefunden. Starte zuerst einen Scan.</p>
+        <p className="library-panel__empty">
+          {selectionDisabled ? 'Bibliothek wird geladen …' : 'Noch keine Titel gefunden. Starte zuerst einen Scan.'}
+        </p>
       ) : (
         <div className="library-table-scroll">
           <table className="library-table">
@@ -46,6 +50,7 @@ export function LibraryTable({
                   <input
                     aria-label="Alle gescannten Titel analysieren"
                     checked={allSelected}
+                    disabled={selectionDisabled}
                     onChange={(event) => onSelectAll(event.target.checked)}
                     type="checkbox"
                   />
@@ -65,6 +70,7 @@ export function LibraryTable({
                     <input
                       aria-label={`${track.relative_path} analysieren`}
                       checked={selectedIds.has(track.id)}
+                      disabled={selectionDisabled}
                       onChange={(event) => onSelectTrack(track.id, event.target.checked)}
                       type="checkbox"
                     />

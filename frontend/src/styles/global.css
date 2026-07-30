@@ -2380,6 +2380,31 @@ select:hover {
   .settings-columns {
     grid-template-columns: 1fr;
   }
+
+  .workbench-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .search-field {
+    width: 100%;
+  }
+
+  .quick-filters {
+    justify-self: end;
+  }
+
+  .result-summary {
+    grid-column: 1;
+  }
+
+  .workbench-actions {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 700px) {

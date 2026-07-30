@@ -10,6 +10,7 @@ let writeCalls = 0
 let analysisBodies: unknown[] = []
 let includeWrittenTrack = false
 let libraryRequestUrls: string[] = []
+let nextLibraryResponse: Promise<Response> | null = null
 
 class FakeEventSource {
   static latest: FakeEventSource | null = null
@@ -30,6 +31,16 @@ class FakeEventSource {
   close() {}
 }
 
+function deferredResponse() {
+  let resolve: (response: Response) => void
+  let reject: (reason: unknown) => void
+  const promise = new Promise<Response>((nextResolve, nextReject) => {
+    resolve = nextResolve
+    reject = nextReject
+  })
+  return { promise, resolve: resolve!, reject: reject! }
+}
+
 beforeEach(() => {
   localStorage.clear()
   selectedCount = 0
@@ -38,6 +49,7 @@ beforeEach(() => {
   analysisBodies = []
   includeWrittenTrack = false
   libraryRequestUrls = []
+  nextLibraryResponse = null
   FakeEventSource.latest = null
   vi.stubGlobal('EventSource', FakeEventSource)
   vi.stubGlobal(
@@ -51,6 +63,11 @@ beforeEach(() => {
       }
       if (url.includes('/api/library/tracks')) {
         libraryRequestUrls.push(url)
+        if (nextLibraryResponse) {
+          const pendingResponse = nextLibraryResponse
+          nextLibraryResponse = null
+          return pendingResponse
+        }
         const searchParameters = new URL(url, 'http://localhost').searchParams
         const filteredTracks = searchParameters.has('missing_genre') && searchParameters.has('missing_mood')
           ? [libraryTrack(12, 'Library/two.mp3')]
@@ -224,6 +241,17 @@ test('shows scanned tracks and analyzes only explicitly selected track ids', asy
   await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [11] }]))
 })
 
+test('keeps the tablet toolbar layout targets grouped by their control roles', async () => {
+  render(<WorkbenchView />)
+
+  const controls = (await screen.findByLabelText('Ergebnisse filtern')).closest('.workbench-controls')
+  expect(controls).not.toBeNull()
+  expect(controls?.querySelector('.search-field')).not.toBeNull()
+  expect(controls?.querySelector('.quick-filters')).not.toBeNull()
+  expect(controls?.querySelector('.result-summary')).not.toBeNull()
+  expect(controls?.querySelector('.workbench-actions')).not.toBeNull()
+})
+
 test('reports a partially failed analysis instead of success', async () => {
   render(<WorkbenchView />)
 
@@ -313,6 +341,22 @@ test('uses server-side missing-tag filters and clears analysis selection on chan
   await userEvent.click(screen.getByRole('button', { name: '1 Titel analysieren' }))
 
   await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [12] }]))
+})
+
+test('withholds stale library rows while the next quick-filter query fails', async () => {
+  render(<WorkbenchView />)
+  await screen.findByRole('checkbox', { name: 'Library/one.flac analysieren' })
+  const failedResponse = deferredResponse()
+  nextLibraryResponse = failedResponse.promise
+
+  await userEvent.click(screen.getByRole('button', { name: 'Ohne Genre' }))
+
+  expect(screen.queryByRole('checkbox', { name: 'Library/one.flac analysieren' })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Auswahl analysieren' })).toBeDisabled()
+  failedResponse.reject(new Error('network unreachable'))
+
+  expect(await screen.findByText('Bibliothek konnte nicht geladen werden.')).toBeVisible()
+  expect(screen.queryByRole('checkbox', { name: 'Library/one.flac analysieren' })).not.toBeInTheDocument()
 })
 
 test('hides written tracks by default and keeps file paths in a configurable column', async () => {

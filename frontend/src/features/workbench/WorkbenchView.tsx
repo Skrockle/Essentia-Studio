@@ -25,6 +25,7 @@ import {
 interface WorkbenchActionsProps {
   active: boolean
   analysisSelectedCount: number
+  libraryLoading: boolean
   selectedCount: number
   onScan: () => void
   onAnalyze: () => void
@@ -34,6 +35,7 @@ interface WorkbenchActionsProps {
 function WorkbenchActions({
   active,
   analysisSelectedCount,
+  libraryLoading,
   selectedCount,
   onScan,
   onAnalyze,
@@ -44,7 +46,7 @@ function WorkbenchActions({
       <button disabled={active} onClick={onScan} type="button">
         <FolderSearch aria-hidden="true" size={16} /> Bibliothek scannen
       </button>
-      <button disabled={active || analysisSelectedCount === 0} onClick={onAnalyze} type="button">
+      <button disabled={active || libraryLoading || analysisSelectedCount === 0} onClick={onAnalyze} type="button">
         <Sparkles aria-hidden="true" size={16} />
         {analysisSelectedCount > 0 ? `${analysisSelectedCount} Titel analysieren` : 'Auswahl analysieren'}
       </button>
@@ -103,6 +105,7 @@ export function WorkbenchView() {
   const {
     tracks: libraryTracks,
     error: libraryError,
+    isLoading: libraryLoading,
     refresh: refreshLibrary,
   } = useLibraryTracks(libraryQuery)
   const { options: tagOptions, error: tagOptionsError } = useTagOptions()
@@ -171,7 +174,7 @@ export function WorkbenchView() {
   }
 
   async function startAnalysis() {
-    if (visibleAnalysisSelection.size === 0) return
+    if (libraryLoading || visibleAnalysisSelection.size === 0) return
     setStatusMessage(null)
     setActiveJob(
       await apiRequest<JobRecord>('/api/analysis/jobs', {
@@ -185,10 +188,12 @@ export function WorkbenchView() {
   }
 
   function selectAllForAnalysis(selected: boolean) {
+    if (libraryLoading) return
     setAnalysisSelection(selected ? new Set(filteredLibraryTracks.map((track) => track.id)) : new Set())
   }
 
   function selectTrackForAnalysis(trackId: number, selected: boolean) {
+    if (libraryLoading) return
     setAnalysisSelection((current) => {
       const next = new Set(current)
       if (selected) next.add(trackId)
@@ -253,6 +258,7 @@ export function WorkbenchView() {
         <WorkbenchActions
           active={Boolean(activeJob)}
           analysisSelectedCount={visibleAnalysisSelection.size}
+          libraryLoading={libraryLoading}
           onAnalyze={startAnalysis}
           onPreview={() => setShowPreview(true)}
           onScan={startScan}
@@ -271,6 +277,7 @@ export function WorkbenchView() {
         onSelectAll={selectAllForAnalysis}
         onSelectTrack={selectTrackForAnalysis}
         selectedIds={visibleAnalysisSelection}
+        selectionDisabled={libraryLoading}
         tracks={filteredLibraryTracks}
         visibleColumns={viewPreferences.libraryColumns}
       />

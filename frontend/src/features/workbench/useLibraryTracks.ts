@@ -1,9 +1,24 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { apiRequest } from '../../api/client'
 import type { LibraryQuery, LibraryTrack, LibraryTrackPage } from './types'
 
 const pageSize = 200
+
+interface QueryBoundTracks {
+  queryKey: string
+  tracks: LibraryTrack[]
+  error: string | null
+  isLoading: boolean
+}
+
+function libraryQueryKey(query: LibraryQuery): string {
+  return JSON.stringify([query.search, query.missingGenre, query.missingMood])
+}
+
+function isAbortedRequest(reason: unknown): boolean {
+  return reason instanceof DOMException && reason.name === 'AbortError'
+}
 
 async function loadAllTracks(query: LibraryQuery, signal?: AbortSignal): Promise<LibraryTrack[]> {
   const tracks: LibraryTrack[] = []
@@ -29,30 +44,62 @@ async function loadAllTracks(query: LibraryQuery, signal?: AbortSignal): Promise
 }
 
 export function useLibraryTracks(query: LibraryQuery) {
-  const [tracks, setTracks] = useState<LibraryTrack[]>([])
-  const [error, setError] = useState<string | null>(null)
+  const [libraryState, setLibraryState] = useState<QueryBoundTracks | null>(null)
+  const requestSequence = useRef(0)
+  const queryKey = libraryQueryKey(query)
 
   const refresh = useCallback(async () => {
-    const nextTracks = await loadAllTracks(query)
-    setTracks(nextTracks)
-    setError(null)
-    return nextTracks
-  }, [query])
+    const requestId = requestSequence.current + 1
+    requestSequence.current = requestId
+    setLibraryState({ queryKey, tracks: [], error: null, isLoading: true })
+
+    try {
+      const tracks = await loadAllTracks(query)
+      if (requestId !== requestSequence.current) return []
+      setLibraryState({ queryKey, tracks, error: null, isLoading: false })
+      return tracks
+    } catch (reason: unknown) {
+      if (requestId !== requestSequence.current || isAbortedRequest(reason)) return []
+      setLibraryState({
+        queryKey,
+        tracks: [],
+        error: 'Bibliothek konnte nicht geladen werden.',
+        isLoading: false,
+      })
+      throw reason
+    }
+  }, [query, queryKey])
 
   useEffect(() => {
     const controller = new AbortController()
+    const requestId = requestSequence.current + 1
+    requestSequence.current = requestId
     loadAllTracks(query, controller.signal)
-      .then((nextTracks) => {
-        setTracks(nextTracks)
-        setError(null)
+      .then((tracks) => {
+        if (requestId !== requestSequence.current) return
+        setLibraryState({ queryKey, tracks, error: null, isLoading: false })
       })
       .catch((reason: unknown) => {
-        if (!(reason instanceof DOMException && reason.name === 'AbortError')) {
-          setError(reason instanceof Error ? reason.message : 'Bibliothek konnte nicht geladen werden.')
-        }
+        if (requestId !== requestSequence.current || isAbortedRequest(reason)) return
+        setLibraryState({
+          queryKey,
+          tracks: [],
+          error: 'Bibliothek konnte nicht geladen werden.',
+          isLoading: false,
+        })
       })
-    return () => controller.abort()
-  }, [query])
+    return () => {
+      controller.abort()
+      requestSequence.current += 1
+    }
+  }, [query, queryKey])
 
-  return { tracks, error, refresh }
+  const isCurrentQuery = libraryState?.queryKey === queryKey
+
+  return {
+    tracks: isCurrentQuery ? libraryState.tracks : [],
+    error: isCurrentQuery ? libraryState.error : null,
+    isLoading: !isCurrentQuery || libraryState.isLoading,
+    refresh,
+  }
 }
