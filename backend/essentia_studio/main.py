@@ -1,7 +1,9 @@
+import math
 from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
+from pathlib import PurePosixPath
 from threading import Event
 
 from fastapi import FastAPI
@@ -48,6 +50,18 @@ from essentia_studio.services.tag_catalog import TagCatalogService
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.services.track_state import TrackStateService
 from essentia_studio.tags.registry import TagAdapterRegistry
+
+_ANALYSIS_OPTION_FIELDS = frozenset(
+    {
+        "enable_genres",
+        "enable_moods",
+        "genre_threshold",
+        "mood_threshold",
+        "genre_count",
+        "max_audio_seconds",
+    }
+)
+_ANALYSIS_HEAD_FIELDS = frozenset({"enable_genres", "enable_moods"})
 
 
 def create_app(config: RuntimeConfig | None = None) -> FastAPI:
@@ -241,25 +255,92 @@ def _analysis_options_for_item(
     configuration: Mapping[str, object],
     relative_path: str,
 ) -> AnalysisOptions:
-    heads_by_path = configuration.get("heads_by_path")
-    analysis = configuration.get("analysis")
-    if not isinstance(heads_by_path, Mapping) or not isinstance(analysis, Mapping):
-        raise _missing_analysis_tag_scope()
-    heads = heads_by_path.get(relative_path)
-    if (
-        not isinstance(heads, Mapping)
-        or not isinstance(heads.get("enable_genres"), bool)
-        or not isinstance(heads.get("enable_moods"), bool)
-    ):
-        raise _missing_analysis_tag_scope()
     try:
-        options = AnalysisOptions(**analysis)
-    except TypeError as error:
+        options = _validated_analysis_options(configuration.get("analysis"))
+        enable_genres, enable_moods = _validated_heads(
+            configuration.get("heads_by_path"),
+            relative_path,
+        )
+    except (OverflowError, TypeError, ValueError) as error:
         raise _missing_analysis_tag_scope() from error
     return replace(
         options,
-        enable_genres=heads["enable_genres"],
-        enable_moods=heads["enable_moods"],
+        enable_genres=enable_genres,
+        enable_moods=enable_moods,
+    )
+
+
+def _validated_analysis_options(snapshot: object) -> AnalysisOptions:
+    if not isinstance(snapshot, Mapping) or set(snapshot) != _ANALYSIS_OPTION_FIELDS:
+        raise ValueError("Invalid analysis snapshot")
+    return AnalysisOptions(
+        enable_genres=_boolean_value(snapshot["enable_genres"]),
+        enable_moods=_boolean_value(snapshot["enable_moods"]),
+        genre_threshold=_bounded_number(snapshot["genre_threshold"], 0, 1),
+        mood_threshold=_bounded_number(snapshot["mood_threshold"], 0, 1),
+        genre_count=_bounded_integer(snapshot["genre_count"], 1, 20),
+        max_audio_seconds=_bounded_integer(snapshot["max_audio_seconds"], 1, 3600),
+    )
+
+
+def _validated_heads(
+    heads_by_path: object,
+    relative_path: str,
+) -> tuple[bool, bool]:
+    if not isinstance(heads_by_path, Mapping) or not _is_relative_track_path(relative_path):
+        raise ValueError("Invalid analysis heads")
+    selected_heads: tuple[bool, bool] | None = None
+    for path, heads in heads_by_path.items():
+        if not _is_relative_track_path(path):
+            raise ValueError("Invalid analysis head path")
+        enable_genres, enable_moods = _validated_head_scope(heads)
+        if path == relative_path:
+            selected_heads = enable_genres, enable_moods
+    if selected_heads is None:
+        raise ValueError("Missing analysis head scope")
+    return selected_heads
+
+
+def _validated_head_scope(heads: object) -> tuple[bool, bool]:
+    if not isinstance(heads, Mapping) or set(heads) != _ANALYSIS_HEAD_FIELDS:
+        raise ValueError("Invalid analysis head scope")
+    enable_genres = _boolean_value(heads["enable_genres"])
+    enable_moods = _boolean_value(heads["enable_moods"])
+    if not enable_genres and not enable_moods:
+        raise ValueError("No analysis head enabled")
+    return enable_genres, enable_moods
+
+
+def _bounded_number(value: object, minimum: float, maximum: float) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("Invalid number")
+    number = float(value)
+    if not math.isfinite(number) or not minimum <= number <= maximum:
+        raise ValueError("Out-of-range number")
+    return number
+
+
+def _bounded_integer(value: object, minimum: int, maximum: int) -> int:
+    if type(value) is not int or not minimum <= value <= maximum:
+        raise ValueError("Invalid integer")
+    return value
+
+
+def _boolean_value(value: object) -> bool:
+    if type(value) is not bool:
+        raise ValueError("Invalid boolean")
+    return value
+
+
+def _is_relative_track_path(value: object) -> bool:
+    if not isinstance(value, str) or not value or "\\" in value:
+        return False
+    path = PurePosixPath(value)
+    return (
+        not path.is_absolute()
+        and bool(path.parts)
+        and value == path.as_posix()
+        and all(part not in {".", ".."} for part in path.parts)
     )
 
 

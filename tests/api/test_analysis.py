@@ -2,6 +2,8 @@ import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 
+import pytest
+
 from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.domain.jobs import JobType
 from essentia_studio.domain.tracks import (
@@ -253,5 +255,114 @@ def test_legacy_analysis_job_fails_without_a_per_track_tag_scope(client) -> None
 
     assert completed["status"] == "completed_with_errors"
     assert client.app.state.job_repository.list_items(job.id)[0].error_code == (
+        "analysis_job_missing_tag_scope"
+    )
+
+
+def test_analysis_job_rejects_wrong_persisted_option_type_after_resume(client) -> None:
+    configuration = _persisted_analysis_configuration()
+    configuration["analysis"]["genre_count"] = "broken"
+    original = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        ["legacy.flac"],
+        configuration,
+    )
+
+    _assert_scope_failure(client, original.id)
+    resumed = client.app.state.job_coordinator.resume(original.id)
+
+    _assert_scope_failure(client, resumed.id)
+    assert client.app.state.job_repository.get(resumed.id).parent_job_id == original.id
+
+
+def test_analysis_job_rejects_persisted_snapshot_missing_an_option(client) -> None:
+    configuration = _persisted_analysis_configuration()
+    del configuration["analysis"]["mood_threshold"]
+    job = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        ["legacy.flac"],
+        configuration,
+    )
+
+    _assert_scope_failure(client, job.id)
+
+
+def test_analysis_job_rejects_persisted_snapshot_with_no_enabled_head(client) -> None:
+    configuration = _persisted_analysis_configuration()
+    configuration["heads_by_path"]["legacy.flac"] = {
+        "enable_genres": False,
+        "enable_moods": False,
+    }
+    job = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        ["legacy.flac"],
+        configuration,
+    )
+
+    _assert_scope_failure(client, job.id)
+
+
+def test_analysis_job_rejects_non_boolean_persisted_head_flag(client) -> None:
+    configuration = _persisted_analysis_configuration()
+    configuration["heads_by_path"]["legacy.flac"]["enable_moods"] = 1
+    job = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        ["legacy.flac"],
+        configuration,
+    )
+
+    _assert_scope_failure(client, job.id)
+
+
+def test_analysis_job_rejects_invalid_persisted_head_path(client) -> None:
+    configuration = _persisted_analysis_configuration()
+    configuration["heads_by_path"] = {
+        "../legacy.flac": {"enable_genres": True, "enable_moods": False}
+    }
+    job = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        ["legacy.flac"],
+        configuration,
+    )
+
+    _assert_scope_failure(client, job.id)
+
+
+@pytest.mark.parametrize(
+    ("field", "invalid_value"),
+    [
+        ("genre_threshold", -0.01),
+        ("genre_threshold", 10**400),
+        ("mood_threshold", 1.01),
+        ("genre_count", True),
+        ("max_audio_seconds", 3601),
+    ],
+)
+def test_analysis_job_rejects_out_of_range_or_boolean_persisted_option(
+    client,
+    field: str,
+    invalid_value: object,
+) -> None:
+    configuration = _persisted_analysis_configuration()
+    configuration["analysis"][field] = invalid_value
+    job = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        ["legacy.flac"],
+        configuration,
+    )
+
+    _assert_scope_failure(client, job.id)
+
+
+def _persisted_analysis_configuration() -> dict:
+    return {
+        "analysis": asdict(AnalysisOptions()),
+        "heads_by_path": {"legacy.flac": {"enable_genres": True, "enable_moods": False}},
+    }
+
+
+def _assert_scope_failure(client, job_id: str) -> None:
+    assert wait_for_job(client, job_id)["status"] == "completed_with_errors"
+    assert client.app.state.job_repository.list_items(job_id)[0].error_code == (
         "analysis_job_missing_tag_scope"
     )
