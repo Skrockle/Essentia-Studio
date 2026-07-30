@@ -88,6 +88,41 @@ def test_replace_scan_persists_and_updates_metadata(tmp_path) -> None:
     assert stored.managed_tags == ManagedTagInventory(["Ambient"], [], "ok", None)
 
 
+def test_replace_scan_preserves_last_read_tags_after_an_inventory_error(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = TrackRepository(engine)
+
+    repository.replace_scan(
+        [scanned_track("song.flac", managed_tags=ManagedTagInventory(["Rock"], ["Calm"], "ok"))],
+        datetime(2026, 7, 16, 10, tzinfo=timezone.utc),
+    )
+    repository.replace_scan(
+        [
+            scanned_track(
+                "song.flac",
+                managed_tags=ManagedTagInventory(
+                    status="error", error_code="managed_tags_unreadable"
+                ),
+            )
+        ],
+        datetime(2026, 7, 16, 11, tzinfo=timezone.utc),
+    )
+
+    assert repository.get_by_path("song.flac").managed_tags == ManagedTagInventory(
+        ["Rock"], ["Calm"], "error", "managed_tags_unreadable"
+    )
+
+    repository.replace_scan(
+        [scanned_track("song.flac", managed_tags=ManagedTagInventory([], [], "ok"))],
+        datetime(2026, 7, 16, 12, tzinfo=timezone.utc),
+    )
+
+    assert repository.get_by_path("song.flac").managed_tags == ManagedTagInventory(
+        [], [], "ok", None
+    )
+
+
 def test_update_managed_tags_replaces_successful_file_state(tmp_path) -> None:
     engine = create_sqlite_engine(tmp_path / "app.db")
     apply_migrations(engine)

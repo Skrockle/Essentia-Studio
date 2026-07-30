@@ -36,8 +36,14 @@ UPSERT_TRACK = text(
       album = excluded.album,
       duration_seconds = excluded.duration_seconds,
       metadata_source = excluded.metadata_source,
-      managed_genres = excluded.managed_genres,
-      managed_moods = excluded.managed_moods,
+      managed_genres = CASE
+        WHEN excluded.managed_tags_status = 'ok' THEN excluded.managed_genres
+        ELSE library_tracks.managed_genres
+      END,
+      managed_moods = CASE
+        WHEN excluded.managed_tags_status = 'ok' THEN excluded.managed_moods
+        ELSE library_tracks.managed_moods
+      END,
       managed_tags_status = excluded.managed_tags_status,
       managed_tags_error_code = excluded.managed_tags_error_code,
       updated_at = CURRENT_TIMESTAMP
