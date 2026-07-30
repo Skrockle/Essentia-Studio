@@ -328,6 +328,24 @@ def test_analysis_job_rejects_invalid_persisted_head_path(client) -> None:
     _assert_scope_failure(client, job.id)
 
 
+def test_analysis_job_rejects_nul_in_persisted_head_path(client) -> None:
+    relative_path = "bad\x00.flac"
+    configuration = _persisted_analysis_configuration()
+    configuration["heads_by_path"] = {
+        relative_path: {"enable_genres": True, "enable_moods": False}
+    }
+    job = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        [relative_path],
+        configuration,
+    )
+
+    _assert_scope_failure(client, job.id)
+    assert client.app.state.job_repository.list_items(job.id)[0].error == (
+        "Der Analyseauftrag enthält keine sichere Tag-Auswahl."
+    )
+
+
 @pytest.mark.parametrize(
     ("field", "invalid_value"),
     [

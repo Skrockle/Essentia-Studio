@@ -333,7 +333,7 @@ def _boolean_value(value: object) -> bool:
 
 
 def _is_relative_track_path(value: object) -> bool:
-    if not isinstance(value, str) or not value or "\\" in value:
+    if not isinstance(value, str) or not value or "\\" in value or "\x00" in value:
         return False
     path = PurePosixPath(value)
     return (
