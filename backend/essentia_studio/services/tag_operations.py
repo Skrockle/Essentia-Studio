@@ -27,8 +27,19 @@ class TagOperationService:
 
     def write_one(self, result_id: str, trigger: WriteTrigger = "manual") -> WriteOperation:
         result = self._results.get(result_id)
-        path = resolve_track_path(self._music_root, result.relative_path)
-        if self._fingerprint(path) != result.fingerprint:
+        try:
+            path = resolve_track_path(self._music_root, result.relative_path)
+            current_fingerprint = self._fingerprint(path)
+        except OSError:
+            return self._writes.record_without_write(
+                result.id,
+                result.relative_path,
+                "failed",
+                "track_unavailable",
+                "Die Datei konnte vor dem Schreiben nicht gelesen werden.",
+                trigger,
+            )
+        if current_fingerprint != result.fingerprint:
             return self._writes.record_without_write(
                 result.id,
                 result.relative_path,
@@ -36,7 +47,7 @@ class TagOperationService:
                 "track_changed_since_analysis",
                 "Die Datei wurde seit der Analyse verändert.",
                 trigger,
-        )
+            )
 
         adapter = self._registry.for_path(path)
         try:
@@ -101,29 +112,26 @@ class TagOperationService:
             path = resolve_track_path(self._music_root, operation.relative_path)
             current_fingerprint = self._fingerprint(path)
         except OSError:
-            return self._writes.finish(
+            return self._writes.record_undo_failure(
                 operation.id,
-                "failed",
-                error_code="undo_precondition_unreadable",
-                error_message="Die Datei konnte vor dem Wiederherstellen nicht gelesen werden.",
+                "undo_precondition_unreadable",
+                "Die Datei konnte vor dem Wiederherstellen nicht gelesen werden.",
             )
         if current_fingerprint != operation.post_write_fingerprint:
-            return self._writes.finish(
+            return self._writes.record_undo_failure(
                 operation.id,
-                "conflict",
-                error_code="track_changed_since_write",
-                error_message="Die Datei wurde nach dem Schreiben verändert.",
+                "track_changed_since_write",
+                "Die Datei wurde nach dem Schreiben verändert.",
             )
         adapter = self._registry.for_path(path)
         try:
             adapter.restore(path, operation.original_snapshot)
             restored = adapter.read(path)
             if restored != operation.original_snapshot:
-                return self._writes.finish(
+                return self._writes.record_undo_failure(
                     operation.id,
-                    "failed",
-                    error_code="undo_verification_failed",
-                    error_message="Die Wiederherstellung konnte nicht bestätigt werden.",
+                    "undo_verification_failed",
+                    "Die Wiederherstellung konnte nicht bestätigt werden.",
                 )
             return self._writes.finish_undone(
                 operation.id,
@@ -131,11 +139,10 @@ class TagOperationService:
                 inventory_from_snapshot(restored),
             )
         except Exception as error:
-            return self._writes.finish(
+            return self._writes.record_undo_failure(
                 operation.id,
-                "failed",
-                error_code="undo_failed",
-                error_message=str(error),
+                "undo_failed",
+                str(error),
             )
 
     @staticmethod

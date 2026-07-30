@@ -106,6 +106,18 @@ class UndoExceptionTagAdapter(FakeTagAdapter):
         raise RuntimeError("restore failed")
 
 
+class RetryingUndoAdapter(FakeTagAdapter):
+    def __init__(self, snapshot: ManagedTagSnapshot) -> None:
+        super().__init__(snapshot)
+        self._fail_restore = True
+
+    def restore(self, path, snapshot):
+        if self._fail_restore:
+            self._fail_restore = False
+            raise RuntimeError("temporary restore failure")
+        super().restore(path, snapshot)
+
+
 class UnreadableFirstTrackAdapter(FakeTagAdapter):
     def read(self, path):
         if path.name == "unreadable.mp3":
@@ -281,6 +293,23 @@ def test_write_many_isolates_unreadable_file_tags(client, music_root) -> None:
     assert second.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
 
 
+def test_write_many_isolates_unavailable_file_paths(client, music_root) -> None:
+    service, results = make_two_track_service(client, music_root)
+    (music_root / "unreadable.mp3").unlink()
+
+    operations = service.write_many([result.id for result in results])
+
+    first = client.app.state.track_repository.get_by_path("unreadable.mp3")
+    second = client.app.state.track_repository.get_by_path("writable.mp3")
+    assert [(operation.status, operation.error_code) for operation in operations] == [
+        ("failed", "track_unavailable"),
+        ("verified", None),
+    ]
+    assert operations[0].error_message == "Die Datei konnte vor dem Schreiben nicht gelesen werden."
+    assert first.managed_tags == ManagedTagInventory(["Rock"], ["Dreamy"], "ok")
+    assert second.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+
+
 def test_verified_write_uses_actual_read_back_tags_for_inventory(client, music_root) -> None:
     service, _adapter, result_id, _path, _original = make_service(
         client, music_root, RetainingTagAdapter
@@ -289,9 +318,7 @@ def test_verified_write_uses_actual_read_back_tags_for_inventory(client, music_r
     operation = service.write_one(result_id)
 
     stored = client.app.state.track_repository.get_by_path(operation.relative_path)
-    assert stored.managed_tags == ManagedTagInventory(
-        ["Rock", "Ambient"], ["Dreamy", "Calm"], "ok"
-    )
+    assert stored.managed_tags == ManagedTagInventory(["Rock", "Ambient"], ["Dreamy", "Calm"], "ok")
 
 
 def test_write_exception_preserves_error_inventory(client, music_root) -> None:
@@ -320,7 +347,8 @@ def test_undo_verification_failure_preserves_verified_write_state(client, music_
     failed = service.undo(verified.id)
 
     stored = client.app.state.track_repository.get_by_path(failed.relative_path)
-    assert failed.status == "failed"
+    assert failed.status == "verified"
+    assert failed.undo_available is True
     assert failed.error_code == "undo_verification_failed"
     assert failed.original_snapshot == original
     assert failed.post_write_fingerprint == verified.post_write_fingerprint
@@ -336,11 +364,14 @@ def test_undo_exception_preserves_verified_write_state(client, music_root) -> No
     failed = service.undo(verified.id)
 
     stored = client.app.state.track_repository.get_by_path(failed.relative_path)
-    assert failed.status == "failed"
+    assert failed.status == "verified"
+    assert failed.undo_available is True
     assert failed.error_code == "undo_failed"
     assert failed.original_snapshot == original
     assert failed.post_write_fingerprint == verified.post_write_fingerprint
     assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+    track_id = client.app.state.result_repository.get(result_id).track_id
+    assert TrackStateService(client.app.state.engine).states([track_id]) == {track_id: "written"}
 
 
 def test_undo_precondition_read_failure_preserves_verified_write_state(client, music_root) -> None:
@@ -351,7 +382,8 @@ def test_undo_precondition_read_failure_preserves_verified_write_state(client, m
     failed = service.undo(verified.id)
 
     stored = client.app.state.track_repository.get_by_path(failed.relative_path)
-    assert failed.status == "failed"
+    assert failed.status == "verified"
+    assert failed.undo_available is True
     assert failed.error_code == "undo_precondition_unreadable"
     assert failed.error_message == "Die Datei konnte vor dem Wiederherstellen nicht gelesen werden."
     assert failed.original_snapshot == original
@@ -359,9 +391,39 @@ def test_undo_precondition_read_failure_preserves_verified_write_state(client, m
     assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
 
 
-def test_verified_write_commits_the_draft_as_the_current_file_state(
-    client, music_root
-) -> None:
+def test_undo_fingerprint_conflict_preserves_verified_write_state(client, music_root) -> None:
+    service, _adapter, result_id, path, original = make_service(client, music_root)
+
+    verified = service.write_one(result_id)
+    path.write_bytes(path.read_bytes() + b"changed")
+    conflicted = service.undo(verified.id)
+
+    stored = client.app.state.track_repository.get_by_path(conflicted.relative_path)
+    assert conflicted.status == "verified"
+    assert conflicted.undo_available is True
+    assert conflicted.error_code == "track_changed_since_write"
+    assert conflicted.original_snapshot == original
+    assert conflicted.post_write_fingerprint == verified.post_write_fingerprint
+    assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+
+
+def test_transient_undo_failure_can_be_retried(client, music_root) -> None:
+    service, _adapter, result_id, _path, original = make_service(
+        client, music_root, RetryingUndoAdapter
+    )
+
+    verified = service.write_one(result_id)
+    failed = service.undo(verified.id)
+    undone = service.undo(verified.id)
+
+    stored = client.app.state.track_repository.get_by_path(undone.relative_path)
+    assert failed.status == "verified"
+    assert failed.undo_available is True
+    assert undone.status == "undone"
+    assert stored.managed_tags == inventory_from_snapshot(original)
+
+
+def test_verified_write_commits_the_draft_as_the_current_file_state(client, music_root) -> None:
     service, _adapter, result_id, _path, _original = make_service(client, music_root)
     results = client.app.state.result_repository
     results.update_selection({"mode": "ids", "ids": [result_id]}, True)

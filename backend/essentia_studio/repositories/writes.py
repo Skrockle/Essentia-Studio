@@ -38,9 +38,7 @@ class WriteRepository:
                     "id": operation_id,
                     "result_id": result_id,
                     "relative_path": relative_path,
-                    "snapshot": json.dumps(
-                        {"format": snapshot.format, "fields": snapshot.fields}
-                    ),
+                    "snapshot": json.dumps({"format": snapshot.format, "fields": snapshot.fields}),
                     "requested_tags": json.dumps(
                         {"genres": requested_tags.genres, "moods": requested_tags.moods}
                     ),
@@ -198,6 +196,31 @@ class WriteRepository:
                     "code": error_code,
                     "message": error_message,
                     "trigger": trigger,
+                },
+            )
+        return self.get(operation_id)
+
+    def record_undo_failure(
+        self,
+        operation_id: str,
+        error_code: str,
+        error_message: str,
+    ) -> WriteOperation:
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE write_operations SET
+                      error_code = :error_code,
+                      error_message = :error_message,
+                      updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id AND status = 'verified'
+                    """
+                ),
+                {
+                    "id": operation_id,
+                    "error_code": error_code,
+                    "error_message": error_message,
                 },
             )
         return self.get(operation_id)
