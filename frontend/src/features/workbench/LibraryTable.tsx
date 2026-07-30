@@ -3,7 +3,7 @@ import type { LibraryColumn } from './viewPreferences'
 
 interface LibraryTableProps {
   error: string | null
-  hasActiveFilters: boolean
+  isFilteredEmpty: boolean
   tracks: LibraryTrack[]
   selectedIds: ReadonlySet<number>
   onSelectAll: (selected: boolean) => void
@@ -20,15 +20,15 @@ const stateLabels = {
   failed: 'Fehler',
 }
 
-function libraryEmptyMessage(selectionDisabled: boolean, hasActiveFilters: boolean): string {
+function libraryEmptyMessage(selectionDisabled: boolean, isFilteredEmpty: boolean): string {
   if (selectionDisabled) return 'Bibliothek wird geladen …'
-  if (hasActiveFilters) return 'Keine Titel für diesen Filter gefunden.'
+  if (isFilteredEmpty) return 'Keine Titel für diesen Filter gefunden.'
   return 'Noch keine Titel gefunden. Starte zuerst einen Scan.'
 }
 
 function LibraryTableContent({
   error,
-  hasActiveFilters,
+  isFilteredEmpty,
   tracks,
   selectedIds,
   onSelectAll,
@@ -38,7 +38,7 @@ function LibraryTableContent({
 }: LibraryTableProps) {
   if (error) return <p className="notice notice--error">{error}</p>
   if (tracks.length === 0) {
-    return <p className="library-panel__empty">{libraryEmptyMessage(selectionDisabled, hasActiveFilters)}</p>
+    return <p className="library-panel__empty">{libraryEmptyMessage(selectionDisabled, isFilteredEmpty)}</p>
   }
 
   const allSelected = tracks.every((track) => selectedIds.has(track.id))

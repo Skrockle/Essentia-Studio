@@ -13,7 +13,7 @@ import { WorkbenchViewControls } from './WorkbenchViewControls'
 import { useResults } from './useResults'
 import { useTagOptions } from './useTagOptions'
 import { WritePreviewDialog, type WriteJobSummary } from './WritePreviewDialog'
-import type { LibraryQuery, ResultRow } from './types'
+import type { LibraryQuery, LibraryTrack, ResultRow } from './types'
 import type { TagOptions } from '../../api/types'
 import { useLibraryTracks } from './useLibraryTracks'
 import {
@@ -87,6 +87,18 @@ function hasActiveLibraryFilters(query: LibraryQuery): boolean {
   return Boolean(query.search || query.missingGenre || query.missingMood)
 }
 
+function isFilteredLibraryEmpty(
+  libraryLoading: boolean,
+  libraryError: string | null,
+  libraryQuery: LibraryQuery,
+  libraryTracks: LibraryTrack[],
+  filteredLibraryTracks: LibraryTrack[],
+): boolean {
+  if (libraryLoading || libraryError) return false
+  if (hasActiveLibraryFilters(libraryQuery)) return true
+  return libraryTracks.length > 0 && filteredLibraryTracks.length === 0
+}
+
 export function WorkbenchView() {
   const [search, setSearch] = useState('')
   const [missingGenre, setMissingGenre] = useState(false)
@@ -120,7 +132,6 @@ export function WorkbenchView() {
   const [viewPreferences, setViewPreferences] = useState(loadWorkbenchPreferences)
   const event = useJobEvents(activeJob?.id ?? null)
   const allSelected = page.total > 0 && page.selected_count === page.total
-  const hasActiveFilters = hasActiveLibraryFilters(libraryQuery)
   const availableFormats = useMemo(
     () => [...new Set(libraryTracks.map((track) => track.extension))].sort(),
     [libraryTracks],
@@ -132,6 +143,13 @@ export function WorkbenchView() {
       && (viewPreferences.formats.length === 0 || viewPreferences.formats.includes(track.extension))
     )),
     [libraryTracks, viewPreferences],
+  )
+  const isFilteredEmpty = isFilteredLibraryEmpty(
+    libraryLoading,
+    libraryError,
+    libraryQuery,
+    libraryTracks,
+    filteredLibraryTracks,
   )
   const visibleTrackIds = useMemo(
     () => new Set(filteredLibraryTracks.map((track) => track.id)),
@@ -277,7 +295,7 @@ export function WorkbenchView() {
       />
       <LibraryTable
         error={libraryError}
-        hasActiveFilters={hasActiveFilters}
+        isFilteredEmpty={isFilteredEmpty}
         onSelectAll={selectAllForAnalysis}
         onSelectTrack={selectTrackForAnalysis}
         selectedIds={visibleAnalysisSelection}

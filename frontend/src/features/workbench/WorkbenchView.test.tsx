@@ -388,6 +388,25 @@ test('shows a filter-specific empty state after success and no empty state after
   expect(screen.queryByText('Bibliothek konnte nicht geladen werden.')).not.toBeInTheDocument()
 })
 
+test('shows a filter-specific empty state when status filters hide every loaded track', async () => {
+  render(<WorkbenchView />)
+  await screen.findByRole('checkbox', { name: 'Library/one.flac analysieren' })
+
+  await userEvent.click(screen.getByText('Filter'))
+  await userEvent.click(screen.getByLabelText('Neu'))
+
+  expect(await screen.findByText('Keine Titel für diesen Filter gefunden.')).toBeVisible()
+  expect(screen.queryByText('Noch keine Titel gefunden. Starte zuerst einen Scan.')).not.toBeInTheDocument()
+})
+
+test('shows the scan prompt after a successful unfiltered empty library response', async () => {
+  nextLibraryResponse = Promise.resolve(Response.json({ items: [], total: 0, page: 1, page_size: 200 }))
+  render(<WorkbenchView />)
+
+  expect(await screen.findByText('Noch keine Titel gefunden. Starte zuerst einen Scan.')).toBeVisible()
+  expect(screen.queryByText('Keine Titel für diesen Filter gefunden.')).not.toBeInTheDocument()
+})
+
 test('selects every server-filtered track across two library pages', async () => {
   useMultiPageLibrary = true
   render(<WorkbenchView />)
