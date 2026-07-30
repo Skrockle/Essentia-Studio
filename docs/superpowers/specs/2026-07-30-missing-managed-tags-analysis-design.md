@@ -1,6 +1,6 @@
 # Fehlende Genre- und Mood-Tags gezielt analysieren
 
-**Status:** Zur Freigabe dokumentiert
+**Status:** Approved design
 
 **Datum:** 2026-07-30
 
