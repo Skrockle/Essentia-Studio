@@ -30,6 +30,15 @@ class ManagedTagInventory:
 
 
 @dataclass(frozen=True, slots=True)
+class LibraryQuery:
+    search: str | None = None
+    present: bool | None = True
+    extension: str | None = None
+    missing_genre: bool = False
+    missing_mood: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class ScannedTrack:
     relative_path: str
     extension: str

@@ -8,6 +8,7 @@ from essentia_studio.api.dependencies import (
     get_track_state_service,
 )
 from essentia_studio.domain.jobs import JobType
+from essentia_studio.domain.tracks import LibraryQuery
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.schemas.jobs import JobResponse
 from essentia_studio.schemas.library import TrackPage, TrackResponse
@@ -32,10 +33,13 @@ def list_tracks(
     search: str | None = None,
     present: bool | None = True,
     extension: str | None = None,
+    missing_genre: bool = False,
+    missing_mood: bool = False,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=200)] = 50,
 ) -> TrackPage:
-    tracks, total = repository.query(search, present, extension, page, page_size)
+    filters = LibraryQuery(search, present, extension, missing_genre, missing_mood)
+    tracks, total = repository.query(filters, page, page_size)
     states = state_service.states([track.id for track in tracks])
     return TrackPage(
         items=[TrackResponse.from_record(track, states[track.id]) for track in tracks],

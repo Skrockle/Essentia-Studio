@@ -1,4 +1,12 @@
 import time
+from datetime import datetime, timezone
+
+from essentia_studio.domain.tracks import (
+    ManagedTagInventory,
+    ScannedTrack,
+    TrackFingerprint,
+    TrackMetadata,
+)
 
 
 def wait_for_job(client, job_id: str) -> dict:
@@ -68,3 +76,59 @@ def test_analysis_query_rejects_no_matching_tracks(client) -> None:
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "empty_selection"
+
+
+def test_analysis_query_selects_the_same_missing_tag_set_as_the_library(client) -> None:
+    client.app.state.track_repository.replace_scan(
+        [
+            ScannedTrack(
+                "complete.flac",
+                ".flac",
+                TrackFingerprint(10, 100),
+                TrackMetadata("Artist", "Complete", None, None, "embedded"),
+                ManagedTagInventory(["Rock"], ["Calm"], "ok"),
+            ),
+            ScannedTrack(
+                "genre-only.flac",
+                ".flac",
+                TrackFingerprint(10, 100),
+                TrackMetadata("Artist", "Genre only", None, None, "embedded"),
+                ManagedTagInventory(["Rock"], [], "ok"),
+            ),
+            ScannedTrack(
+                "mood-only.flac",
+                ".flac",
+                TrackFingerprint(10, 100),
+                TrackMetadata("Artist", "Mood only", None, None, "embedded"),
+                ManagedTagInventory([], ["Calm"], "ok"),
+            ),
+            ScannedTrack(
+                "empty.flac",
+                ".flac",
+                TrackFingerprint(10, 100),
+                TrackMetadata("Artist", "Empty", None, None, "embedded"),
+                ManagedTagInventory([], [], "ok"),
+            ),
+            ScannedTrack(
+                "unreadable.flac",
+                ".flac",
+                TrackFingerprint(10, 100),
+                TrackMetadata("Artist", "Unreadable", None, None, "embedded"),
+                ManagedTagInventory([], [], "error", "managed_tags_unreadable"),
+            ),
+        ],
+        datetime(2026, 7, 16, 10, tzinfo=timezone.utc),
+    )
+
+    response = client.post(
+        "/api/analysis/jobs",
+        json={"query": {"missing_genre": True, "missing_mood": True}},
+    )
+
+    assert response.status_code == 202
+    assert response.json()["total_items"] == 3
+    assert client.app.state.job_repository.item_values(response.json()["id"]) == [
+        "empty.flac",
+        "genre-only.flac",
+        "mood-only.flac",
+    ]

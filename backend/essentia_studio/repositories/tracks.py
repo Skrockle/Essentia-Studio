@@ -6,6 +6,7 @@ from pathlib import Path
 from sqlalchemy import Engine, text
 
 from essentia_studio.domain.tracks import (
+    LibraryQuery,
     LibraryTrack,
     ManagedTagInventory,
     ScannedTrack,
@@ -104,32 +105,12 @@ class TrackRepository:
 
     def query(
         self,
-        search: str | None = None,
-        present: bool | None = True,
-        extension: str | None = None,
-        page: int = 1,
-        page_size: int = 50,
+        filters: LibraryQuery,
+        page: int,
+        page_size: int,
     ) -> tuple[list[LibraryTrack], int]:
-        conditions: list[str] = []
-        parameters: dict[str, object] = {
-            "limit": page_size,
-            "offset": (page - 1) * page_size,
-        }
-        if search:
-            conditions.append(
-                "(LOWER(relative_path) LIKE :search OR LOWER(COALESCE(artist, '')) LIKE :search "
-                "OR LOWER(COALESCE(title, '')) LIKE :search "
-                "OR LOWER(COALESCE(album, '')) LIKE :search)"
-            )
-            parameters["search"] = f"%{search.casefold()}%"
-        if present is not None:
-            conditions.append("present = :present")
-            parameters["present"] = int(present)
-        if extension:
-            conditions.append("extension = :extension")
-            parameters["extension"] = extension.casefold()
-
-        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        where_clause, parameters = self._where(filters)
+        parameters |= {"limit": page_size, "offset": (page - 1) * page_size}
         with self._engine.connect() as connection:
             total = connection.execute(
                 text(f"SELECT COUNT(*) FROM library_tracks {where_clause}"),
@@ -149,6 +130,33 @@ class TrackRepository:
                 parameters,
             ).all()
         return [self._track_from_row(row) for row in rows], total
+
+    @staticmethod
+    def _where(filters: LibraryQuery) -> tuple[str, dict[str, object]]:
+        conditions: list[str] = []
+        parameters: dict[str, object] = {}
+        if filters.search:
+            conditions.append(
+                "(LOWER(relative_path) LIKE :search OR LOWER(COALESCE(artist, '')) LIKE :search "
+                "OR LOWER(COALESCE(title, '')) LIKE :search "
+                "OR LOWER(COALESCE(album, '')) LIKE :search)"
+            )
+            parameters["search"] = f"%{filters.search.casefold()}%"
+        if filters.present is not None:
+            conditions.append("present = :present")
+            parameters["present"] = int(filters.present)
+        if filters.extension:
+            conditions.append("extension = :extension")
+            parameters["extension"] = filters.extension.casefold()
+        missing: list[str] = []
+        if filters.missing_genre:
+            missing.append("json_array_length(managed_genres) = 0")
+        if filters.missing_mood:
+            missing.append("json_array_length(managed_moods) = 0")
+        if missing:
+            conditions.append("managed_tags_status = 'ok'")
+            conditions.append(f"({' OR '.join(missing)})")
+        return (f"WHERE {' AND '.join(conditions)}" if conditions else ""), parameters
 
     def get_by_ids(self, track_ids: list[int]) -> list[LibraryTrack]:
         if not track_ids:

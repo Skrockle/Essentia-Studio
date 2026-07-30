@@ -5,12 +5,18 @@ import pytest
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
 from essentia_studio.domain.tracks import (
+    LibraryQuery,
     ManagedTagInventory,
     ScannedTrack,
     TrackFingerprint,
     TrackMetadata,
 )
 from essentia_studio.repositories.tracks import TrackRepository
+
+
+def paths(query_result) -> list[str]:
+    tracks, _total = query_result
+    return [track.relative_path for track in tracks]
 
 
 def scanned_track(
@@ -155,3 +161,38 @@ def test_update_managed_tags_rejects_an_unreadable_inventory(tmp_path) -> None:
         repository.update_managed_tags(
             1, ManagedTagInventory(status="error", error_code="managed_tags_unreadable")
         )
+
+
+def test_missing_tag_filters_use_file_inventory_and_or_semantics(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = TrackRepository(engine)
+    repository.replace_scan(
+        [
+            scanned_track(
+                "complete.flac", managed_tags=ManagedTagInventory(["Rock"], ["Calm"], "ok")
+            ),
+            scanned_track("genre-only.flac", managed_tags=ManagedTagInventory(["Rock"], [], "ok")),
+            scanned_track("mood-only.flac", managed_tags=ManagedTagInventory([], ["Calm"], "ok")),
+            scanned_track("empty.flac", managed_tags=ManagedTagInventory([], [], "ok")),
+            scanned_track(
+                "unreadable.flac",
+                managed_tags=ManagedTagInventory([], [], "error", "managed_tags_unreadable"),
+            ),
+        ],
+        datetime(2026, 7, 16, 10, tzinfo=timezone.utc),
+    )
+
+    assert paths(repository.query(LibraryQuery(missing_genre=True), 1, 50)) == [
+        "empty.flac",
+        "mood-only.flac",
+    ]
+    assert paths(repository.query(LibraryQuery(missing_mood=True), 1, 50)) == [
+        "empty.flac",
+        "genre-only.flac",
+    ]
+    assert paths(repository.query(LibraryQuery(missing_genre=True, missing_mood=True), 1, 50)) == [
+        "empty.flac",
+        "genre-only.flac",
+        "mood-only.flac",
+    ]

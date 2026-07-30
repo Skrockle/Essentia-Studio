@@ -14,6 +14,7 @@ from essentia_studio.benchmark.runner import BenchmarkRunner, select_sample
 from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.domain.benchmarks import BenchmarkRun, ComputeMode, snapshot_hash
 from essentia_studio.domain.jobs import JobRecord, JobType
+from essentia_studio.domain.tracks import LibraryQuery
 from essentia_studio.errors import AppError
 from essentia_studio.repositories.benchmarks import BenchmarkRepository
 from essentia_studio.repositories.jobs import JobRepository
@@ -64,7 +65,7 @@ class BenchmarkService:
                     409,
                 )
             settings = self._settings.load().values
-            tracks, _total = self._tracks.query(present=True, page=1, page_size=1_000_000)
+            tracks, _total = self._tracks.query(LibraryQuery(present=True), 1, 1_000_000)
             sample = select_sample(tracks, settings.benchmark.minimum_track_seconds)
             snapshot = self.environment_snapshot()
             run = self._repository.create(

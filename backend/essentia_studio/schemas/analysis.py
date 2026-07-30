@@ -1,12 +1,7 @@
 from pydantic import BaseModel, Field, model_validator
 
 from essentia_studio.domain.analysis import AnalysisOptions
-
-
-class LibrarySelectionQuery(BaseModel):
-    search: str | None = None
-    present: bool | None = True
-    extension: str | None = None
+from essentia_studio.schemas.library import LibrarySelectionQuery
 
 
 class AnalysisJobRequest(BaseModel):

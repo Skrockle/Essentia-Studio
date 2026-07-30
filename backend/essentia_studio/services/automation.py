@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.domain.jobs import JobRecord, JobStatus, JobType
-from essentia_studio.domain.tracks import LibraryTrack
+from essentia_studio.domain.tracks import LibraryQuery, LibraryTrack
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.services.automation_status import AutomationStatusStore
@@ -111,9 +111,9 @@ class AutomationService:
                 return None
             self._refresh_library()
             tracks, _total = self._tracks.query(
-                present=True,
-                page=1,
-                page_size=1_000_000,
+                LibraryQuery(present=True),
+                1,
+                1_000_000,
             )
             states = self._states.states([track.id for track in tracks])
             eligible = [track for track in tracks if states.get(track.id) in {"new", "changed"}]

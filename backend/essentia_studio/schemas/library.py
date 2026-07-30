@@ -2,8 +2,19 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from essentia_studio.domain.tracks import LibraryTrack
+from essentia_studio.domain.tracks import LibraryQuery, LibraryTrack
 from essentia_studio.services.track_state import ProcessingState
+
+
+class LibrarySelectionQuery(BaseModel):
+    search: str | None = None
+    present: bool | None = True
+    extension: str | None = None
+    missing_genre: bool = False
+    missing_mood: bool = False
+
+    def to_domain(self) -> LibraryQuery:
+        return LibraryQuery(**self.model_dump())
 
 
 class TrackResponse(BaseModel):
@@ -20,6 +31,10 @@ class TrackResponse(BaseModel):
     duration_seconds: float | None
     metadata_source: str
     processing_state: ProcessingState
+    managed_genres: list[str]
+    managed_moods: list[str]
+    managed_tags_status: str
+    managed_tags_error_code: str | None
 
     @classmethod
     def from_record(
@@ -41,6 +56,10 @@ class TrackResponse(BaseModel):
             duration_seconds=track.metadata.duration_seconds,
             metadata_source=track.metadata.source,
             processing_state=processing_state,
+            managed_genres=track.managed_tags.genres,
+            managed_moods=track.managed_tags.moods,
+            managed_tags_status=track.managed_tags.status,
+            managed_tags_error_code=track.managed_tags.error_code,
         )
 
 
