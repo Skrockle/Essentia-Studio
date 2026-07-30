@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from essentia_studio.domain.analysis import AnalysisResult
 from essentia_studio.domain.jobs import JobType
-from essentia_studio.domain.tracks import ScannedTrack, TrackFingerprint
+from essentia_studio.domain.tracks import ManagedTagInventory, ScannedTrack, TrackFingerprint
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.tags.protocol import ManagedTagSnapshot
 from essentia_studio.tags.registry import TagAdapterRegistry
@@ -95,10 +95,14 @@ def test_preview_requires_a_separate_write_confirmation(client, music_root) -> N
     operation = written.json()["operations"][0]
     assert operation["status"] == "verified"
     assert operation["undo_available"] is True
+    stored = client.app.state.track_repository.get_by_path("song.mp3")
+    assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
 
     undone = client.post(f"/api/writes/{operation['id']}/undo")
     assert undone.json()["status"] == "undone"
     assert adapter.snapshot.fields["genres"] == ["Rock"]
+    stored = client.app.state.track_repository.get_by_path("song.mp3")
+    assert stored.managed_tags == ManagedTagInventory(["Rock"], [], "ok")
 
 
 def test_preview_reports_invalid_audio_instead_of_returning_server_error(

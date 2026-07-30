@@ -4,6 +4,7 @@ from essentia_studio.domain.tracks import TrackFingerprint
 from essentia_studio.domain.writes import WriteOperation, WriteTrigger
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.writes import WriteRepository
+from essentia_studio.services.managed_tag_inventory import inventory_from_snapshot
 from essentia_studio.services.path_safety import resolve_track_path
 from essentia_studio.tags.protocol import DesiredTags, ManagedTagSnapshot
 from essentia_studio.tags.registry import TagAdapterRegistry
@@ -57,7 +58,11 @@ class TagOperationService:
                     error_code="write_verification_failed",
                     error_message="Die geschriebenen Tags konnten nicht bestätigt werden.",
                 )
-            return self._writes.finish_verified(operation.id, self._fingerprint(path))
+            return self._writes.finish_verified(
+                operation.id,
+                self._fingerprint(path),
+                inventory_from_snapshot(written),
+            )
         except Exception as error:
             return self._writes.finish(
                 operation.id,
@@ -101,7 +106,11 @@ class TagOperationService:
                     error_code="undo_verification_failed",
                     error_message="Die Wiederherstellung konnte nicht bestätigt werden.",
                 )
-            return self._writes.finish(operation.id, "undone", self._fingerprint(path))
+            return self._writes.finish_undone(
+                operation.id,
+                self._fingerprint(path),
+                inventory_from_snapshot(restored),
+            )
         except Exception as error:
             return self._writes.finish(
                 operation.id,

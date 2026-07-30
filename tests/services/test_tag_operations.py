@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 
 from essentia_studio.domain.analysis import AnalysisResult
-from essentia_studio.domain.tracks import ScannedTrack, TrackFingerprint
+from essentia_studio.domain.tracks import ManagedTagInventory, ScannedTrack, TrackFingerprint
 from essentia_studio.repositories.writes import WriteRepository
+from essentia_studio.services.managed_tag_inventory import inventory_from_snapshot
 from essentia_studio.services.tag_operations import TagOperationService
 from essentia_studio.services.track_state import TrackStateService
 from essentia_studio.tags.protocol import DesiredTags, ManagedTagSnapshot
@@ -35,23 +36,34 @@ class FakeTagAdapter:
         path.write_bytes(path.read_bytes() + b"undo")
 
 
-def make_service(client, music_root):
+class VerificationFailureTagAdapter(FakeTagAdapter):
+    def __init__(self, snapshot: ManagedTagSnapshot) -> None:
+        super().__init__(snapshot)
+        self._verification_read = False
+
+    def read(self, path):
+        if self._verification_read:
+            return ManagedTagSnapshot(
+                "fake",
+                {
+                    "genres": ["Unverified"],
+                    "moods": [],
+                    "genre_confidence": [],
+                    "mood_confidence": [],
+                },
+            )
+        return super().read(path)
+
+    def write(self, path, desired, overwrite):
+        super().write(path, desired, overwrite)
+        self._verification_read = True
+
+
+def make_service(client, music_root, adapter_type=FakeTagAdapter):
     path = music_root / "song.mp3"
     path.write_bytes(b"audio")
     stat = path.stat()
     fingerprint = TrackFingerprint(stat.st_size, stat.st_mtime_ns)
-    tracks = client.app.state.track_repository
-    tracks.replace_scan(
-        [ScannedTrack("song.mp3", ".mp3", fingerprint)],
-        datetime.now(timezone.utc),
-    )
-    track = tracks.get_by_path("song.mp3")
-    stored = client.app.state.result_repository.save(
-        track,
-        AnalysisResult(model_ids=["fake"]),
-        ["Ambient"],
-        ["Calm"],
-    )
     original = ManagedTagSnapshot(
         "fake",
         {
@@ -61,7 +73,26 @@ def make_service(client, music_root):
             "mood_confidence": [],
         },
     )
-    adapter = FakeTagAdapter(original)
+    tracks = client.app.state.track_repository
+    tracks.replace_scan(
+        [
+            ScannedTrack(
+                "song.mp3",
+                ".mp3",
+                fingerprint,
+                managed_tags=inventory_from_snapshot(original),
+            )
+        ],
+        datetime.now(timezone.utc),
+    )
+    track = tracks.get_by_path("song.mp3")
+    stored = client.app.state.result_repository.save(
+        track,
+        AnalysisResult(model_ids=["fake"]),
+        ["Ambient"],
+        ["Calm"],
+    )
+    adapter = adapter_type(original)
     service = TagOperationService(
         client.app.state.result_repository,
         WriteRepository(client.app.state.engine),
@@ -91,6 +122,43 @@ def test_undo_restores_exact_managed_snapshot(client, music_root) -> None:
     assert operation.status == "verified"
     assert restored.status == "undone"
     assert adapter.snapshot == original
+
+
+def test_verified_write_updates_current_file_inventory(client, music_root) -> None:
+    service, _adapter, result_id, _path, _original = make_service(client, music_root)
+
+    operation = service.write_one(result_id)
+
+    stored = client.app.state.track_repository.get_by_path(operation.relative_path)
+    assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+
+
+def test_verified_undo_restores_current_file_inventory(client, music_root) -> None:
+    service, _adapter, result_id, _path, original = make_service(client, music_root)
+
+    operation = service.write_one(result_id)
+    client.app.state.track_repository.update_managed_tags(
+        client.app.state.result_repository.get(result_id).track_id,
+        ManagedTagInventory(["Ambient"], ["Calm"], "ok"),
+    )
+    service.undo(operation.id)
+
+    stored = client.app.state.track_repository.get_by_path(operation.relative_path)
+    assert stored.managed_tags == inventory_from_snapshot(original)
+
+
+def test_failed_write_verification_preserves_current_file_inventory(client, music_root) -> None:
+    service, _adapter, result_id, path, original = make_service(
+        client, music_root, VerificationFailureTagAdapter
+    )
+
+    operation = service.write_one(result_id)
+
+    stored = client.app.state.track_repository.get_by_path(operation.relative_path)
+    assert path.exists()
+    assert operation.status == "failed"
+    assert operation.error_code == "write_verification_failed"
+    assert stored.managed_tags == inventory_from_snapshot(original)
 
 
 def test_verified_write_commits_the_draft_as_the_current_file_state(

@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from sqlalchemy import Engine, text
 
-from essentia_studio.domain.tracks import TrackFingerprint
+from essentia_studio.domain.tracks import ManagedTagInventory, TrackFingerprint
 from essentia_studio.domain.writes import WriteOperation, WriteStatus, WriteTrigger
 from essentia_studio.tags.protocol import DesiredTags, ManagedTagSnapshot
 
@@ -53,6 +53,7 @@ class WriteRepository:
         self,
         operation_id: str,
         fingerprint: TrackFingerprint,
+        inventory: ManagedTagInventory,
     ) -> WriteOperation:
         with self._engine.begin() as connection:
             connection.execute(
@@ -91,6 +92,8 @@ class WriteRepository:
                     """
                     UPDATE library_tracks
                     SET size = :size, mtime_ns = :mtime_ns,
+                        managed_genres = :genres, managed_moods = :moods,
+                        managed_tags_status = 'ok', managed_tags_error_code = NULL,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = (
                       SELECT analysis_results.track_id
@@ -105,6 +108,61 @@ class WriteRepository:
                     "id": operation_id,
                     "size": fingerprint.size,
                     "mtime_ns": fingerprint.mtime_ns,
+                    "genres": json.dumps(inventory.genres),
+                    "moods": json.dumps(inventory.moods),
+                },
+            )
+        return self.get(operation_id)
+
+    def finish_undone(
+        self,
+        operation_id: str,
+        fingerprint: TrackFingerprint,
+        inventory: ManagedTagInventory,
+    ) -> WriteOperation:
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE write_operations SET
+                      status = 'undone',
+                      post_write_size = :size,
+                      post_write_mtime_ns = :mtime_ns,
+                      error_code = NULL,
+                      error_message = NULL,
+                      updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id
+                    """
+                ),
+                {
+                    "id": operation_id,
+                    "size": fingerprint.size,
+                    "mtime_ns": fingerprint.mtime_ns,
+                },
+            )
+            connection.execute(
+                text(
+                    """
+                    UPDATE library_tracks
+                    SET size = :size, mtime_ns = :mtime_ns,
+                        managed_genres = :genres, managed_moods = :moods,
+                        managed_tags_status = 'ok', managed_tags_error_code = NULL,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = (
+                      SELECT analysis_results.track_id
+                      FROM analysis_results
+                      JOIN write_operations
+                        ON write_operations.result_id = analysis_results.id
+                      WHERE write_operations.id = :id
+                    )
+                    """
+                ),
+                {
+                    "id": operation_id,
+                    "size": fingerprint.size,
+                    "mtime_ns": fingerprint.mtime_ns,
+                    "genres": json.dumps(inventory.genres),
+                    "moods": json.dumps(inventory.moods),
                 },
             )
         return self.get(operation_id)
