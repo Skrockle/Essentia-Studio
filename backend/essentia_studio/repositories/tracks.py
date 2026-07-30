@@ -1,3 +1,4 @@
+import json
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
@@ -6,6 +7,7 @@ from sqlalchemy import Engine, text
 
 from essentia_studio.domain.tracks import (
     LibraryTrack,
+    ManagedTagInventory,
     ScannedTrack,
     ScanSummary,
     TrackFingerprint,
@@ -16,10 +18,12 @@ UPSERT_TRACK = text(
     """
     INSERT INTO library_tracks (
       relative_path, extension, size, mtime_ns, last_seen, present,
-      artist, title, album, duration_seconds, metadata_source
+      artist, title, album, duration_seconds, metadata_source,
+      managed_genres, managed_moods, managed_tags_status, managed_tags_error_code
     ) VALUES (
       :relative_path, :extension, :size, :mtime_ns, :last_seen, 1,
-      :artist, :title, :album, :duration_seconds, :metadata_source
+      :artist, :title, :album, :duration_seconds, :metadata_source,
+      :managed_genres, :managed_moods, :managed_tags_status, :managed_tags_error_code
     )
     ON CONFLICT(relative_path) DO UPDATE SET
       extension = excluded.extension,
@@ -32,6 +36,10 @@ UPSERT_TRACK = text(
       album = excluded.album,
       duration_seconds = excluded.duration_seconds,
       metadata_source = excluded.metadata_source,
+      managed_genres = excluded.managed_genres,
+      managed_moods = excluded.managed_moods,
+      managed_tags_status = excluded.managed_tags_status,
+      managed_tags_error_code = excluded.managed_tags_error_code,
       updated_at = CURRENT_TIMESTAMP
     """
 )
@@ -76,7 +84,9 @@ class TrackRepository:
                 text(
                     """
                     SELECT id, relative_path, extension, size, mtime_ns, last_seen, present,
-                           artist, title, album, duration_seconds, metadata_source
+                           artist, title, album, duration_seconds, metadata_source,
+                           managed_genres, managed_moods, managed_tags_status,
+                           managed_tags_error_code
                     FROM library_tracks
                     WHERE relative_path = :relative_path
                     """
@@ -123,7 +133,9 @@ class TrackRepository:
                 text(
                     f"""
                     SELECT id, relative_path, extension, size, mtime_ns, last_seen, present,
-                           artist, title, album, duration_seconds, metadata_source
+                           artist, title, album, duration_seconds, metadata_source,
+                           managed_genres, managed_moods, managed_tags_status,
+                           managed_tags_error_code
                     FROM library_tracks {where_clause}
                     ORDER BY relative_path, id LIMIT :limit OFFSET :offset
                     """
@@ -142,7 +154,9 @@ class TrackRepository:
                 text(
                     f"""
                     SELECT id, relative_path, extension, size, mtime_ns, last_seen, present,
-                           artist, title, album, duration_seconds, metadata_source
+                           artist, title, album, duration_seconds, metadata_source,
+                           managed_genres, managed_moods, managed_tags_status,
+                           managed_tags_error_code
                     FROM library_tracks
                     WHERE id IN ({placeholders}) AND present = 1
                     ORDER BY relative_path, id
@@ -165,7 +179,32 @@ class TrackRepository:
             "album": track.metadata.album,
             "duration_seconds": track.metadata.duration_seconds,
             "metadata_source": track.metadata.source,
+            "managed_genres": json.dumps(track.managed_tags.genres),
+            "managed_moods": json.dumps(track.managed_tags.moods),
+            "managed_tags_status": track.managed_tags.status,
+            "managed_tags_error_code": track.managed_tags.error_code,
         }
+
+    def update_managed_tags(self, track_id: int, inventory: ManagedTagInventory) -> None:
+        if inventory.status != "ok":
+            raise ValueError("Only successfully read managed tags may replace file state")
+        with self._engine.begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    UPDATE library_tracks
+                    SET managed_genres = :genres, managed_moods = :moods,
+                        managed_tags_status = 'ok', managed_tags_error_code = NULL,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :track_id
+                    """
+                ),
+                {
+                    "track_id": track_id,
+                    "genres": json.dumps(inventory.genres),
+                    "moods": json.dumps(inventory.moods),
+                },
+            )
 
     @staticmethod
     def _track_from_row(row) -> LibraryTrack:
@@ -182,5 +221,11 @@ class TrackRepository:
                 album=row.album,
                 duration_seconds=row.duration_seconds,
                 source=row.metadata_source or "fallback",
+            ),
+            managed_tags=ManagedTagInventory(
+                genres=json.loads(row.managed_genres),
+                moods=json.loads(row.managed_moods),
+                status=row.managed_tags_status,
+                error_code=row.managed_tags_error_code,
             ),
         )

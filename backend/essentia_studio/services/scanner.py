@@ -2,7 +2,9 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from essentia_studio.domain.tracks import ScannedTrack, TrackFingerprint
+from essentia_studio.services.managed_tag_inventory import read_managed_tag_inventory
 from essentia_studio.services.metadata import MetadataService
+from essentia_studio.tags.registry import TagAdapterRegistry
 
 SUPPORTED_EXTENSIONS = {
     ".aac",
@@ -29,9 +31,11 @@ SUPPORTED_EXTENSIONS = {
 def scan_music_root(
     root: Path,
     metadata_service: MetadataService | None = None,
+    tag_registry: TagAdapterRegistry | None = None,
 ) -> Iterator[ScannedTrack]:
     resolved_root = root.resolve(strict=True)
     reader = metadata_service or MetadataService()
+    registry = tag_registry or TagAdapterRegistry()
     scanned_tracks: list[ScannedTrack] = []
 
     for path in resolved_root.rglob("*"):
@@ -49,6 +53,7 @@ def scan_music_root(
                     mtime_ns=file_stat.st_mtime_ns,
                 ),
                 metadata=reader.read(path, relative_path),
+                managed_tags=read_managed_tag_inventory(path, registry),
             )
         )
 

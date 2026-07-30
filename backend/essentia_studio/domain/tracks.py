@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
 MetadataSource = Literal["embedded", "filename", "directory", "fallback"]
+ManagedTagReadStatus = Literal["unknown", "ok", "error"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,6 +22,14 @@ class TrackMetadata:
 
 
 @dataclass(frozen=True, slots=True)
+class ManagedTagInventory:
+    genres: list[str] = field(default_factory=list)
+    moods: list[str] = field(default_factory=list)
+    status: ManagedTagReadStatus = "unknown"
+    error_code: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class ScannedTrack:
     relative_path: str
     extension: str
@@ -32,6 +41,7 @@ class ScannedTrack:
         duration_seconds=None,
         source="fallback",
     )
+    managed_tags: ManagedTagInventory = field(default_factory=ManagedTagInventory)
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,6 +53,7 @@ class LibraryTrack:
     last_seen: datetime
     present: bool
     metadata: TrackMetadata
+    managed_tags: ManagedTagInventory = field(default_factory=ManagedTagInventory)
 
 
 @dataclass(frozen=True, slots=True)

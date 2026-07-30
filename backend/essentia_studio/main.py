@@ -96,7 +96,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
 
         def refresh_library():
             return track_repository.replace_scan(
-                scan_music_root(runtime_config.music_root, metadata_service),
+                scan_music_root(runtime_config.music_root, metadata_service, tag_registry),
                 datetime.now(timezone.utc),
             )
 

@@ -54,12 +54,22 @@ def test_migrations_are_idempotent(tmp_path) -> None:
             text("SELECT version FROM schema_migrations ORDER BY version")
         ).scalars().all()
 
-    assert versions == list(range(1, 13))
+    assert versions == list(range(1, 14))
     with engine.connect() as connection:
         columns = {
             row[1] for row in connection.execute(text("PRAGMA table_info(job_items)"))
         }
     assert "error_code" in columns
+    with engine.connect() as connection:
+        track_columns = {
+            row[1] for row in connection.execute(text("PRAGMA table_info(library_tracks)"))
+        }
+    assert {
+        "managed_genres",
+        "managed_moods",
+        "managed_tags_status",
+        "managed_tags_error_code",
+    } <= track_columns
 
 
 def test_migration_11_preserves_existing_job_item(version_10_job_item) -> None:
