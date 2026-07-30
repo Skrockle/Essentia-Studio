@@ -1,12 +1,14 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from essentia_studio.domain.tracks import LibraryQuery, LibraryTrack
 from essentia_studio.services.track_state import ProcessingState
 
 
 class LibrarySelectionQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     search: str | None = None
     present: bool | None = True
     extension: str | None = None

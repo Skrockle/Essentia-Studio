@@ -131,6 +131,16 @@ class TrackRepository:
             ).all()
         return [self._track_from_row(row) for row in rows], total
 
+    def query_all(self, filters: LibraryQuery, batch_size: int = 1_000) -> list[LibraryTrack]:
+        page = 1
+        matched_tracks: list[LibraryTrack] = []
+        while True:
+            page_tracks, total = self.query(filters, page, batch_size)
+            matched_tracks.extend(page_tracks)
+            if not page_tracks or len(matched_tracks) >= total:
+                return matched_tracks
+            page += 1
+
     @staticmethod
     def _where(filters: LibraryQuery) -> tuple[str, dict[str, object]]:
         conditions: list[str] = []

@@ -1,10 +1,12 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.schemas.library import LibrarySelectionQuery
 
 
 class AnalysisJobRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     track_ids: list[int] | None = None
     query: LibrarySelectionQuery | None = None
     enable_genres: bool = True

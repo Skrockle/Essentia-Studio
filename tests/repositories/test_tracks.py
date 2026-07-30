@@ -175,6 +175,7 @@ def test_missing_tag_filters_use_file_inventory_and_or_semantics(tmp_path) -> No
             scanned_track("genre-only.flac", managed_tags=ManagedTagInventory(["Rock"], [], "ok")),
             scanned_track("mood-only.flac", managed_tags=ManagedTagInventory([], ["Calm"], "ok")),
             scanned_track("empty.flac", managed_tags=ManagedTagInventory([], [], "ok")),
+            scanned_track("unknown.flac"),
             scanned_track(
                 "unreadable.flac",
                 managed_tags=ManagedTagInventory([], [], "error", "managed_tags_unreadable"),
@@ -196,3 +197,30 @@ def test_missing_tag_filters_use_file_inventory_and_or_semantics(tmp_path) -> No
         "genre-only.flac",
         "mood-only.flac",
     ]
+
+
+def test_query_all_returns_each_matching_track_once_across_pages(tmp_path) -> None:
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    repository = TrackRepository(engine)
+    repository.replace_scan(
+        [
+            scanned_track("z.flac"),
+            scanned_track("a.flac"),
+            scanned_track("m.flac"),
+            scanned_track("b.flac"),
+            scanned_track("c.flac"),
+        ],
+        datetime(2026, 7, 16, 10, tzinfo=timezone.utc),
+    )
+
+    selected = repository.query_all(LibraryQuery(), batch_size=2)
+
+    assert [track.relative_path for track in selected] == [
+        "a.flac",
+        "b.flac",
+        "c.flac",
+        "m.flac",
+        "z.flac",
+    ]
+    assert len({track.id for track in selected}) == 5

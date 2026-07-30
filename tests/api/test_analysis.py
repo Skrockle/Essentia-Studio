@@ -78,6 +78,36 @@ def test_analysis_query_rejects_no_matching_tracks(client) -> None:
     assert response.json()["error"]["code"] == "empty_selection"
 
 
+def test_analysis_rejects_unknown_selection_filter_fields(client, music_root) -> None:
+    (music_root / "song.flac").write_bytes(b"song")
+    scan_job = client.post("/api/library/scan").json()
+    wait_for_job(client, scan_job["id"])
+    track_id = client.get("/api/library/tracks").json()["items"][0]["id"]
+
+    nested_filter = client.post(
+        "/api/analysis/jobs",
+        json={"query": {"missing_genres": True}},
+    )
+    root_filter = client.post(
+        "/api/analysis/jobs",
+        json={"track_ids": [track_id], "missing_genre": True},
+    )
+    valid_default = client.post("/api/analysis/jobs", json={"query": {}})
+
+    assert nested_filter.status_code == 422
+    assert root_filter.status_code == 422
+    assert valid_default.status_code == 202
+    assert valid_default.json()["configuration"]["selection"] == {
+        "query": {
+            "present": True,
+            "missing_genre": False,
+            "missing_mood": False,
+        },
+        "enable_genres": True,
+        "enable_moods": True,
+    }
+
+
 def test_analysis_query_selects_the_same_missing_tag_set_as_the_library(client) -> None:
     client.app.state.track_repository.replace_scan(
         [

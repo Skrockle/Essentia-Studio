@@ -50,4 +50,4 @@ def _selected_tracks(payload: AnalysisJobRequest, repository: TrackRepository):
         return repository.get_by_ids(payload.track_ids)
     query = payload.query
     assert query is not None
-    return repository.query(query.to_domain(), page=1, page_size=1_000_000)[0]
+    return repository.query_all(query.to_domain())
