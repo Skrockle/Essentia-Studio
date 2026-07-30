@@ -59,7 +59,66 @@ class VerificationFailureTagAdapter(FakeTagAdapter):
         self._verification_read = True
 
 
-def make_service(client, music_root, adapter_type=FakeTagAdapter):
+class RetainingTagAdapter(FakeTagAdapter):
+    def write(self, path, desired, _overwrite):
+        self.snapshot = ManagedTagSnapshot(
+            "fake",
+            {
+                "genres": ["Rock", *desired.genres],
+                "moods": ["Dreamy", *desired.moods],
+                "genre_confidence": [],
+                "mood_confidence": [],
+            },
+        )
+        path.write_bytes(path.read_bytes() + b"tags")
+
+
+class WriteFailureTagAdapter(FakeTagAdapter):
+    def write(self, _path, _desired, _overwrite):
+        raise RuntimeError("write failed")
+
+
+class UndoVerificationFailureTagAdapter(FakeTagAdapter):
+    def __init__(self, snapshot: ManagedTagSnapshot) -> None:
+        super().__init__(snapshot)
+        self._restored = False
+
+    def read(self, path):
+        if self._restored:
+            return ManagedTagSnapshot(
+                "fake",
+                {
+                    "genres": ["Not restored"],
+                    "moods": [],
+                    "genre_confidence": [],
+                    "mood_confidence": [],
+                },
+            )
+        return super().read(path)
+
+    def restore(self, path, snapshot):
+        super().restore(path, snapshot)
+        self._restored = True
+
+
+class UndoExceptionTagAdapter(FakeTagAdapter):
+    def restore(self, _path, _snapshot):
+        raise RuntimeError("restore failed")
+
+
+class UnreadableFirstTrackAdapter(FakeTagAdapter):
+    def read(self, path):
+        if path.name == "unreadable.mp3":
+            raise RuntimeError("cannot read tags")
+        return super().read(path)
+
+
+def make_service(
+    client,
+    music_root,
+    adapter_type=FakeTagAdapter,
+    initial_inventory: ManagedTagInventory | None = None,
+):
     path = music_root / "song.mp3"
     path.write_bytes(b"audio")
     stat = path.stat()
@@ -80,7 +139,7 @@ def make_service(client, music_root, adapter_type=FakeTagAdapter):
                 "song.mp3",
                 ".mp3",
                 fingerprint,
-                managed_tags=inventory_from_snapshot(original),
+                managed_tags=initial_inventory or inventory_from_snapshot(original),
             )
         ],
         datetime.now(timezone.utc),
@@ -100,6 +159,51 @@ def make_service(client, music_root, adapter_type=FakeTagAdapter):
         music_root,
     )
     return service, adapter, stored.id, path, original
+
+
+def make_two_track_service(client, music_root):
+    paths = [music_root / "unreadable.mp3", music_root / "writable.mp3"]
+    for path in paths:
+        path.write_bytes(b"audio")
+    tracks = client.app.state.track_repository
+    tracks.replace_scan(
+        [
+            ScannedTrack(
+                path.name,
+                ".mp3",
+                TrackFingerprint(path.stat().st_size, path.stat().st_mtime_ns),
+                managed_tags=ManagedTagInventory(["Rock"], ["Dreamy"], "ok"),
+            )
+            for path in paths
+        ],
+        datetime.now(timezone.utc),
+    )
+    results = [
+        client.app.state.result_repository.save(
+            tracks.get_by_path(path.name),
+            AnalysisResult(model_ids=["fake"]),
+            ["Ambient"],
+            ["Calm"],
+        )
+        for path in paths
+    ]
+    original = ManagedTagSnapshot(
+        "fake",
+        {
+            "genres": ["Rock"],
+            "moods": ["Dreamy"],
+            "genre_confidence": [],
+            "mood_confidence": [],
+        },
+    )
+    adapter = UnreadableFirstTrackAdapter(original)
+    service = TagOperationService(
+        client.app.state.result_repository,
+        WriteRepository(client.app.state.engine),
+        TagAdapterRegistry(adapter),
+        music_root,
+    )
+    return service, results
 
 
 def test_write_skips_track_changed_after_analysis(client, music_root) -> None:
@@ -159,6 +263,100 @@ def test_failed_write_verification_preserves_current_file_inventory(client, musi
     assert operation.status == "failed"
     assert operation.error_code == "write_verification_failed"
     assert stored.managed_tags == inventory_from_snapshot(original)
+
+
+def test_write_many_isolates_unreadable_file_tags(client, music_root) -> None:
+    service, results = make_two_track_service(client, music_root)
+
+    operations = service.write_many([result.id for result in results])
+
+    first = client.app.state.track_repository.get_by_path("unreadable.mp3")
+    second = client.app.state.track_repository.get_by_path("writable.mp3")
+    assert [(operation.status, operation.error_code) for operation in operations] == [
+        ("failed", "managed_tags_unreadable"),
+        ("verified", None),
+    ]
+    assert operations[0].error_message == "Die verwalteten Tags konnten nicht gelesen werden."
+    assert first.managed_tags == ManagedTagInventory(["Rock"], ["Dreamy"], "ok")
+    assert second.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+
+
+def test_verified_write_uses_actual_read_back_tags_for_inventory(client, music_root) -> None:
+    service, _adapter, result_id, _path, _original = make_service(
+        client, music_root, RetainingTagAdapter
+    )
+
+    operation = service.write_one(result_id)
+
+    stored = client.app.state.track_repository.get_by_path(operation.relative_path)
+    assert stored.managed_tags == ManagedTagInventory(
+        ["Rock", "Ambient"], ["Dreamy", "Calm"], "ok"
+    )
+
+
+def test_write_exception_preserves_error_inventory(client, music_root) -> None:
+    error_inventory = ManagedTagInventory([], [], "error", "managed_tags_unreadable")
+    service, _adapter, result_id, _path, _original = make_service(
+        client,
+        music_root,
+        WriteFailureTagAdapter,
+        error_inventory,
+    )
+
+    operation = service.write_one(result_id)
+
+    stored = client.app.state.track_repository.get_by_path(operation.relative_path)
+    assert operation.status == "failed"
+    assert operation.error_code == "tag_write_failed"
+    assert stored.managed_tags == error_inventory
+
+
+def test_undo_verification_failure_preserves_verified_write_state(client, music_root) -> None:
+    service, _adapter, result_id, _path, original = make_service(
+        client, music_root, UndoVerificationFailureTagAdapter
+    )
+
+    verified = service.write_one(result_id)
+    failed = service.undo(verified.id)
+
+    stored = client.app.state.track_repository.get_by_path(failed.relative_path)
+    assert failed.status == "failed"
+    assert failed.error_code == "undo_verification_failed"
+    assert failed.original_snapshot == original
+    assert failed.post_write_fingerprint == verified.post_write_fingerprint
+    assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+
+
+def test_undo_exception_preserves_verified_write_state(client, music_root) -> None:
+    service, _adapter, result_id, _path, original = make_service(
+        client, music_root, UndoExceptionTagAdapter
+    )
+
+    verified = service.write_one(result_id)
+    failed = service.undo(verified.id)
+
+    stored = client.app.state.track_repository.get_by_path(failed.relative_path)
+    assert failed.status == "failed"
+    assert failed.error_code == "undo_failed"
+    assert failed.original_snapshot == original
+    assert failed.post_write_fingerprint == verified.post_write_fingerprint
+    assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+
+
+def test_undo_precondition_read_failure_preserves_verified_write_state(client, music_root) -> None:
+    service, _adapter, result_id, path, original = make_service(client, music_root)
+
+    verified = service.write_one(result_id)
+    path.unlink()
+    failed = service.undo(verified.id)
+
+    stored = client.app.state.track_repository.get_by_path(failed.relative_path)
+    assert failed.status == "failed"
+    assert failed.error_code == "undo_precondition_unreadable"
+    assert failed.error_message == "Die Datei konnte vor dem Wiederherstellen nicht gelesen werden."
+    assert failed.original_snapshot == original
+    assert failed.post_write_fingerprint == verified.post_write_fingerprint
+    assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
 
 
 def test_verified_write_commits_the_draft_as_the_current_file_state(

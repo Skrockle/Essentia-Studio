@@ -36,10 +36,20 @@ class TagOperationService:
                 "track_changed_since_analysis",
                 "Die Datei wurde seit der Analyse verändert.",
                 trigger,
-            )
+        )
 
         adapter = self._registry.for_path(path)
-        snapshot = adapter.read(path)
+        try:
+            snapshot = adapter.read(path)
+        except Exception:
+            return self._writes.record_without_write(
+                result.id,
+                result.relative_path,
+                "failed",
+                "managed_tags_unreadable",
+                "Die verwalteten Tags konnten nicht gelesen werden.",
+                trigger,
+            )
         desired = DesiredTags(result.draft.genres, result.draft.moods)
         operation = self._writes.start(
             result.id,
@@ -87,8 +97,17 @@ class TagOperationService:
                 error_code="undo_not_available",
                 error_message="Für diesen Schreibvorgang ist kein Undo verfügbar.",
             )
-        path = resolve_track_path(self._music_root, operation.relative_path)
-        if self._fingerprint(path) != operation.post_write_fingerprint:
+        try:
+            path = resolve_track_path(self._music_root, operation.relative_path)
+            current_fingerprint = self._fingerprint(path)
+        except OSError:
+            return self._writes.finish(
+                operation.id,
+                "failed",
+                error_code="undo_precondition_unreadable",
+                error_message="Die Datei konnte vor dem Wiederherstellen nicht gelesen werden.",
+            )
+        if current_fingerprint != operation.post_write_fingerprint:
             return self._writes.finish(
                 operation.id,
                 "conflict",

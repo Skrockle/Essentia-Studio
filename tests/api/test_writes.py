@@ -40,7 +40,30 @@ class MemoryAdapter:
         path.write_bytes(path.read_bytes() + b"undo")
 
 
-def seed_result(client, music_root):
+class VerificationFailureAdapter(MemoryAdapter):
+    def __init__(self) -> None:
+        super().__init__()
+        self._verification_read = False
+
+    def read(self, path):
+        if self._verification_read:
+            return ManagedTagSnapshot(
+                "fake",
+                {
+                    "genres": ["Unverified"],
+                    "moods": [],
+                    "genre_confidence": [],
+                    "mood_confidence": [],
+                },
+            )
+        return super().read(path)
+
+    def write(self, path, desired, overwrite):
+        super().write(path, desired, overwrite)
+        self._verification_read = True
+
+
+def seed_result(client, music_root, adapter_type=MemoryAdapter):
     path = music_root / "song.mp3"
     path.write_bytes(b"audio")
     stat = path.stat()
@@ -51,6 +74,7 @@ def seed_result(client, music_root):
                 "song.mp3",
                 ".mp3",
                 TrackFingerprint(stat.st_size, stat.st_mtime_ns),
+                managed_tags=ManagedTagInventory(["Rock"], [], "ok"),
             )
         ],
         datetime.now(timezone.utc),
@@ -61,7 +85,7 @@ def seed_result(client, music_root):
         ["Ambient"],
         ["Calm"],
     )
-    adapter = MemoryAdapter()
+    adapter = adapter_type()
     registry = TagAdapterRegistry(adapter)
     client.app.state.tag_registry = registry
     client.app.state.tag_operation_service = TagOperationService(
@@ -97,12 +121,18 @@ def test_preview_requires_a_separate_write_confirmation(client, music_root) -> N
     assert operation["undo_available"] is True
     stored = client.app.state.track_repository.get_by_path("song.mp3")
     assert stored.managed_tags == ManagedTagInventory(["Ambient"], ["Calm"], "ok")
+    library = client.get("/api/library/tracks").json()
+    assert library["items"][0]["managed_genres"] == ["Ambient"]
+    assert library["items"][0]["managed_moods"] == ["Calm"]
+    assert client.get("/api/library/tracks", params={"missing_genre": True}).json()["total"] == 0
+    assert client.get("/api/library/tracks", params={"missing_mood": True}).json()["total"] == 0
 
     undone = client.post(f"/api/writes/{operation['id']}/undo")
     assert undone.json()["status"] == "undone"
     assert adapter.snapshot.fields["genres"] == ["Rock"]
     stored = client.app.state.track_repository.get_by_path("song.mp3")
     assert stored.managed_tags == ManagedTagInventory(["Rock"], [], "ok")
+    assert client.get("/api/library/tracks", params={"missing_mood": True}).json()["total"] == 1
 
 
 def test_preview_reports_invalid_audio_instead_of_returning_server_error(
@@ -136,6 +166,23 @@ def test_preview_reports_invalid_audio_instead_of_returning_server_error(
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "invalid_audio_file"
+
+
+def test_failed_write_keeps_api_inventory_and_missing_filter_eligibility(
+    client, music_root
+) -> None:
+    result, _adapter = seed_result(client, music_root, VerificationFailureAdapter)
+
+    response = client.post("/api/writes", json={"selection": {"mode": "ids", "ids": [result.id]}})
+
+    operation = response.json()["operations"][0]
+    library = client.get("/api/library/tracks").json()
+    assert operation["status"] == "failed"
+    assert operation["error_code"] == "write_verification_failed"
+    assert library["items"][0]["managed_genres"] == ["Rock"]
+    assert library["items"][0]["managed_moods"] == []
+    assert client.get("/api/library/tracks", params={"missing_genre": True}).json()["total"] == 0
+    assert client.get("/api/library/tracks", params={"missing_mood": True}).json()["total"] == 1
 
 
 def test_confirmed_writes_run_as_observable_jobs(client, music_root) -> None:

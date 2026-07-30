@@ -55,6 +55,7 @@ class WriteRepository:
         fingerprint: TrackFingerprint,
         inventory: ManagedTagInventory,
     ) -> WriteOperation:
+        self._require_successful_inventory(inventory)
         with self._engine.begin() as connection:
             connection.execute(
                 text(
@@ -120,6 +121,7 @@ class WriteRepository:
         fingerprint: TrackFingerprint,
         inventory: ManagedTagInventory,
     ) -> WriteOperation:
+        self._require_successful_inventory(inventory)
         with self._engine.begin() as connection:
             connection.execute(
                 text(
@@ -214,8 +216,8 @@ class WriteRepository:
                     """
                     UPDATE write_operations SET
                       status = :status,
-                      post_write_size = :size,
-                      post_write_mtime_ns = :mtime_ns,
+                      post_write_size = COALESCE(:size, post_write_size),
+                      post_write_mtime_ns = COALESCE(:mtime_ns, post_write_mtime_ns),
                       error_code = :error_code,
                       error_message = :error_message,
                       updated_at = CURRENT_TIMESTAMP
@@ -232,6 +234,11 @@ class WriteRepository:
                 },
             )
         return self.get(operation_id)
+
+    @staticmethod
+    def _require_successful_inventory(inventory: ManagedTagInventory) -> None:
+        if inventory.status != "ok":
+            raise ValueError("Only successfully read managed tags may replace file state")
 
     def get(self, operation_id: str) -> WriteOperation:
         with self._engine.connect() as connection:
