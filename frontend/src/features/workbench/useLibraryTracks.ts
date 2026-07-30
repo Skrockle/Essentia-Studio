@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { apiRequest } from '../../api/client'
-import type { LibraryTrack, LibraryTrackPage } from './types'
+import type { LibraryQuery, LibraryTrack, LibraryTrackPage } from './types'
 
 const pageSize = 200
 
-async function loadAllTracks(search: string, signal?: AbortSignal): Promise<LibraryTrack[]> {
+async function loadAllTracks(query: LibraryQuery, signal?: AbortSignal): Promise<LibraryTrack[]> {
   const tracks: LibraryTrack[] = []
   let page = 1
 
@@ -14,7 +14,9 @@ async function loadAllTracks(search: string, signal?: AbortSignal): Promise<Libr
       page: String(page),
       page_size: String(pageSize),
     })
-    if (search) parameters.set('search', search)
+    if (query.search) parameters.set('search', query.search)
+    if (query.missingGenre) parameters.set('missing_genre', 'true')
+    if (query.missingMood) parameters.set('missing_mood', 'true')
 
     const response = await apiRequest<LibraryTrackPage>(
       `/api/library/tracks?${parameters}`,
@@ -26,20 +28,20 @@ async function loadAllTracks(search: string, signal?: AbortSignal): Promise<Libr
   }
 }
 
-export function useLibraryTracks(search: string) {
+export function useLibraryTracks(query: LibraryQuery) {
   const [tracks, setTracks] = useState<LibraryTrack[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
-    const nextTracks = await loadAllTracks(search)
+    const nextTracks = await loadAllTracks(query)
     setTracks(nextTracks)
     setError(null)
     return nextTracks
-  }, [search])
+  }, [query])
 
   useEffect(() => {
     const controller = new AbortController()
-    loadAllTracks(search, controller.signal)
+    loadAllTracks(query, controller.signal)
       .then((nextTracks) => {
         setTracks(nextTracks)
         setError(null)
@@ -50,7 +52,7 @@ export function useLibraryTracks(search: string) {
         }
       })
     return () => controller.abort()
-  }, [search])
+  }, [query])
 
   return { tracks, error, refresh }
 }

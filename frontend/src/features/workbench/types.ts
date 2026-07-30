@@ -70,3 +70,9 @@ export interface LibraryTrackPage {
   page: number
   page_size: number
 }
+
+export interface LibraryQuery {
+  search: string
+  missingGenre: boolean
+  missingMood: boolean
+}

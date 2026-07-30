@@ -333,6 +333,49 @@ code,
   background: var(--surface-subtle);
 }
 
+.quick-filters {
+  display: grid;
+  gap: 5px;
+}
+
+.quick-filters__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.quick-filter {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quick-filter--genre[aria-pressed="true"] {
+  border-color: var(--genre);
+  background: var(--genre-surface);
+  color: var(--genre);
+}
+
+.quick-filter--mood[aria-pressed="true"] {
+  border-color: var(--mood);
+  background: var(--mood-surface);
+  color: var(--mood);
+}
+
+.quick-filters__status {
+  max-width: 290px;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .result-summary,
 .selection-toolbar > span {
   display: flex;
@@ -2443,6 +2486,10 @@ select:hover {
     grid-template-columns: 1fr;
     width: 100%;
     margin-left: 0;
+  }
+
+  .quick-filters {
+    width: 100%;
   }
 
   .dialog-backdrop {

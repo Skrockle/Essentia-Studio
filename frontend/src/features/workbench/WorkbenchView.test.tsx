@@ -9,6 +9,7 @@ let ambientAdded = false
 let writeCalls = 0
 let analysisBodies: unknown[] = []
 let includeWrittenTrack = false
+let libraryRequestUrls: string[] = []
 
 class FakeEventSource {
   static latest: FakeEventSource | null = null
@@ -36,6 +37,7 @@ beforeEach(() => {
   writeCalls = 0
   analysisBodies = []
   includeWrittenTrack = false
+  libraryRequestUrls = []
   FakeEventSource.latest = null
   vi.stubGlobal('EventSource', FakeEventSource)
   vi.stubGlobal(
@@ -48,23 +50,30 @@ beforeEach(() => {
         return Response.json({ genres: ['Ambient'], moods: ['Calm'] })
       }
       if (url.includes('/api/library/tracks')) {
+        libraryRequestUrls.push(url)
+        const searchParameters = new URL(url, 'http://localhost').searchParams
+        const filteredTracks = searchParameters.has('missing_genre') && searchParameters.has('missing_mood')
+          ? [libraryTrack(12, 'Library/two.mp3')]
+          : searchParameters.has('missing_genre')
+            ? [libraryTrack(11, 'Library/one.flac')]
+            : [
+                {
+                  ...libraryTrack(11, 'Library/one.flac'),
+                  processing_state: writeCalls > 0 ? 'written' : 'new',
+                },
+                libraryTrack(12, 'Library/two.mp3'),
+                ...(includeWrittenTrack
+                  ? [{
+                      ...libraryTrack(13, 'Library/written.flac'),
+                      artist: 'Archive',
+                      title: 'Already Written',
+                      processing_state: 'written',
+                    }]
+                  : []),
+              ]
         return Response.json({
-          items: [
-            {
-              ...libraryTrack(11, 'Library/one.flac'),
-              processing_state: writeCalls > 0 ? 'written' : 'new',
-            },
-            libraryTrack(12, 'Library/two.mp3'),
-            ...(includeWrittenTrack
-              ? [{
-                  ...libraryTrack(13, 'Library/written.flac'),
-                  artist: 'Archive',
-                  title: 'Already Written',
-                  processing_state: 'written',
-                }]
-              : []),
-          ],
-          total: 2,
+          items: filteredTracks,
+          total: filteredTracks.length,
           page: 1,
           page_size: 200,
         })
@@ -279,6 +288,31 @@ test('select all analyzes every scanned track', async () => {
   await userEvent.click(screen.getByRole('button', { name: '2 Titel analysieren' }))
 
   await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [11, 12] }]))
+})
+
+test('uses server-side missing-tag filters and clears analysis selection on changes', async () => {
+  render(<WorkbenchView />)
+
+  await screen.findByRole('checkbox', { name: 'Library/one.flac analysieren' })
+  await userEvent.click(screen.getByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Ohne Genre' }))
+
+  await screen.findByRole('checkbox', { name: 'Library/one.flac analysieren' })
+  expect(screen.getByRole('button', { name: 'Auswahl analysieren' })).toBeDisabled()
+
+  await userEvent.click(screen.getByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Ohne Mood' }))
+
+  await screen.findByRole('checkbox', { name: 'Library/two.mp3 analysieren' })
+  expect(screen.getByRole('button', { name: 'Auswahl analysieren' })).toBeDisabled()
+  const combinedFilterUrl = libraryRequestUrls.at(-1) ?? ''
+  expect(combinedFilterUrl).toContain('missing_genre=true')
+  expect(combinedFilterUrl).toContain('missing_mood=true')
+
+  await userEvent.click(screen.getByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }))
+  await userEvent.click(screen.getByRole('button', { name: '1 Titel analysieren' }))
+
+  await waitFor(() => expect(analysisBodies).toEqual([{ track_ids: [12] }]))
 })
 
 test('hides written tracks by default and keeps file paths in a configurable column', async () => {

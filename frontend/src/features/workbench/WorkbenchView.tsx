@@ -6,13 +6,14 @@ import type { JobRecord } from '../jobs/types'
 import { useJobEvents } from '../jobs/useJobEvents'
 import { LibraryTable } from './LibraryTable'
 import { JobProgress } from './JobProgress'
+import { MissingTagFilters } from './MissingTagFilters'
 import { ResultTable } from './ResultTable'
 import { SelectionToolbar } from './SelectionToolbar'
 import { WorkbenchViewControls } from './WorkbenchViewControls'
 import { useResults } from './useResults'
 import { useTagOptions } from './useTagOptions'
 import { WritePreviewDialog, type WriteJobSummary } from './WritePreviewDialog'
-import type { ResultRow } from './types'
+import type { LibraryQuery, ResultRow } from './types'
 import type { TagOptions } from '../../api/types'
 import { useLibraryTracks } from './useLibraryTracks'
 import {
@@ -82,7 +83,13 @@ function WorkbenchResults({ error, rows, ...tableProps }: ResultsProps) {
 
 export function WorkbenchView() {
   const [search, setSearch] = useState('')
+  const [missingGenre, setMissingGenre] = useState(false)
+  const [missingMood, setMissingMood] = useState(false)
   const query = useMemo(() => ({ search }), [search])
+  const libraryQuery = useMemo<LibraryQuery>(
+    () => ({ search, missingGenre, missingMood }),
+    [missingGenre, missingMood, search],
+  )
   const {
     page,
     error,
@@ -97,7 +104,7 @@ export function WorkbenchView() {
     tracks: libraryTracks,
     error: libraryError,
     refresh: refreshLibrary,
-  } = useLibraryTracks(search)
+  } = useLibraryTracks(libraryQuery)
   const { options: tagOptions, error: tagOptionsError } = useTagOptions()
   const [analysisSelection, setAnalysisSelection] = useState<Set<number>>(new Set())
   const [activeJob, setActiveJob] = useState<JobRecord | null>(null)
@@ -190,6 +197,12 @@ export function WorkbenchView() {
     })
   }
 
+  function changeMissingTagFilters(nextQuery: Pick<LibraryQuery, 'missingGenre' | 'missingMood'>) {
+    setMissingGenre(nextQuery.missingGenre)
+    setMissingMood(nextQuery.missingMood)
+    setAnalysisSelection(new Set())
+  }
+
   async function finishWrite(summary: WriteJobSummary) {
     setShowPreview(false)
     setStatusMessage(`${summary.verified} verifiziert`)
@@ -229,6 +242,10 @@ export function WorkbenchView() {
             value={search}
           />
         </label>
+        <MissingTagFilters
+          onChange={changeMissingTagFilters}
+          value={{ missingGenre, missingMood }}
+        />
         <div className="result-summary">
           <Sparkles aria-hidden="true" size={17} />
           <strong>{page.total}</strong> analysierte Titel
