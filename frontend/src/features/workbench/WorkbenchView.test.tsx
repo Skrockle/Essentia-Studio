@@ -11,6 +11,7 @@ let analysisBodies: unknown[] = []
 let includeWrittenTrack = false
 let libraryRequestUrls: string[] = []
 let nextLibraryResponse: Promise<Response> | null = null
+let useMultiPageLibrary = false
 
 class FakeEventSource {
   static latest: FakeEventSource | null = null
@@ -50,6 +51,7 @@ beforeEach(() => {
   includeWrittenTrack = false
   libraryRequestUrls = []
   nextLibraryResponse = null
+  useMultiPageLibrary = false
   FakeEventSource.latest = null
   vi.stubGlobal('EventSource', FakeEventSource)
   vi.stubGlobal(
@@ -69,6 +71,14 @@ beforeEach(() => {
           return pendingResponse
         }
         const searchParameters = new URL(url, 'http://localhost').searchParams
+        if (useMultiPageLibrary) {
+          const page = Number(searchParameters.get('page'))
+          const trackIds = page === 1
+            ? Array.from({ length: 200 }, (_, index) => index + 1)
+            : [201]
+          const tracks = trackIds.map((id) => libraryTrack(id, `Library/${id}.flac`))
+          return Response.json({ items: tracks, total: 201, page, page_size: 200 })
+        }
         const filteredTracks = searchParameters.has('missing_genre') && searchParameters.has('missing_mood')
           ? [libraryTrack(12, 'Library/two.mp3')]
           : searchParameters.has('missing_genre')
@@ -357,6 +367,50 @@ test('withholds stale library rows while the next quick-filter query fails', asy
 
   expect(await screen.findByText('Bibliothek konnte nicht geladen werden.')).toBeVisible()
   expect(screen.queryByRole('checkbox', { name: 'Library/one.flac analysieren' })).not.toBeInTheDocument()
+})
+
+test('shows a filter-specific empty state after success and no empty state after a load error', async () => {
+  render(<WorkbenchView />)
+  await screen.findByRole('checkbox', { name: 'Library/one.flac analysieren' })
+  const failedResponse = deferredResponse()
+  nextLibraryResponse = failedResponse.promise
+
+  await userEvent.click(screen.getByRole('button', { name: 'Ohne Genre' }))
+  failedResponse.reject(new Error('network unreachable'))
+
+  expect(await screen.findByText('Bibliothek konnte nicht geladen werden.')).toBeVisible()
+  expect(screen.queryByText('Noch keine Titel gefunden. Starte zuerst einen Scan.')).not.toBeInTheDocument()
+
+  nextLibraryResponse = Promise.resolve(Response.json({ items: [], total: 0, page: 1, page_size: 200 }))
+  await userEvent.click(screen.getByRole('button', { name: 'Ohne Mood' }))
+
+  expect(await screen.findByText('Keine Titel für diesen Filter gefunden.')).toBeVisible()
+  expect(screen.queryByText('Bibliothek konnte nicht geladen werden.')).not.toBeInTheDocument()
+})
+
+test('selects every server-filtered track across two library pages', async () => {
+  useMultiPageLibrary = true
+  render(<WorkbenchView />)
+  await screen.findByRole('checkbox', { name: 'Library/201.flac analysieren' })
+
+  await userEvent.click(screen.getByRole('button', { name: 'Ohne Genre' }))
+  await waitFor(() => expect(libraryRequestUrls.filter((url) => url.includes('missing_genre=true'))).toHaveLength(2))
+  const filteredRequestUrls = libraryRequestUrls.filter((url) => url.includes('missing_genre=true'))
+  for (const url of filteredRequestUrls) {
+    const parameters = new URL(url, 'http://localhost').searchParams
+    expect(parameters.get('missing_genre')).toBe('true')
+    expect(parameters.get('missing_mood')).toBeNull()
+  }
+
+  await userEvent.click(await screen.findByRole('checkbox', { name: 'Alle gescannten Titel analysieren' }))
+  expect(screen.getByText((_, element) => (
+    element?.tagName === 'SPAN' && element.textContent === '201 von 201 ausgewählt'
+  ))).toBeVisible()
+  await userEvent.click(screen.getByRole('button', { name: '201 Titel analysieren' }))
+
+  await waitFor(() => expect(analysisBodies).toEqual([{
+    track_ids: Array.from({ length: 201 }, (_, index) => index + 1),
+  }]))
 })
 
 test('hides written tracks by default and keeps file paths in a configurable column', async () => {

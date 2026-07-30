@@ -78,6 +78,9 @@ test('keeps query parameters and resets paging when the query changes', async ()
   })
 
   await waitFor(() => expect(result.current.isLoading).toBe(false))
+  expect(result.current.tracks.map((track) => track.id)).toEqual(
+    Array.from({ length: 201 }, (_, index) => index + 1),
+  )
   rerender({ query: nextQuery })
   await waitFor(() => expect(result.current.isLoading).toBe(false))
 

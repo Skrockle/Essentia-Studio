@@ -83,6 +83,10 @@ function WorkbenchResults({ error, rows, ...tableProps }: ResultsProps) {
   )
 }
 
+function hasActiveLibraryFilters(query: LibraryQuery): boolean {
+  return Boolean(query.search || query.missingGenre || query.missingMood)
+}
+
 export function WorkbenchView() {
   const [search, setSearch] = useState('')
   const [missingGenre, setMissingGenre] = useState(false)
@@ -116,6 +120,7 @@ export function WorkbenchView() {
   const [viewPreferences, setViewPreferences] = useState(loadWorkbenchPreferences)
   const event = useJobEvents(activeJob?.id ?? null)
   const allSelected = page.total > 0 && page.selected_count === page.total
+  const hasActiveFilters = hasActiveLibraryFilters(libraryQuery)
   const availableFormats = useMemo(
     () => [...new Set(libraryTracks.map((track) => track.extension))].sort(),
     [libraryTracks],
@@ -174,7 +179,7 @@ export function WorkbenchView() {
   }
 
   async function startAnalysis() {
-    if (libraryLoading || visibleAnalysisSelection.size === 0) return
+    if (visibleAnalysisSelection.size === 0) return
     setStatusMessage(null)
     setActiveJob(
       await apiRequest<JobRecord>('/api/analysis/jobs', {
@@ -188,12 +193,10 @@ export function WorkbenchView() {
   }
 
   function selectAllForAnalysis(selected: boolean) {
-    if (libraryLoading) return
     setAnalysisSelection(selected ? new Set(filteredLibraryTracks.map((track) => track.id)) : new Set())
   }
 
   function selectTrackForAnalysis(trackId: number, selected: boolean) {
-    if (libraryLoading) return
     setAnalysisSelection((current) => {
       const next = new Set(current)
       if (selected) next.add(trackId)
@@ -266,7 +269,6 @@ export function WorkbenchView() {
         />
       </section>
 
-      {libraryError && <p className="notice notice--error">{libraryError}</p>}
       {tagOptionsError && <p className="notice notice--error">{tagOptionsError}</p>}
       <WorkbenchViewControls
         availableFormats={availableFormats}
@@ -274,6 +276,8 @@ export function WorkbenchView() {
         value={viewPreferences}
       />
       <LibraryTable
+        error={libraryError}
+        hasActiveFilters={hasActiveFilters}
         onSelectAll={selectAllForAnalysis}
         onSelectTrack={selectTrackForAnalysis}
         selectedIds={visibleAnalysisSelection}
