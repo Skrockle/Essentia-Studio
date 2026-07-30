@@ -35,6 +35,12 @@ class AnalysisJobService:
         if cancellation is not None and cancellation.is_set():
             raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
         track = self._tracks.get_by_path(relative_path)
+        if track.managed_tags.status != "ok":
+            raise AppError(
+                "managed_tags_unreadable",
+                "Die Managed Tags des Titels konnten nicht sicher gelesen werden.",
+                409,
+            )
         path = resolve_track_path(self._music_root, relative_path)
         before = path.stat()
         result = self._backend.analyze(path, options, cancellation)
@@ -50,15 +56,21 @@ class AnalysisJobService:
             )
         if cancellation is not None and cancellation.is_set():
             raise AppError("analysis_cancelled", "Die Analyse wurde abgebrochen.", 409)
-        genres = normalize_tags(
+        predicted_genres = normalize_tags(
             [
                 genre
                 for prediction in result.genres
                 if prediction.accepted
                 for genre in split_genre_label(prediction.label)
             ]
-        )[: options.genre_count]
-        moods = normalize_tags([format_mood_label(value.label) for value in result.moods])
+        )[: options.genre_count] if options.enable_genres else []
+        predicted_moods = (
+            normalize_tags([format_mood_label(value.label) for value in result.moods])
+            if options.enable_moods
+            else []
+        )
+        genres = predicted_genres if options.enable_genres else track.managed_tags.genres
+        moods = predicted_moods if options.enable_moods else track.managed_tags.moods
         return self._results.save(
             replace(track, fingerprint=fingerprint),
             result,

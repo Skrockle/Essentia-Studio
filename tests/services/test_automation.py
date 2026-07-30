@@ -2,13 +2,25 @@ from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
+from essentia_studio.domain.analysis import AnalysisOptions
 from essentia_studio.domain.jobs import JobRecord, JobStatus, JobType
-from essentia_studio.domain.tracks import LibraryTrack, TrackFingerprint, TrackMetadata
+from essentia_studio.domain.tracks import (
+    LibraryTrack,
+    ManagedTagInventory,
+    TrackFingerprint,
+    TrackMetadata,
+)
+from essentia_studio.services.analysis_admission import AnalysisAdmission, AnalysisWorkItem
 from essentia_studio.services.automation import AutomationService
 from essentia_studio.services.settings import SettingsService
 
 
-def _track(track_id: int, path: str, size: int) -> LibraryTrack:
+def _track(
+    track_id: int,
+    path: str,
+    size: int,
+    managed_tags: ManagedTagInventory | None = None,
+) -> LibraryTrack:
     return LibraryTrack(
         id=track_id,
         relative_path=path,
@@ -17,6 +29,7 @@ def _track(track_id: int, path: str, size: int) -> LibraryTrack:
         last_seen=datetime.now(timezone.utc),
         present=True,
         metadata=TrackMetadata("Artist", path, None, 120, "embedded"),
+        managed_tags=managed_tags or ManagedTagInventory(),
     )
 
 
@@ -84,13 +97,28 @@ class FakeTags:
         self.calls.append((result_ids, trigger))
 
 
-def _service(tmp_path: Path, mode: str = "analyze"):
+class InventoryAdmission:
+    def prepare(self, tracks: list[LibraryTrack], requested: AnalysisOptions) -> AnalysisAdmission:
+        items = [
+            AnalysisWorkItem(
+                track.relative_path,
+                requested.enable_genres and not track.managed_tags.genres,
+                requested.enable_moods and not track.managed_tags.moods,
+            )
+            for track in tracks
+            if requested.enable_genres and not track.managed_tags.genres
+            or requested.enable_moods and not track.managed_tags.moods
+        ]
+        return AnalysisAdmission(items, [], [])
+
+
+def _service(tmp_path: Path, mode: str = "analyze", tracks: list[LibraryTrack] | None = None):
     settings_path = tmp_path / "settings.yaml"
     settings_path.write_text(
         "automation:\n  enabled: true\n  mode: " + mode + "\n",
         encoding="utf-8",
     )
-    tracks = [
+    library_tracks = tracks or [
         _track(1, "new.flac", 10),
         _track(2, "current.flac", 20),
         _track(3, "changed.flac", 30),
@@ -102,12 +130,13 @@ def _service(tmp_path: Path, mode: str = "analyze"):
     refreshes = []
     service = AutomationService(
         settings=SettingsService(settings_path, {}),
-        tracks=FakeTracks(tracks),
+        tracks=FakeTracks(library_tracks),
         states=states,
         coordinator=coordinator,
         results=results,
         tag_operations=tags,
         refresh_library=lambda: refreshes.append(True),
+        admission=InventoryAdmission(),
     )
     return service, coordinator, states, results, tags, refreshes
 
@@ -192,9 +221,26 @@ def test_inline_terminal_event_releases_reserved_fingerprints(tmp_path: Path) ->
         results=FakeResults(),
         tag_operations=FakeTags(),
         refresh_library=lambda: None,
+        admission=InventoryAdmission(),
     )
 
     service.trigger("schedule")
     service.trigger("schedule")
 
     assert len(coordinator.submissions) == 2
+
+
+def test_automation_submits_only_missing_heads_for_changed_tracks(tmp_path: Path) -> None:
+    tracks = [
+        _track(1, "complete.flac", 10, ManagedTagInventory(["Rock"], ["Calm"], "ok")),
+        _track(2, "genre-only.flac", 20, ManagedTagInventory(["Rock"], [], "ok")),
+    ]
+    service, coordinator, states, _results, _tags, _refreshes = _service(tmp_path, tracks=tracks)
+    states.values = {1: "changed", 2: "changed"}
+
+    service.trigger("schedule")
+
+    assert coordinator.submissions[0][1] == ["genre-only.flac"]
+    assert coordinator.submissions[0][2]["heads_by_path"] == {
+        "genre-only.flac": {"enable_genres": False, "enable_moods": True}
+    }

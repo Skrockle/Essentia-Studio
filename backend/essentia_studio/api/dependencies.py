@@ -6,6 +6,7 @@ from essentia_studio.repositories.jobs import JobRepository
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
+from essentia_studio.services.analysis_admission import AnalysisAdmissionService
 from essentia_studio.services.automation import AutomationService
 from essentia_studio.services.automation_status import AutomationStatusStore
 from essentia_studio.services.benchmarks import BenchmarkService
@@ -27,6 +28,10 @@ def get_automation_status_store(request: Request) -> AutomationStatusStore:
 
 def get_automation_service(request: Request) -> AutomationService:
     return request.app.state.automation_service
+
+
+def get_analysis_admission_service(request: Request) -> AnalysisAdmissionService:
+    return request.app.state.analysis_admission_service
 
 
 def get_benchmark_service(request: Request) -> BenchmarkService:

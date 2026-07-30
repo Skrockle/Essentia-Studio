@@ -14,6 +14,7 @@ from essentia_studio.domain.jobs import JobRecord, JobStatus, JobType
 from essentia_studio.domain.tracks import LibraryQuery, LibraryTrack
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.tracks import TrackRepository
+from essentia_studio.services.analysis_admission import AnalysisAdmissionService
 from essentia_studio.services.automation_status import AutomationStatusStore
 from essentia_studio.services.file_watcher import FileWatcher
 from essentia_studio.services.jobs import JobCoordinator
@@ -39,6 +40,7 @@ class AutomationService:
         results: ResultRepository,
         tag_operations: TagOperationService,
         refresh_library: Callable[[], object],
+        admission: AnalysisAdmissionService,
         music_root: Path | None = None,
         playlist_dir: Path | None = None,
         status_store: AutomationStatusStore | None = None,
@@ -51,6 +53,7 @@ class AutomationService:
         self._results = results
         self._tag_operations = tag_operations
         self._refresh_library = refresh_library
+        self._admission = admission
         self._music_root = music_root
         self._playlist_dir = playlist_dir
         self._status_store = status_store
@@ -117,12 +120,6 @@ class AutomationService:
             )
             states = self._states.states([track.id for track in tracks])
             eligible = [track for track in tracks if states.get(track.id) in {"new", "changed"}]
-            selected, fingerprints = self._reserve(eligible)
-            if not selected:
-                if self._status_store is not None:
-                    self._status_store.record_run()
-                return None
-
             analysis = effective.analysis
             options = AnalysisOptions(
                 genre_threshold=analysis.genre_threshold,
@@ -130,6 +127,23 @@ class AutomationService:
                 genre_count=analysis.genre_count,
                 max_audio_seconds=analysis.max_audio_seconds,
             )
+            admitted = self._admission.prepare(eligible, options)
+            admitted_by_path = {item.relative_path: item for item in admitted.items}
+            selected, fingerprints = self._reserve(
+                [track for track in eligible if track.relative_path in admitted_by_path]
+            )
+            if not selected:
+                if self._status_store is not None:
+                    self._status_store.record_run()
+                return None
+            heads_by_path = {
+                item.relative_path: {
+                    "enable_genres": item.enable_genres,
+                    "enable_moods": item.enable_moods,
+                }
+                for relative_path, item in admitted_by_path.items()
+                if relative_path in {track.relative_path for track in selected}
+            }
             try:
                 job = self._coordinator.submit(
                     JobType.ANALYSIS,
@@ -139,6 +153,7 @@ class AutomationService:
                         "worker_count": analysis.workers,
                         "trigger": reason,
                         "automation_mode": effective.automation.mode,
+                        "heads_by_path": heads_by_path,
                     },
                 )
             except BaseException:

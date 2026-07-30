@@ -1,12 +1,40 @@
 import time
+from dataclasses import asdict
 from datetime import datetime, timezone
 
+from essentia_studio.domain.analysis import AnalysisOptions
+from essentia_studio.domain.jobs import JobType
 from essentia_studio.domain.tracks import (
     ManagedTagInventory,
     ScannedTrack,
     TrackFingerprint,
     TrackMetadata,
 )
+from essentia_studio.services.analysis_admission import AnalysisAdmissionService
+from essentia_studio.tags.protocol import ManagedTagSnapshot
+from essentia_studio.tags.registry import TagAdapterRegistry
+
+
+class SnapshotAdapter:
+    def __init__(self, snapshots: dict[str, ManagedTagSnapshot]) -> None:
+        self.snapshots = snapshots
+
+    def read(self, path):
+        return self.snapshots[path.name]
+
+    def write(self, *_args) -> None:
+        raise AssertionError("Analysis admission must not write tags")
+
+    def restore(self, *_args) -> None:
+        raise AssertionError("Analysis admission must not restore tags")
+
+
+def install_admission(client, snapshots: dict[str, ManagedTagSnapshot]) -> None:
+    client.app.state.analysis_admission_service = AnalysisAdmissionService(
+        client.app.state.track_repository,
+        TagAdapterRegistry(SnapshotAdapter(snapshots)),
+        client.app.state.config.music_root,
+    )
 
 
 def wait_for_job(client, job_id: str) -> dict:
@@ -23,6 +51,10 @@ def test_analysis_job_snapshots_settings_and_orders_tracks(client, music_root) -
     (music_root / "a.flac").write_bytes(b"a")
     scan_job = client.post("/api/library/scan").json()
     wait_for_job(client, scan_job["id"])
+    install_admission(
+        client,
+        {"a.flac": ManagedTagSnapshot("vorbis", {}), "z.flac": ManagedTagSnapshot("vorbis", {})},
+    )
     tracks = client.get("/api/library/tracks").json()["items"]
 
     response = client.post(
@@ -45,6 +77,7 @@ def test_analysis_job_uses_cpu_worker_setting_for_job_parallelism(client, music_
     (music_root / "song.flac").write_bytes(b"song")
     scan_job = client.post("/api/library/scan").json()
     wait_for_job(client, scan_job["id"])
+    install_admission(client, {"song.flac": ManagedTagSnapshot("vorbis", {})})
     track_id = client.get("/api/library/tracks").json()["items"][0]["id"]
 
     settings = client.put("/api/settings", json={"analysis": {"cpu_workers": 8}})
@@ -82,6 +115,7 @@ def test_analysis_rejects_unknown_selection_filter_fields(client, music_root) ->
     (music_root / "song.flac").write_bytes(b"song")
     scan_job = client.post("/api/library/scan").json()
     wait_for_job(client, scan_job["id"])
+    install_admission(client, {"song.flac": ManagedTagSnapshot("vorbis", {})})
     track_id = client.get("/api/library/tracks").json()["items"][0]["id"]
 
     nested_filter = client.post(
@@ -109,6 +143,19 @@ def test_analysis_rejects_unknown_selection_filter_fields(client, music_root) ->
 
 
 def test_analysis_query_selects_the_same_missing_tag_set_as_the_library(client) -> None:
+    names = ["complete.flac", "genre-only.flac", "mood-only.flac", "empty.flac", "unreadable.flac"]
+    for name in names:
+        (client.app.state.config.music_root / name).write_bytes(b"audio")
+    install_admission(
+        client,
+        {
+            "complete.flac": ManagedTagSnapshot("vorbis", {"genres": ["Rock"], "moods": ["Calm"]}),
+            "genre-only.flac": ManagedTagSnapshot("vorbis", {"genres": ["Rock"]}),
+            "mood-only.flac": ManagedTagSnapshot("vorbis", {"moods": ["Calm"]}),
+            "empty.flac": ManagedTagSnapshot("vorbis", {}),
+            "unreadable.flac": ManagedTagSnapshot("vorbis", {}),
+        },
+    )
     client.app.state.track_repository.replace_scan(
         [
             ScannedTrack(
@@ -162,3 +209,49 @@ def test_analysis_query_selects_the_same_missing_tag_set_as_the_library(client) 
         "genre-only.flac",
         "mood-only.flac",
     ]
+    assert response.json()["configuration"]["heads_by_path"] == {
+        "empty.flac": {"enable_genres": True, "enable_moods": True},
+        "genre-only.flac": {"enable_genres": False, "enable_moods": True},
+        "mood-only.flac": {"enable_genres": True, "enable_moods": False},
+    }
+
+
+def test_analysis_rejects_a_client_provided_complete_track(client) -> None:
+    music_root = client.app.state.config.music_root
+    (music_root / "complete.flac").write_bytes(b"audio")
+    client.app.state.track_repository.replace_scan(
+        [
+            ScannedTrack(
+                "complete.flac",
+                ".flac",
+                TrackFingerprint(5, 1),
+                managed_tags=ManagedTagInventory(["Rock"], ["Calm"], "ok"),
+            )
+        ],
+        datetime.now(timezone.utc),
+    )
+    track_id = client.app.state.track_repository.get_by_path("complete.flac").id
+    install_admission(
+        client,
+        {"complete.flac": ManagedTagSnapshot("vorbis", {"genres": ["Rock"], "moods": ["Calm"]})},
+    )
+
+    response = client.post("/api/analysis/jobs", json={"track_ids": [track_id]})
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "no_missing_managed_tags"
+
+
+def test_legacy_analysis_job_fails_without_a_per_track_tag_scope(client) -> None:
+    job = client.app.state.job_coordinator.submit(
+        JobType.ANALYSIS,
+        ["legacy.flac"],
+        {"analysis": asdict(AnalysisOptions())},
+    )
+
+    completed = wait_for_job(client, job.id)
+
+    assert completed["status"] == "completed_with_errors"
+    assert client.app.state.job_repository.list_items(job.id)[0].error_code == (
+        "analysis_job_missing_tag_scope"
+    )

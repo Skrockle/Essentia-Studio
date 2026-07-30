@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from essentia_studio.db.engine import create_sqlite_engine
 from essentia_studio.db.migrate import apply_migrations
 from essentia_studio.domain.analysis import AnalysisOptions, AnalysisResult, Prediction
-from essentia_studio.domain.tracks import ScannedTrack, TrackFingerprint
+from essentia_studio.domain.tracks import ManagedTagInventory, ScannedTrack, TrackFingerprint
 from essentia_studio.repositories.results import ResultRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.services.analysis_jobs import AnalysisJobService
@@ -17,7 +17,8 @@ class FakeAnalysisBackend:
             model_ids=["fake-genre", "fake-mood"],
         )
 
-    def analyze(self, _path, _options, _cancellation=None) -> AnalysisResult:
+    def analyze(self, _path, options, _cancellation=None) -> AnalysisResult:
+        self.options = options
         return self._result
 
 
@@ -33,7 +34,14 @@ def test_analysis_persists_draft_without_changing_audio(tmp_path) -> None:
     apply_migrations(engine)
     tracks = TrackRepository(engine)
     tracks.replace_scan(
-        [ScannedTrack("Artist/song.flac", ".flac", fingerprint)],
+        [
+            ScannedTrack(
+                "Artist/song.flac",
+                ".flac",
+                fingerprint,
+                managed_tags=ManagedTagInventory(status="ok"),
+            )
+        ],
         datetime.now(timezone.utc),
     )
     results = ResultRepository(engine)
@@ -63,6 +71,7 @@ def test_analysis_limits_visible_genres_and_excludes_rejected_candidate(tmp_path
                 "Artist/song.flac",
                 ".flac",
                 TrackFingerprint(stat.st_size, stat.st_mtime_ns),
+                managed_tags=ManagedTagInventory(status="ok"),
             )
         ],
         datetime.now(timezone.utc),
@@ -105,6 +114,7 @@ def test_analysis_keeps_rejected_candidate_out_of_empty_draft(tmp_path) -> None:
                 "Artist/song.flac",
                 ".flac",
                 TrackFingerprint(stat.st_size, stat.st_mtime_ns),
+                managed_tags=ManagedTagInventory(status="ok"),
             )
         ],
         datetime.now(timezone.utc),
@@ -125,3 +135,36 @@ def test_analysis_keeps_rejected_candidate_out_of_empty_draft(tmp_path) -> None:
 
     assert stored.draft.genres == []
     assert stored.result.genres == result.genres
+
+
+def test_mood_only_analysis_preserves_existing_file_genre(tmp_path) -> None:
+    music_root = tmp_path / "music"
+    track_path = music_root / "genre-only.flac"
+    music_root.mkdir()
+    track_path.write_bytes(b"unchanged-audio")
+    stat = track_path.stat()
+    engine = create_sqlite_engine(tmp_path / "app.db")
+    apply_migrations(engine)
+    tracks = TrackRepository(engine)
+    tracks.replace_scan(
+        [
+            ScannedTrack(
+                "genre-only.flac",
+                ".flac",
+                TrackFingerprint(stat.st_size, stat.st_mtime_ns),
+                managed_tags=ManagedTagInventory(["Rock"], [], "ok"),
+            )
+        ],
+        datetime.now(timezone.utc),
+    )
+    backend = FakeAnalysisBackend()
+    service = AnalysisJobService(backend, ResultRepository(engine), tracks, music_root)
+
+    stored = service.process(
+        "genre-only.flac",
+        AnalysisOptions(enable_genres=False, enable_moods=True),
+    )
+
+    assert backend.options.enable_genres is False
+    assert stored.draft.genres == ["Rock"]
+    assert stored.draft.moods == ["Happy"]

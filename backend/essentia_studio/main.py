@@ -1,6 +1,6 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping
 from contextlib import asynccontextmanager
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime, timezone
 from threading import Event
 
@@ -34,6 +34,7 @@ from essentia_studio.repositories.settings import SettingsRepository
 from essentia_studio.repositories.tracks import TrackRepository
 from essentia_studio.repositories.writes import WriteRepository
 from essentia_studio.schemas.settings import AnalysisSettings
+from essentia_studio.services.analysis_admission import AnalysisAdmissionService
 from essentia_studio.services.analysis_jobs import AnalysisJobService
 from essentia_studio.services.automation import AutomationService
 from essentia_studio.services.automation_status import AutomationStatusStore
@@ -93,6 +94,11 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             track_repository,
             runtime_config.music_root,
         )
+        analysis_admission_service = AnalysisAdmissionService(
+            track_repository,
+            tag_registry,
+            runtime_config.music_root,
+        )
 
         def refresh_library():
             return track_repository.replace_scan(
@@ -108,7 +114,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
 
         def analysis_handler(job_id: str, relative_path: str, cancelled: Event) -> dict[str, str]:
             job = job_repository.get(job_id)
-            options = AnalysisOptions(**job.configuration["analysis"])
+            options = _analysis_options_for_item(job.configuration, relative_path)
             stored = analysis_service.process(relative_path, options, job_id, cancelled)
             return {"result_id": stored.id, "relative_path": relative_path}
 
@@ -176,6 +182,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
             results=result_repository,
             tag_operations=tag_operation_service,
             refresh_library=refresh_library,
+            admission=analysis_admission_service,
             music_root=runtime_config.music_root,
             playlist_dir=runtime_config.playlist_dir,
             status_store=automation_status_store,
@@ -196,6 +203,7 @@ def create_app(config: RuntimeConfig | None = None) -> FastAPI:
         app.state.playlist_storage = playlist_storage
         app.state.write_repository = write_repository
         app.state.tag_registry = tag_registry
+        app.state.analysis_admission_service = analysis_admission_service
         app.state.tag_operation_service = tag_operation_service
         app.state.job_coordinator = job_coordinator
         app.state.analysis_backend = analysis_backend
@@ -227,6 +235,40 @@ def _benchmark_runner(config: RuntimeConfig) -> BenchmarkRunner:
             worker=fake_benchmark_worker,
         )
     return BenchmarkRunner(config.music_root, config.model_dir)
+
+
+def _analysis_options_for_item(
+    configuration: Mapping[str, object],
+    relative_path: str,
+) -> AnalysisOptions:
+    heads_by_path = configuration.get("heads_by_path")
+    analysis = configuration.get("analysis")
+    if not isinstance(heads_by_path, Mapping) or not isinstance(analysis, Mapping):
+        raise _missing_analysis_tag_scope()
+    heads = heads_by_path.get(relative_path)
+    if (
+        not isinstance(heads, Mapping)
+        or not isinstance(heads.get("enable_genres"), bool)
+        or not isinstance(heads.get("enable_moods"), bool)
+    ):
+        raise _missing_analysis_tag_scope()
+    try:
+        options = AnalysisOptions(**analysis)
+    except TypeError as error:
+        raise _missing_analysis_tag_scope() from error
+    return replace(
+        options,
+        enable_genres=heads["enable_genres"],
+        enable_moods=heads["enable_moods"],
+    )
+
+
+def _missing_analysis_tag_scope() -> AppError:
+    return AppError(
+        "analysis_job_missing_tag_scope",
+        "Der Analyseauftrag enthält keine sichere Tag-Auswahl.",
+        409,
+    )
 
 
 def _analysis_backend_factory(
