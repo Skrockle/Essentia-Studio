@@ -1,5 +1,61 @@
 # Changelog
 
+## [1.3.0](https://github.com/Skrockle/Essentia-Studio/compare/essentia-studio-v1.2.0...essentia-studio-v1.3.0) (2026-08-03)
+
+
+### Features
+
+* add CUDA inference pipeline and tuning controls ([5491607](https://github.com/Skrockle/Essentia-Studio/commit/54916077b8f1ec9545451fa0e0b963e48a1b645f))
+* add missing tag quick filters ([a68d665](https://github.com/Skrockle/Essentia-Studio/commit/a68d665c951e16e009fb91aca16ac240ed855179))
+* add ONNX CUDA development image ([ea2c0e1](https://github.com/Skrockle/Essentia-Studio/commit/ea2c0e12fcd5665544e62b720f292e858465ca65))
+* add ONNX CUDA development image ([d50e405](https://github.com/Skrockle/Essentia-Studio/commit/d50e40501a8d5b552fc7d60c43e7c672bb0a7734))
+* analyze only missing managed tags ([4436649](https://github.com/Skrockle/Essentia-Studio/commit/4436649b7d57212af101c03aaa7cd19b3f3172d0))
+* filter library by missing file tags ([737896a](https://github.com/Skrockle/Essentia-Studio/commit/737896adc7cc35559043ba82325c50b78e2c78e3))
+* inventory managed file tags during scan ([55e1a9f](https://github.com/Skrockle/Essentia-Studio/commit/55e1a9f5f477c63928cd95ceaef68e713be23bd7))
+* pipeline CUDA inference across CPU and GPU ([#22](https://github.com/Skrockle/Essentia-Studio/issues/22)) ([58a803e](https://github.com/Skrockle/Essentia-Studio/commit/58a803e141ef3c72faadb0ce638680fa93fbe6c9))
+* sync managed tag inventory after writes ([1dc084f](https://github.com/Skrockle/Essentia-Studio/commit/1dc084f2b023cf7310cfaecaf38b13ec1fe397cd))
+
+
+### Bug Fixes
+
+* accept ONNX feature arrays from Essentia ([99d4754](https://github.com/Skrockle/Essentia-Studio/commit/99d475416b34a97daae236f304805b93e4139eff))
+* accept ONNX feature arrays from Essentia ([8c2e75d](https://github.com/Skrockle/Essentia-Studio/commit/8c2e75d85539586987bf7902700da45e717048e5))
+* apply CPU worker setting to analysis jobs ([bdd66cf](https://github.com/Skrockle/Essentia-Studio/commit/bdd66cfb75116fcb9ce6cacbe0f081aaa4736c12))
+* apply CPU worker setting to analysis jobs ([8c2accf](https://github.com/Skrockle/Essentia-Studio/commit/8c2accffe5bc08adae3e14571bdeec75d90365f3))
+* correct ONNX model checksums ([60a79f9](https://github.com/Skrockle/Essentia-Studio/commit/60a79f94ee3b013d28728f7d3e2506ea8e454d9f))
+* correct ONNX model metadata hash ([06772eb](https://github.com/Skrockle/Essentia-Studio/commit/06772eb05e37857c35ab5b1d59b23e8082c72739))
+* correct ONNX model metadata hash ([de5e7be](https://github.com/Skrockle/Essentia-Studio/commit/de5e7be2ae0b89362c499f9791ce697ab80dcf7b))
+* distinguish filtered library emptiness ([c0dd0e4](https://github.com/Skrockle/Essentia-Studio/commit/c0dd0e4a23ca0163aff29fd1b1c8368c340ea6e7))
+* guard library query transitions ([04ecc48](https://github.com/Skrockle/Essentia-Studio/commit/04ecc48e144069c1f57f2d49c8af965c9d97f3f4))
+* handle empty library queries ([51641d4](https://github.com/Skrockle/Essentia-Studio/commit/51641d47e4daf0736b731e7d761b148e56c58e8e))
+* include ONNX manifest in model directory ([9aba71f](https://github.com/Skrockle/Essentia-Studio/commit/9aba71f75db45e4b6055b9a3a411e7f24e9073af))
+* include ONNX manifest in model directory ([652077e](https://github.com/Skrockle/Essentia-Studio/commit/652077ec8e44d9667d09b76df02007ae49bda815))
+* isolate managed tag write failures ([c6c01b2](https://github.com/Skrockle/Essentia-Studio/commit/c6c01b2a023ca2b4dc5f1f8acc82e14999c5227d))
+* preserve managed tags after read error ([3a750c3](https://github.com/Skrockle/Essentia-Studio/commit/3a750c3e42b13c3697d356dbd5fb7bec5f59575f))
+* prevent CUDA classification memory failures ([#21](https://github.com/Skrockle/Essentia-Studio/issues/21)) ([56cf1be](https://github.com/Skrockle/Essentia-Studio/commit/56cf1be551f3bec18cb64388262746edd9807477))
+* rebuild ONNX image models without cache ([66b39a9](https://github.com/Skrockle/Essentia-Studio/commit/66b39a97454df8da4814397b9c0ae9ee29b1f1b8))
+* rebuild ONNX image models without cache ([b659b15](https://github.com/Skrockle/Essentia-Studio/commit/b659b151106cf893b2867b1488ca7662df621fde))
+* recover from ONNX CUDA allocation failures ([#23](https://github.com/Skrockle/Essentia-Studio/issues/23)) ([8f81a71](https://github.com/Skrockle/Essentia-Studio/commit/8f81a711f0ffa9880f58fa1a61e3ece853d3a139))
+* reject nul analysis scope paths ([584122a](https://github.com/Skrockle/Essentia-Studio/commit/584122ab069ee3ad80caa55c89a0ffc6000cdd42))
+* resume active jobs after restart ([b2f4157](https://github.com/Skrockle/Essentia-Studio/commit/b2f4157a181d18a94d52fef9f7c448c3723e6f0d))
+* retain verified writes after undo failures ([b4bb5c3](https://github.com/Skrockle/Essentia-Studio/commit/b4bb5c3f78d4c22eee19c3f562d3365a21c12649))
+* show ONNX model hash details ([66c91bb](https://github.com/Skrockle/Essentia-Studio/commit/66c91bb0649eec79b299caddbebe38b3ab7d4505))
+* snapshot complete library selections ([a38534d](https://github.com/Skrockle/Essentia-Studio/commit/a38534d1b843f4fd077de66708e2ff63837e19aa))
+* spawn CUDA inference workers safely ([9ccf7e8](https://github.com/Skrockle/Essentia-Studio/commit/9ccf7e8c75c0c0f0963723b64e2b78aac80ad2da))
+* stop analysis jobs promptly on cancel ([9cd131c](https://github.com/Skrockle/Essentia-Studio/commit/9cd131ce7508b945ea286e84ea4746e368684d89))
+* use verified model archive for ONNX image ([ab40e1d](https://github.com/Skrockle/Essentia-Studio/commit/ab40e1deb1769ebe8a7b479f3a6d54da872bbf38))
+* use verified model archive for ONNX image ([1d479f0](https://github.com/Skrockle/Essentia-Studio/commit/1d479f0dc6bfe02b68c43081e5208f7bc0a3ca7c))
+* validate all ONNX model hashes during build ([42e0756](https://github.com/Skrockle/Essentia-Studio/commit/42e07565533ef2452c37a673e902e5fc9506fe2f))
+* validate all ONNX model hashes during build ([0b9df4a](https://github.com/Skrockle/Essentia-Studio/commit/0b9df4a0a2b8704c87ed67ffed2877da9b85ef2d))
+* validate complete library selections ([59bec36](https://github.com/Skrockle/Essentia-Studio/commit/59bec36d20df825deebe2491c512d785327182e5))
+* validate persisted analysis job scope ([7c20afe](https://github.com/Skrockle/Essentia-Studio/commit/7c20afea654814e581d1a4c87a5fdf2469cd0fe6))
+
+
+### Performance Improvements
+
+* batch CUDA classification heads ([a16b8e7](https://github.com/Skrockle/Essentia-Studio/commit/a16b8e737b21948ff852df34be918ee3ddf38d91))
+* batch CUDA classification heads ([ada6552](https://github.com/Skrockle/Essentia-Studio/commit/ada6552e425600366592aa609828719573586da8))
+
 ## [1.2.0](https://github.com/Skrockle/Essentia-Studio/compare/essentia-studio-v1.1.0...essentia-studio-v1.2.0) (2026-07-18)
 
 
